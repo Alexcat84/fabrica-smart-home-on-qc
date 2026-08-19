@@ -310,9 +310,26 @@ def validar_dispositivos_contra_catalogo(cliente: dict, catalogo: dict, inf: Inf
 
 
 def validar_software(cliente: dict, catalogo: dict, inf: Informe) -> None:
-    ids = {s["id"] for s in catalogo["software"]}
+    """ADR-010: lo que se despliega en casa del cliente sale de `software-cliente.yaml`.
+
+    Declarar una herramienta interna como desplegada no es un descuido de catalogo: es afirmar que
+    se entrega algo que no se entrega, y por tanto declarar una obligacion de licencia que no
+    existe -o peor, ocultar que si se entrega algo que deberia estar en la otra lista.
+    """
+    ids_cliente = {s["id"] for s in catalogo["software_cliente"]}
+    ids_empresa = {s["id"] for s in catalogo["software_empresa"]}
+
     for comp in cliente.get("software_desplegado") or []:
-        if comp not in ids:
+        if comp in ids_cliente:
+            continue
+        if comp in ids_empresa:
+            inf.error(
+                f"ADR-010: '{comp}' esta en datos-maestros/software-empresa.yaml, que es "
+                f"herramienta interna y no se entrega al cliente. Si de verdad se instala en su "
+                f"equipo, muevelo a software-cliente.yaml: en ese momento adquiere su obligacion de "
+                f"licencia, y no antes."
+            )
+        else:
             inf.error(
                 f"El componente de software '{comp}' no existe en datos-maestros/software-cliente.yaml. "
                 f"Sin entrada de catalogo no hay licencia declarada ni apendice que entregar."

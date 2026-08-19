@@ -78,6 +78,48 @@ class ADR001_CatalogoObligatorio(unittest.TestCase):
         self.assertTrue(hay_error_con(inf, "no existe en datos-maestros/software-cliente.yaml"))
 
 
+class ADR010_LineaDivisoriaDeLicencias(unittest.TestCase):
+    """El disparador de la obligacion es la entrega, no el uso."""
+
+    def test_declarar_una_herramienta_interna_como_desplegada_se_rechaza(self):
+        """Ansible es GPL-3.0 y no se entrega. Decir que se entrega es afirmar algo falso."""
+        d = cliente_base()
+        d["software_desplegado"].append("ansible")
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "ADR-010"))
+        self.assertTrue(hay_error_con(inf, "no se entrega al cliente"))
+
+    def test_el_apendice_de_licencias_no_incluye_herramientas_internas(self):
+        import sys
+        sys.path.insert(0, str(RAIZ / "herramientas-empresa" / "generador"))
+        import generar
+
+        catalogo = validar.cargar_catalogo()
+        texto = generar.apendice_licencias(cliente_base(), catalogo)
+        self.assertNotIn("Ansible", texto)
+        self.assertNotIn("CPython", texto)
+        self.assertIn("Home Assistant Core", texto)
+
+    def test_ninguna_herramienta_interna_declara_obligacion(self):
+        catalogo = validar.cargar_catalogo()
+        con_obligacion = [
+            s["id"] for s in catalogo["software_empresa"]
+            if s["obligacion_licencia"] != "ninguna"
+        ]
+        self.assertEqual(
+            con_obligacion, [],
+            "Nada de software-empresa.yaml genera obligacion: no se entrega (ADR-010)",
+        )
+
+    def test_ansible_sigue_siendo_gpl_y_sigue_sin_obligacion(self):
+        """El caso de manual. Si alguien lo 'corrige' a fuente_si_modificado, esto falla."""
+        catalogo = validar.cargar_catalogo()
+        ansible = next(s for s in catalogo["software_empresa"] if s["id"] == "ansible")
+        self.assertIn("GPL", ansible["licencia"])
+        self.assertEqual(ansible["obligacion_licencia"], "ninguna")
+        self.assertFalse(ansible["se_entrega_al_cliente"])
+
+
 class ADR002_CertificacionCanadiense(unittest.TestCase):
     def test_instalable_en_caja_sin_certificacion_verificada(self):
         d = cliente_base()

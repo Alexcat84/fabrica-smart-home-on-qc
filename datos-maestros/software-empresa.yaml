@@ -1,8 +1,117 @@
 # Componentes de software INTERNOS de la empresa
 #
-# Se rellena en el commit siguiente, cuando se aplique el criterio de la linea divisoria.
-# El criterio, adelantado: el disparador de la obligacion de licencia es la ENTREGA en hardware del
-# cliente, no el uso. Lo que corre en la estacion de trabajo de la empresa y nunca se entrega no
-# genera obligacion de distribucion, por permisiva o copyleft que sea su licencia.
+# Corren en la estacion de trabajo de la empresa o en el banco. **Nunca se entregan al cliente.**
+#
+# Por eso NINGUNO genera obligacion de distribucion, por copyleft que sea su licencia. Ansible es
+# GPL-3.0 y git es GPL-2.0, y da igual: la obligacion de estas licencias se dispara al **entregar**
+# el software a un tercero, no al usarlo. Ver ADR-010 en docs/DECISIONES.md.
+#
+# Este archivo existe para poder afirmar eso con una lista delante, en lugar de con un razonamiento.
+# Si algun dia un componente de aqui pasa a instalarse en el equipo del cliente, se mueve a
+# software-cliente.yaml y en ese momento -no antes- adquiere su obligacion.
+#
+# `obligacion_licencia: ninguna` en todos, y es correcto: describe la obligacion PRACTICA de la
+# empresa, que es lo que este campo significa.
 ---
-[]
+
+- id: ansible
+  nombre: Ansible
+  licencia: GPL-3.0
+  repo_url: https://github.com/ansible/ansible
+  version_fijada: null
+  rol: Despliegue reproducible entre clientes. Aprovisiona el controlador desde cero.
+  obligacion_licencia: ninguna
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: false
+  modificado_por_nosotros: false
+  url_parche_publicado: null
+  notas: >-
+    EL CASO DE MANUAL DE ADR-010. Es GPL-3.0, la licencia mas copyleft del stack, y no genera
+    ninguna obligacion: se ejecuta desde nuestra estacion de trabajo contra el anfitrion del cliente
+    por SSH, y no queda instalado en el equipo que se le vende. No hay entrega, luego no hay
+    distribucion. Los roles de herramientas-empresa/ansible/ son obra nuestra y se quedan en este
+    repositorio privado.
+
+- id: python
+  nombre: CPython
+  licencia: PSF-2.0
+  repo_url: https://github.com/python/cpython
+  version_fijada: null
+  rol: Interprete del generador, el validador, las calculadoras y el detector de secretos.
+  obligacion_licencia: ninguna
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: false
+  modificado_por_nosotros: false
+  url_parche_publicado: null
+  notas: >-
+    Version minima 3.12: el codigo usa sintaxis de union de tipos y `dataclass` con `field`.
+    Se fija junto al resto del banco (fila B-04).
+
+- id: pyyaml
+  nombre: PyYAML
+  licencia: MIT
+  repo_url: https://github.com/yaml/pyyaml
+  version_fijada: null
+  rol: Lectura de datos maestros, paquetes y archivos de cliente.
+  obligacion_licencia: ninguna
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: false
+  modificado_por_nosotros: false
+  url_parche_publicado: null
+  notas: >-
+    Implementa YAML 1.1, donde `ON`, `OFF`, `YES` y `NO` sin comillas son booleanos. Ese
+    comportamiento causo un fallo real en datos-maestros/proveedores.yaml, donde Ontario se leia
+    como `true`. Lo detectaron los esquemas JSON, no una revision humana. Una implementacion de
+    YAML 1.2 no tendria ese comportamiento, pero cambiar de libreria por esto seria desproporcionado:
+    los esquemas ya cubren el riesgo y lo cubren para todos los campos, no solo para este.
+
+- id: jinja2
+  nombre: Jinja2
+  licencia: BSD-3-Clause
+  repo_url: https://github.com/pallets/jinja
+  version_fijada: null
+  rol: Motor de plantillas del generador.
+  obligacion_licencia: ninguna
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: false
+  modificado_por_nosotros: false
+  url_parche_publicado: null
+  notas: >-
+    Se usa con `StrictUndefined`: una variable ausente aborta la generacion en lugar de escribir un
+    hueco en una configuracion que despues se despliega en casa de alguien.
+
+- id: jsonschema
+  nombre: jsonschema
+  licencia: MIT
+  repo_url: https://github.com/python-jsonschema/jsonschema
+  version_fijada: null
+  rol: Aplicacion de los esquemas de datos-maestros/esquemas/ en el validador.
+  obligacion_licencia: ninguna
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: false
+  modificado_por_nosotros: false
+  url_parche_publicado: null
+  notas: >-
+    Draft 2020-12. Es lo que convierte un campo mal escrito en un rechazo ruidoso en lugar de un
+    campo que nadie lee.
+
+- id: git
+  nombre: Git
+  licencia: GPL-2.0
+  repo_url: https://github.com/git/git
+  version_fijada: null
+  rol: Control de versiones del repositorio y soporte del hook de pre-commit.
+  obligacion_licencia: ninguna
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: false
+  modificado_por_nosotros: false
+  url_parche_publicado: null
+  notas: >-
+    Segundo caso GPL sin obligacion, por el mismo motivo que Ansible. El hook de ADR-005 se instala
+    con `git config core.hooksPath .githooks` y no necesita nada mas.

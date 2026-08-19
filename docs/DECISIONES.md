@@ -430,3 +430,76 @@ agujero: por eso aparece antes.
   soporte autorizada, en los cuatro niveles.
 - `herramientas-empresa/validador/test_vlans.py` comprueba el recuento por paquete. La contradiccion no puede volver a
   entrar sin que una prueba falle.
+
+---
+
+## ADR-010 - La linea divisoria de licencias es la entrega, no el uso
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `datos-maestros/software-cliente.yaml`, `datos-maestros/software-empresa.yaml`,
+  `docs/LICENCIAS.md`, apendice de licencias generado
+
+### Contexto
+
+Hasta ahora los 27 componentes vivian en un solo archivo, con un campo `obligacion_licencia` que
+mezclaba dos cosas distintas: **que exige la licencia** y **que nos exige a nosotros en la practica**.
+
+El caso que lo hace evidente es Ansible. Es GPL-3.0, la licencia mas copyleft del stack. En el
+archivo unico aparecia con `obligacion_licencia: fuente_si_modificado`, junto a Zigbee2MQTT y
+Vaultwarden, como si las tres nos obligaran a lo mismo. No es cierto: Ansible se ejecuta desde
+nuestra estacion de trabajo contra el anfitrion del cliente por SSH y **no queda instalado en el
+equipo que se le vende**.
+
+Eso importa en los dos sentidos. Sobrestimar la obligacion lleva a publicar codigo que no hace falta
+publicar. Subestimarla lleva a entregar un binario modificado sin la fuente correspondiente, que es
+un incumplimiento real.
+
+### Opciones consideradas
+
+1. Un solo archivo con un campo booleano `se_entrega_al_cliente`. Rechazada: el campo se olvida al
+   anadir una entrada nueva, y un descuido no produce ningun sintoma visible.
+2. **Dos archivos, y la separacion fisica hace la pregunta inevitable.** Elegida. Para anadir un
+   componente hay que decidir primero en cual de los dos va.
+3. Deducirlo de la ruta del repositorio, `producto-cliente/` frente a `herramientas-empresa/`.
+   Rechazada: no todo componente tiene plantilla, y la deduccion se rompe en cuanto uno la tenga en
+   los dos sitios.
+
+### Decision
+
+**El disparador de la obligacion de licencia es la ENTREGA en hardware del cliente, no el uso.**
+
+| | `software-cliente.yaml` | `software-empresa.yaml` |
+|---|---|---|
+| Que es | Se instala en hardware que el cliente compra y conserva | Corre en nuestra estacion de trabajo o en el banco |
+| Es distribucion | **Si** | No |
+| Obligacion | `aviso` o `fuente_si_modificado` segun licencia | **`ninguna`, sea cual sea la licencia** |
+| Aparece en el apendice del cliente | Si | **No** |
+| Componentes | 26 | 6 |
+
+La prueba para clasificar, en una pregunta: **¿queda instalado en el equipo que el cliente se lleva?**
+Si la respuesta es si, va a `software-cliente.yaml` y adquiere su obligacion. Si es no, no la tiene,
+por copyleft que sea.
+
+Ansible (GPL-3.0) y Git (GPL-2.0) estan los dos en el lado de empresa con `ninguna`, y es correcto.
+
+### Motivo
+
+Porque la obligacion de GPL y AGPL se activa al **transmitir** el software a un tercero. Usarlo
+internamente no es transmitirlo. La AGPL anade el uso en red de una version **modificada**, que es
+por lo que Vaultwarden y Grafana estan en el lado del cliente con `fuente_si_modificado` y con
+`modificado_por_nosotros: false` bien visible.
+
+### Consecuencias
+
+- **El apendice de licencias del cliente se genera SOLO desde `software-cliente.yaml`.** Listar
+  Ansible en el documento que recibe el cliente sugeriria una obligacion que no existe, y confundiria
+  a quien lo lea buscando que codigo puede pedir.
+- `validar.py` **rechaza** un archivo de cliente que declare como desplegado un componente de
+  `software-empresa.yaml`. No es un descuido de catalogo: es afirmar que se entrega algo que no se
+  entrega.
+- Cada registro lleva `se_entrega_al_cliente`, `modificado_por_nosotros` y `url_parche_publicado`.
+  La columna de parches del apendice esta vacia en toda la tabla, que es exactamente el objetivo de
+  la politica de no forkear.
+- Si un componente cruza la linea -por ejemplo, si algun dia se instalara un agente propio en el
+  equipo del cliente-, se mueve de archivo y **en ese momento**, no antes, adquiere su obligacion.

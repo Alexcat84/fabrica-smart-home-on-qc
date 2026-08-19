@@ -1,22 +1,21 @@
-# Catalogo de componentes de software
+# Componentes de software que SE ENTREGAN al cliente
 #
-# ADR-003: ningun componente puede requerir cuenta en la nube de un fabricante para funcionar.
-# ADR-006: las versiones se fijan y las actualizaciones automaticas quedan deshabilitadas. Mientras
-#          `version_fijada` sea `null`, la version aun no se ha validado en el banco de la empresa.
+# Se instalan en hardware que el cliente compra y conserva. Eso es **distribucion** en el sentido
+# legal de estas licencias, y es lo que dispara la obligacion. Ver ADR-010 en docs/DECISIONES.md.
 #
-# `obligacion_licencia` resume la obligacion practica al ENTREGAR el software en hardware vendido al
-# cliente, que es distribucion en el sentido legal de estas licencias:
-#   - aviso              : conservar avisos de copyright y de licencia; entregar apendice de licencias
-#   - fuente_si_modificado: si LO MODIFICAMOS y lo entregamos, hay que ofrecer la fuente correspondiente
-#   - ninguna            : sin obligacion practica adicional
+# Lo que corre solo en nuestra estacion de trabajo vive en `software-empresa.yaml` y no genera
+# ninguna obligacion, por copyleft que sea. El disparador es la ENTREGA, no el uso.
 #
-# La politica completa vive en docs/LICENCIAS.md. Resumen: NO forkeamos.
+# `obligacion_licencia` resume la obligacion practica al entregar:
+#   - aviso               : conservar avisos de copyright y de licencia; entregar apendice
+#   - fuente_si_modificado: si LO MODIFICAMOS y lo entregamos, hay que ofrecer la fuente
+#   - ninguna             : sin obligacion practica adicional
 #
-# Fuente de siembra: cap. 7.1 y 7.2 del plan de negocio.
+# Politica: NO forkeamos. `modificado_por_nosotros` esta en `false` en todo el archivo, y esa
+# columna vacia en el apendice del cliente es la respuesta de dos lineas a cualquier pregunta sobre
+# cumplimiento. Si alguna vez deja de estarlo, `url_parche_publicado` es obligatorio.
 #
-# Esquema:
-#   id, nombre, licencia, repo_url, version_fijada, rol, obligacion_licencia, sustituible_por,
-#   paquetes, notas
+# El apendice de licencias que se entrega con cada instalacion se genera SOLO desde este archivo.
 ---
 
 - id: home-assistant-os
@@ -28,6 +27,9 @@
   obligacion_licencia: aviso
   sustituible_por: [linux-minimo-con-contenedores]
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Alternativa: anfitrion Linux minimo ejecutando contenedores, que es lo que se usa cuando el mismo
     equipo hace de controlador y de grabador. La eleccion se registra en el archivo de cliente.
@@ -41,6 +43,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Nucleo del sistema. Version fijada, actualizacion deliberada tras validacion en banco, con
     instantanea previa y procedimiento de reversion documentado.
@@ -54,6 +59,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Autenticacion obligatoria. `allow_anonymous` en false sin excepcion, tambien en el banco de
     pruebas: una configuracion de banco relajada acaba copiada a produccion.
@@ -67,6 +75,9 @@
   obligacion_licencia: fuente_si_modificado
   sustituible_por: [integracion-zigbee-nativa]
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     GPL-3.0. Si lo modificamos y lo entregamos en hardware del cliente, eso es distribucion y hay que
     ofrecer la fuente correspondiente. Politica: no forkear; configurar y extender por mecanismos
@@ -81,6 +92,9 @@
   obligacion_licencia: aviso
   sustituible_por: [zigbee2mqtt]
   paquetes: [S, M]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Menos piezas moviles. Se elige por cliente y se registra la decision; no se mezclan las dos rutas
     sobre el mismo coordinador.
@@ -94,6 +108,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Solo se despliega si hay un dispositivo que justifique una red Z-Wave. No se levanta por defecto.
 
@@ -106,6 +123,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Ruta por defecto de inferencia: OpenVINO sobre grafica Intel integrada. Sub-stream para deteccion,
     stream principal para grabacion. Retencion hibrida: continua corta mas eventos larga.
@@ -119,6 +139,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Evita que varios consumidores abran conexiones independientes contra la camara, que es una causa
     habitual de saturacion del sub-stream.
@@ -132,6 +155,9 @@
   obligacion_licencia: fuente_si_modificado
   sustituible_por: []
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Habilita el control local de mini-splits, que es un diferenciador frente a todo competidor de nube.
     Las configuraciones YAML propias no son obra derivada del firmware, pero cualquier parche al
@@ -146,6 +172,9 @@
   obligacion_licencia: fuente_si_modificado
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Las claves pertenecen al cliente. La empresa no conserva material de clave persistente de ninguna
     instalacion (ADR-005).
@@ -159,6 +188,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Se ofrecen las dos opciones y se registra la eleccion en el archivo de cliente. Por defecto, la
     opcion autoalojada para el cliente cuya motivacion es la soberania: elimina al tercero a cambio de
@@ -174,6 +206,9 @@
   obligacion_licencia: aviso
   sustituible_por: [nginx]
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Certificados internos. No se abre ningun puerto entrante en el router: el acceso remoto entra por
     el tunel.
@@ -187,6 +222,9 @@
   obligacion_licencia: aviso
   sustituible_por: [traefik]
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Se elige uno de los dos por cliente, nunca ambos.
 
@@ -199,6 +237,9 @@
   obligacion_licencia: aviso
   sustituible_por: [authentik]
   paquetes: [L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Opcional. El doble factor sobre las cuentas administrativas es obligatorio con o sin este
     componente (docs/SEGURIDAD.md).
@@ -212,6 +253,9 @@
   obligacion_licencia: aviso
   sustituible_por: [authelia]
   paquetes: [L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Mas capaz y mas pesado que Authelia. Solo cuando el numero de usuarios o de servicios lo justifica.
 
@@ -224,6 +268,9 @@
   obligacion_licencia: fuente_si_modificado
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     AGPL-3.0: la obligacion de fuente correspondiente se activa incluso por uso en red si se modifica.
     Politica: no se modifica. Pieza central de ADR-005: las credenciales reales viven aqui, no en el
@@ -238,6 +285,9 @@
   obligacion_licencia: aviso
   sustituible_por: [victoriametrics]
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Verificar la licencia de la version concreta que se despliegue: ha cambiado entre versiones
     mayores.
@@ -251,6 +301,9 @@
   obligacion_licencia: aviso
   sustituible_por: [influxdb]
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Preferible cuando el almacenamiento del controlador esta ajustado.
 
@@ -263,6 +316,9 @@
   obligacion_licencia: fuente_si_modificado
   sustituible_por: []
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     AGPL-3.0. No se modifica: los paneles se definen como configuracion, que no es obra derivada.
 
@@ -275,6 +331,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Vigila camaras, servicios del controlador y el estado del enlace. Alerta al propietario; no es un
     sistema de monitoreo de seguridad (ADR-004).
@@ -288,6 +347,9 @@
   obligacion_licencia: aviso
   sustituible_por: [borgbackup]
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     El video NO se respalda: se protege solo por redundancia de disco, y al cliente se le dice
     explicitamente. Clave de cifrado en poder del cliente.
@@ -301,6 +363,9 @@
   obligacion_licencia: aviso
   sustituible_por: [restic]
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Se elige uno de los dos por cliente y se documenta en el as-built, porque determina el
     procedimiento de restauracion que el cliente puede ejecutar sin nosotros.
@@ -314,6 +379,9 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     La empresa NO aloja respaldos de cliente. El destino externo es la cuenta de almacenamiento del
     propio cliente o un disco externo que el cliente rota.
@@ -327,6 +395,9 @@
   obligacion_licencia: fuente_si_modificado
   sustituible_por: []
   paquetes: [S, M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Da visibilidad de estado, aviso de bateria baja y apagado ordenado. Exige UPS con puerto de datos:
     por eso es requisito del catalogo de hardware y no una opcion.
@@ -340,23 +411,12 @@
   obligacion_licencia: aviso
   sustituible_por: []
   paquetes: [L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Configurar en modo local. Sin puertos entrantes abiertos la superficie ya es pequena; esto cubre
     el trafico que si entra por el tunel.
-
-- id: ansible
-  nombre: Ansible
-  licencia: GPL-3.0
-  repo_url: https://github.com/ansible/ansible
-  version_fijada: null
-  rol: Despliegue reproducible entre clientes. Herramienta interna de la empresa.
-  obligacion_licencia: fuente_si_modificado
-  sustituible_por: []
-  paquetes: [S, M, L, XL]
-  notas: >-
-    Herramienta INTERNA: se ejecuta desde la estacion de trabajo de la empresa y no se entrega al
-    cliente, por lo que no hay distribucion. Los roles propios son obra nuestra y se quedan en este
-    repositorio privado.
 
 - id: linux-minimo-con-contenedores
   nombre: Anfitrion Linux minimo con contenedores
@@ -367,6 +427,9 @@
   obligacion_licencia: aviso
   sustituible_por: [home-assistant-os]
   paquetes: [M, L, XL]
+  se_entrega_al_cliente: true
+  modificado_por_nosotros: false
+  url_parche_publicado: null
   notas: >-
     Ruta preferida cuando Frigate y Home Assistant comparten anfitrion, porque da control directo
     sobre el acceso a la grafica integrada y sobre el montaje de los discos de vigilancia. A cambio,

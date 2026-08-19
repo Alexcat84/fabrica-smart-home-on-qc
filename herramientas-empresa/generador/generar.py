@@ -217,8 +217,12 @@ def documento_calculos(cliente: dict, calculos: dict) -> str:
 
 
 def apendice_licencias(cliente: dict, catalogo: dict) -> str:
-    """Apendice de licencias de lo realmente desplegado. Se entrega con cada instalacion."""
-    por_id = {s["id"]: s for s in catalogo["software"]}
+    """Apendice de licencias de lo realmente desplegado. Se entrega con cada instalacion.
+
+    ADR-010: se genera SOLO desde `software-cliente.yaml`. Las herramientas internas no aparecen
+    porque no se entregan, y listarlas sugeriria una obligacion que no existe.
+    """
+    por_id = {s["id"]: s for s in catalogo["software_cliente"]}
     desplegado = cliente.get("software_desplegado") or []
 
     lineas = [
@@ -239,8 +243,25 @@ def apendice_licencias(cliente: dict, catalogo: dict) -> str:
         s = por_id.get(idc, {})
         lineas.append(
             f"| {s.get('nombre', idc)} | {s.get('version_fijada') or 'por fijar'} | "
-            f"{s.get('licencia', 'por determinar')} | {s.get('repo_url') or '-'} | - |"
+            f"{s.get('licencia', 'por determinar')} | {s.get('repo_url') or '-'} | "
+            f"{s.get('url_parche_publicado') or '-'} |"
         )
+
+    modificados = [
+        por_id[i] for i in desplegado if por_id.get(i, {}).get("modificado_por_nosotros")
+    ]
+    if modificados:
+        lineas += [
+            "",
+            "## Componentes modificados por la empresa",
+            "",
+            "Para cada uno, la fuente correspondiente esta publicada en el repositorio indicado.",
+            "",
+        ]
+        lineas += [
+            f"- {s['nombre']}: {s.get('url_parche_publicado') or 'PENDIENTE DE PUBLICAR'}"
+            for s in modificados
+        ]
 
     con_obligacion = [
         por_id[i] for i in desplegado
