@@ -61,8 +61,11 @@ vlans:
   cantidad: 6
   presentes: [10, 20, 30, 40, 50, 60]
   ausentes: []
+  resuelto_por: ADR-009
   notas: >-
-    Segmentacion completa, incluida Management (50) separada.
+    Segmentacion completa. L es el PRIMER nivel con Management (50) como VLAN separada
+    (ADR-009): a partir de aqui el numero de equipos de red gestionados justifica el
+    segmento propio.
 
 internet_minimo:
   bajada_mbps: 100

@@ -121,7 +121,10 @@ camaras:
     consumo_w: null                           # de ficha tecnica; null usa el tipico del tipo
     clase_poe: 802.3at
     bitrate_principal_mbps: 8.0
-    bitrate_substream_mbps: 0.5               # parametro de DISENO, no valor heredado (M-12)
+    # OBLIGATORIO si el catalogo no trae `substream_bitrate_mbps` medido para esta familia.
+    # No hay valor por defecto: de este numero depende si el visionado concurrente que se
+    # promete cabe en la subida contratada, en los DOS escenarios (M-13).
+    bitrate_substream_mbps: 0.5
     substream_ancho: 640
     substream_alto: 480
     substream_fps: 5

@@ -56,14 +56,12 @@ vlans:
   cantidad: 5
   presentes: [10, 20, 30, 40, 60]
   ausentes: [50]
-  discrepancia_fuente: >-
-    El cap. 8.1 fija cinco VLAN en este nivel, mientras que el cap. 8.2.1 describe Management (50) y
-    Guest (60) como presentes "de M en adelante", lo que darian seis. Se adopta la lectura coherente
-    con el recuento: Guest se despliega y Management se pliega dentro de Controller hasta el nivel L.
-    Fila abierta en docs/POR-VERIFICAR.md para que el autor del plan lo confirme.
+  resuelto_por: ADR-009
   notas: >-
-    Management (50) plegado dentro de Controller (40). El acceso administrativo sigue restringido a
-    un equipo autorizado o a una sesion de soporte, aunque comparta segmento.
+    Management (50) se despliega a partir del nivel L. En S y en M se pliega dentro de Controller
+    (40). El acceso administrativo sigue restringido a un equipo autorizado o a una sesion de
+    soporte, aunque comparta segmento: la restriccion la aplica el cortafuegos, no la existencia de
+    una VLAN separada. Ver ADR-009 en docs/DECISIONES.md.
 
 internet_minimo:
   bajada_mbps: 50

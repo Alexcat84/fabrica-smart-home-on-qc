@@ -21,6 +21,17 @@
 #   id, categoria, fabricante, pais_fabricante, modelo, protocolo, tension, instalable_en_caja,
 #   certificacion, ised, control_local_sin_nube, disponibilidad_canada, proveedores,
 #   precio_lista_cad, precio_distribuidor_cad, paquetes, notas, fuente_url, verificado
+#
+# CAMPOS ADICIONALES DE LA CATEGORIA `camara`:
+#   substream_bitrate_mbps  bitrate real del sub-stream, medido en banco por modelo y firmware
+#   substream_resolucion    resolucion y cadencia del sub-stream, del tipo "640x480@5"
+#
+# Existen porque el sub-stream es un PARAMETRO DE DISENO, no un valor heredado de la camara:
+# determina si el minimo de subida publicado para el paquete se sostiene con los visores
+# concurrentes prometidos. herramientas/calc_ancho_banda.py los lee de aqui, no de una constante.
+# Mientras esten en `null` y el archivo de cliente no los declare, generador/validar.py rechaza el
+# cliente: no se promete visionado remoto simultaneo sobre un numero que nadie ha medido.
+# Ver docs/POR-VERIFICAR.md, fila M-13.
 ---
 
 # =====================================================================================
@@ -43,12 +54,17 @@
   precio_lista_cad: null
   precio_distribuidor_cad: null
   paquetes: [S, M, L, XL]
+  estado: excepcion_documentada
   notas: >-
-    Solucion de referencia para cajas sin neutro, que es el obstaculo tecnico mas comun en el parque
-    de vivienda anterior a los anos ochenta en Ontario y Quebec. Verificar la compatibilidad de la
-    lampara LED concreta contra la lista publicada del atenuador antes de cotizar. El control local
-    pasa por un puente: hay que confirmar el modelo que expone interfaz local documentada sin cuenta
-    de fabricante (ADR-003). Sembrado del cap. 6.3.4 del plan de negocio.
+    EXCEPCION DOCUMENTADA, no solucion de referencia (ADR-003, enmienda de 2026-08-19). Introduce un
+    puente propietario adicional con registro en la nube del fabricante, lo que choca con la regla de
+    control local sin cuenta y con la de red unica de radio. Se especifica solo cuando el arbol de
+    ADR-008 llega a la rama "sin neutro, con espacio" y ninguna alternativa certificada de un solo
+    ecosistema sirve para ese circuito; se registra el motivo en el archivo de cliente y se declara
+    al cliente por escrito en el as-built. Condicionada a la fila A-02 de docs/POR-VERIFICAR.md: si
+    se resuelve en contra, pasa al registro de exclusion. Verificar ademas la compatibilidad de la
+    lampara LED concreta contra la lista publicada del atenuador antes de cotizar. Sembrado del
+    cap. 6.3.4 del plan de negocio.
   fuente_url: null
   verificado: false
 
@@ -68,9 +84,11 @@
   precio_lista_cad: null
   precio_distribuidor_cad: null
   paquetes: [S, M, L, XL]
+  estado: excepcion_documentada
   notas: >-
-    Mando complementario para circuitos de tres y cuatro vias. Nunca se mezclan fabricantes dentro
-    de un mismo grupo multivia.
+    Mando complementario para circuitos de tres y cuatro vias. Hereda el estado de excepcion
+    documentada de lutron-caseta-dimmer-sin-neutro: solo se especifica dentro de un grupo multivia
+    que ya use esa familia. Nunca se mezclan fabricantes dentro de un mismo grupo multivia.
   fuente_url: null
   verificado: false
 
@@ -136,7 +154,12 @@
   paquetes: [M, L, XL]
   notas: >-
     Conmutacion o atenuacion configurable, control de escenas y barra LED de estado. Muy bien
-    soportado por controladores de codigo abierto. Actua como router de la malla Zigbee.
+    soportado por controladores de codigo abierto. Actua como router de la malla Zigbee y no anade
+    ningun puente: un solo ecosistema de radio. Es la rama por defecto del arbol de ADR-008 cuando
+    hay neutro, y la CANDIDATA PRINCIPAL para la rama sin neutro. Fila A-08 de docs/POR-VERIFICAR.md:
+    confirmar operacion sin neutro, certificacion cETL sobre la unidad fisica y si la carga exige
+    modulo de bypass. Si A-08 se resuelve a favor, la rama sin neutro se cubre sin puente propietario
+    y la excepcion de Lutron deja de ser necesaria.
   fuente_url: null
   verificado: false
 
@@ -246,9 +269,11 @@
   precio_distribuidor_cad: null
   paquetes: [M, L, XL]
   notas: >-
-    Entrada abierta a proposito. Hace falta un modulo de montaje en dosel certificado para Canada
-    para el caso "sin neutro y sin espacio en la caja". El plan de negocio marca esta opcion como
-    pendiente de identificar. Fila de urgencia ALTA en docs/POR-VERIFICAR.md.
+    TERCERA RAMA del arbol de ADR-008: "sin neutro y sin espacio en la caja". Entrada abierta a
+    proposito: hace falta identificar un modulo de montaje en dosel certificado para Canada. Requiere
+    acceso al luminario y mando inalambrico de pared. Sin esta rama resuelta, el caso no tiene
+    solucion aprobada y hay que decirlo en el relevamiento en lugar de improvisar en obra. Fila A-02
+    de docs/POR-VERIFICAR.md, que absorbio la antigua A-03.
   fuente_url: null
   verificado: false
 
@@ -937,6 +962,8 @@
     Grabacion enteramente local sobre hardware propiedad del cliente. Ecosistema cerrado pero
     genuinamente local: adecuado para el cliente que valora la fiabilidad por encima de la apertura.
     Verificar por modelo el rango de temperatura de operacion para invierno canadiense.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
   fuente_url: null
   verificado: false
 
@@ -960,6 +987,8 @@
     Buena relacion precio-imagen. El soporte de RTSP y ONVIF varia por modelo y por version de
     firmware: verificar modelo por modelo antes de comprometer un lote de compra. No ofrecer al
     segmento sensible a linaje de cadena de suministro sin divulgarlo por escrito.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
   fuente_url: null
   verificado: false
 
@@ -982,6 +1011,8 @@
   notas: >-
     Respuesta correcta para el hogar con habilitacion de seguridad o vinculado a la industria de
     defensa. Linaje de cadena de suministro claro. Coste mayor, justificado por el segmento.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
   fuente_url: null
   verificado: false
 
@@ -1004,6 +1035,8 @@
   notas: >-
     Segunda fuente premium por distribucion de seguridad canadiense. Mismo argumento de linaje que
     Axis. Verificar rango de temperatura y calefactor por modelo.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
   fuente_url: null
   verificado: false
 

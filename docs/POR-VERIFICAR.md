@@ -1,8 +1,12 @@
-# Cola de verificacion
+# Cola de verificacion — tecnica y comercial
 
 Todo dato que este repositorio no conoce con certeza vive aqui hasta que alguien lo confirma contra la
 fuente primaria. Es una cola de trabajo, no un apendice. La regla que la crea es ADR-001 en
 `docs/DECISIONES.md`: no se inventan numeros de parte, precios ni afirmaciones de certificacion.
+
+> Las consultas a **organismos reguladores, aseguradoras y aduanas** viven aparte, en
+> [POR-VERIFICAR-REGULATORIO.md](POR-VERIFICAR-REGULATORIO.md). Se separaron porque tienen otro
+> ritmo, otro interlocutor y otra forma de cierre: piden respuesta escrita, no medicion.
 
 ## Como se usa
 
@@ -12,6 +16,18 @@ fuente primaria. Es una cola de trabajo, no un apendice. La regla que la crea es
 3. La verificacion de certificacion se hace sobre la marca impresa en la unidad fisica en recepcion,
    no sobre una pagina web. Los fabricantes envian variantes distintas del mismo nombre de modelo
    segun el mercado de destino.
+
+## Como esta ordenada
+
+**Por lo que desbloquea, no por lo que cuesta.** La columna *Desbloquea* es la razon del orden: las
+cuentas de distribucion van primero porque son el canal por el que se responden casi todas las demas
+filas de urgencia ALTA. Una conversacion con el distribuidor resuelve precio, disponibilidad,
+certificacion por SKU y buena parte del linaje de cadena de suministro. Empezar por A-01 sin cuenta
+abierta significa perseguir veintidos fichas tecnicas una por una, y volver a empezar cuando el SKU
+cambie.
+
+Los identificadores **no se renumeran al reordenar**: el orden cambia, la referencia no, porque hay
+codigo y documentos que apuntan a estas filas por su id.
 
 ## Leyenda de urgencia
 
@@ -25,45 +41,56 @@ fuente primaria. Es una cola de trabajo, no un apendice. La regla que la crea es
 
 ## URGENCIA ALTA
 
-| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | Bloquea |
+### Primero: abrir el canal
+
+| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | **Desbloquea** |
 |---|---|---|---|---|
-| A-01 | **Certificacion cULus / cETL / CSA por SKU de todo dispositivo con `instalable_en_caja: true`.** Son 22 entradas del catalogo. Ninguna se puede especificar en un archivo de cliente mientras `certificacion` sea `null`: `validar.py` lo rechaza. | `catalogo/dispositivos.yaml`, campo `certificacion` | Marca impresa en la unidad fisica en recepcion; ficha tecnica del SKU norteamericano | Toda compra e instalacion |
-| A-02 | **Ruta de control local de Lutron Caseta sin cuenta de fabricante.** Que modelo de puente expone interfaz local documentada. Si ninguno cumple, cae ADR-003 y hay que sustituir la solucion de referencia para cajas sin neutro, que es el caso mas frecuente del parque antiguo. | `catalogo/dispositivos.yaml`, `lutron-caseta-dimmer-sin-neutro` | Documentacion tecnica de Lutron; prueba en banco con la propiedad desconectada de internet | Toda instalacion en vivienda sin neutro |
-| A-03 | **Modulo de montaje en dosel certificado para Canada.** La entrada `modulo-canopy-certificado` existe sin fabricante. Es el unico camino para "sin neutro y sin espacio en caja". El plan de negocio marca esta opcion como pendiente de identificar. | `catalogo/dispositivos.yaml`, `modulo-canopy-certificado` | Distribucion electrica (Nedco, Westburne, Guillevin); catalogos de fabricante | Cotizacion de reformas en vivienda antigua |
-| A-04 | **Requisitos de apertura de cuenta de cada distribuidor**: numero de empresa, prueba de seguro, licencia exigida. `requiere_licencia` esta en `null` en nueve proveedores. | `catalogo/proveedores.yaml` | Contacto comercial directo con cada distribuidor | Precio de distribuidor, y con el todo el margen bruto |
-| A-05 | **Precio de distribuidor real de todo el catalogo.** Los valores de proyecto de `paquetes/` son indicativos y hay que reconstruirlos desde precio real en cuanto haya cuentas. | `catalogo/dispositivos.yaml`, `precio_distribuidor_cad`; `paquetes/*.yaml` | Listas de precio de distribuidor tras abrir cuenta | Toda cotizacion |
-| A-06 | **Estado vigente del linaje de cadena de suministro de camaras.** Antes de publicar cualquier afirmacion sobre una marca concreta ante el segmento vinculado al gobierno federal. | `catalogo/excluidos.yaml`, `camara-linaje-restringido` | Publicaciones gubernamentales vigentes | Propuestas al segmento principal de la Region de la Capital Nacional |
-| A-07 | **Limite de duracion de sirena del reglamento municipal de ruido** en Ottawa, Gatineau, Montreal y todo municipio servido. Determina el temporizador de corte, que es obligatorio. | Plantillas de automatizacion de sirena (Fase 2) | Reglamentos municipales | Toda instalacion con sirena |
+| **A-04** | **Requisitos de apertura de cuenta de cada distribuidor**: numero de empresa, prueba de seguro, licencia exigida. `requiere_licencia` esta en `null` en nueve proveedores. | `catalogo/proveedores.yaml` | Contacto comercial directo con cada distribuidor | **A-05, A-01, A-06 y parte de A-02.** Es la puerta: sin cuenta no hay lista de precios, no hay ficha tecnica por SKU y no hay interlocutor a quien preguntar por linaje |
+| **A-05** | **Precio de distribuidor real de todo el catalogo.** Los valores de proyecto de `paquetes/` son indicativos y hay que reconstruirlos desde precio real en cuanto haya cuentas. | `catalogo/dispositivos.yaml`, `precio_distribuidor_cad`; `paquetes/*.yaml` | Listas de precio de distribuidor, tras A-04 | **Toda cotizacion**, y con ella el margen bruto, que es lo que decide si el negocio es viable |
+
+### Despues: lo que el canal responde
+
+| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | **Desbloquea** |
+|---|---|---|---|---|
+| **A-01** | **Certificacion cULus / cETL / CSA por SKU de todo dispositivo con `instalable_en_caja: true`.** Son 22 entradas del catalogo. Ninguna se puede especificar en un archivo de cliente mientras `certificacion` sea `null`: `validar.py` lo rechaza. | `catalogo/dispositivos.yaml`, campo `certificacion` | Marca impresa en la unidad fisica en recepcion; ficha tecnica del SKU norteamericano, via A-04 | **Toda compra e instalacion.** Es la fila que mas dispositivos libera de golpe |
+| **A-08** | **Inovelli Blue Series 2-1: operacion sin neutro y certificacion cETL.** Confirmar (a) que opera sin conductor neutro, (b) la marca cETL sobre la unidad fisica, y (c) **a partir de que carga exige modulo de bypass**, y cual es el modulo certificado. | `catalogo/dispositivos.yaml`, `inovelli-blue-2-1` | Fabricante y Aartech Canada; prueba en banco con la lampara LED real | **La rama 2 del arbol de ADR-008 sin puente propietario.** Si sale a favor, la excepcion de Lutron (A-02) deja de ser necesaria y el catalogo vuelve a un solo ecosistema de radio |
+| **A-02** | **Lutron Caseta: ruta de control local sin cuenta, y modulo de dosel certificado.** Dos preguntas que comparten decision: (a) que modelo de puente expone interfaz local documentada sin cuenta de fabricante; (b) que modulo de montaje en dosel certificado para Canada cubre el caso "sin neutro y sin espacio". *(Absorbe la antigua A-03.)* | `catalogo/dispositivos.yaml`, `lutron-caseta-dimmer-sin-neutro` y `modulo-canopy-certificado` | Documentacion de Lutron; prueba en banco con la propiedad desconectada de internet; distribucion electrica para el dosel | **Las ramas 2 y 3 del arbol de ADR-008.** Si (a) sale en contra, Caseta pasa al registro de exclusion; si (b) no se resuelve, el caso "sin neutro y sin espacio" no tiene solucion aprobada y hay que decirlo en el relevamiento en lugar de improvisar en obra |
+| **A-06** | **Estado vigente del linaje de cadena de suministro de camaras**, antes de publicar cualquier afirmacion sobre una marca concreta ante el segmento vinculado al gobierno federal. | `catalogo/excluidos.yaml`, `camara-linaje-restringido` | Publicaciones gubernamentales vigentes; distribuidor, via A-04 | **Propuestas al segmento principal** de la Region de la Capital Nacional, que es el mercado de lanzamiento |
+
+### En paralelo: no depende del canal
+
+| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | **Desbloquea** |
+|---|---|---|---|---|
+| **A-07** | **Limite de duracion de sirena del reglamento municipal de ruido** en Ottawa, Gatineau, Montreal y todo municipio servido. Determina el temporizador de corte, que es obligatorio. | `plantillas/homeassistant/packages/seguridad.yaml.j2`; `minutos_corte` en el archivo de cliente | Reglamentos municipales. Ver tambien R-13 en la cola regulatoria | **Toda instalacion con sirena.** Un temporizador mal puesto es una infraccion, no un detalle |
 
 ---
 
 ## URGENCIA MEDIA
 
-| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | Bloquea |
+| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | **Desbloquea** |
 |---|---|---|---|---|
-| M-01 | **Numero de certificacion ISED** de todo dispositivo con radio, incluidos los de bateria, que quedan fuera del regimen de certificacion electrica pero no del de radio. | `catalogo/dispositivos.yaml`, campo `ised` | Etiqueta del dispositivo; base de datos de ISED | Diseno detallado |
-| M-02 | **Soporte real de RTSP y ONVIF de Reolink, modelo por modelo y version de firmware por version.** Varia dentro de la misma linea. | `catalogo/dispositivos.yaml`, `reolink-poe-camara` | Prueba en banco del modelo concreto antes de comprometer un lote | Compra por lotes de camaras |
-| M-03 | **Rango de temperatura de operacion por modelo de camara**, hasta al menos treinta grados bajo cero. Las camaras de cuerpo plastico ya estan excluidas, pero el rango hay que confirmarlo tambien en las aprobadas. | `catalogo/dispositivos.yaml`, todas las camaras | Ficha tecnica del modelo | Instalacion exterior |
-| M-04 | **Generacion de procesador de los equipos reacondicionados disponibles**, que determina el soporte de OpenVINO y de decodificacion por hardware. | `catalogo/dispositivos.yaml`, familias de computo | Inventario real de los reacondicionadores calificados | Dimensionado del controlador |
+| M-01 | **Numero de certificacion ISED** de todo dispositivo con radio, incluidos los de bateria, que quedan fuera del regimen de certificacion electrica pero no del de radio. | `catalogo/dispositivos.yaml`, campo `ised` | Etiqueta del dispositivo; base de datos de ISED | Diseno detallado y as-built completo |
+| M-02 | **Soporte real de RTSP y ONVIF de Reolink, modelo por modelo y version de firmware por version.** Varia dentro de la misma linea. | `catalogo/dispositivos.yaml`, `reolink-poe-camara` | Prueba en banco del modelo concreto | Compra por lotes de camaras |
+| M-03 | **Rango de temperatura de operacion por modelo de camara**, hasta al menos treinta grados bajo cero. | `catalogo/dispositivos.yaml`, todas las camaras | Ficha tecnica del modelo | Instalacion exterior, que es casi toda |
+| M-04 | **Generacion de procesador de los equipos reacondicionados disponibles**, que determina el soporte de OpenVINO y de decodificacion por hardware. | `catalogo/dispositivos.yaml`, familias de computo | Inventario real de los reacondicionadores calificados | Dimensionado del controlador; ver `docs/BANCO.md` |
 | M-05 | **Calificar al menos dos reacondicionadores canadienses concretos.** Criterios: garantia, consistencia de generacion entre lotes, continuidad del mismo modelo y plazo de reposicion. | `catalogo/proveedores.yaml`, `reacondicionadores-ca` | Contacto comercial | Continuidad de plataforma del controlador |
 | M-06 | **Licencia de la version concreta de InfluxDB que se despliegue.** Ha cambiado entre versiones mayores y determina la obligacion del apendice de licencias. | `catalogo/software.yaml`, `influxdb` | Repositorio upstream de la version fijada | Apendice de licencias del cliente |
-| M-07 | **Condiciones vigentes de la opcion comercial del plano de control de la malla** para uso comercial. | `catalogo/software.yaml`, `plano-control-malla` | Terminos del servicio | Cotizacion de la opcion comercial |
-| M-08 | **Discrepancia de recuento de VLAN en el nivel M.** El cap. 8.1 fija cinco; el cap. 8.2.1 describe Management y Guest como presentes de M en adelante, lo que darian seis. Adoptado provisionalmente: Guest presente, Management plegado en Controller. | `paquetes/M-standard.yaml`, `vlans.discrepancia_fuente` | Autor del plan de negocio | Plantilla de red del nivel M |
-| M-12 | **Bitrate del sub-stream por modelo de camara.** El minimo de subida publicado para el paquete M (10 Mbps) solo se sostiene si el sub-stream de cada camara ronda 0,5 Mbps. A 1 Mbps, dos visores concurrentes agotan el enlace y no queda margen para el hogar. El sub-stream es parametro de diseno, no valor heredado de la camara. | `clientes/*/cliente.yaml`, `camaras[].bitrate_substream_mbps` | Medicion en banco por modelo | Promesa de visionado remoto simultaneo en el nivel M |
-| M-09 | **Fabricante y modelo de rele de carril DIN certificado para Canada.** | `catalogo/dispositivos.yaml`, `rele-din-certificado` | Distribucion electrica | Diseno de tablero de automatizacion en niveles L y XL |
+| M-07 | **Condiciones vigentes de la opcion comercial del plano de control de la malla** para uso comercial. | `catalogo/software.yaml`, `plano-control-malla` | Terminos del servicio. Ver tambien R-21 | Cotizacion de la opcion comercial |
+| M-09 | **Fabricante y modelo de rele de carril DIN certificado para Canada.** | `catalogo/dispositivos.yaml`, `rele-din-certificado` | Distribucion electrica, via A-04 | Tablero de automatizacion en niveles L y XL |
 | M-10 | **Compatibilidad de sonda de piso radiante** con la ya instalada. Es la causa habitual de que el reemplazo falle en obra. | `catalogo/dispositivos.yaml`, `termostato-piso-radiante` | Ficha tecnica del termostato y de la sonda existente | Instalacion de piso radiante |
 | M-11 | **Ruta local de ecobee**: que funciones vendidas cubre realmente Matter o la interfaz local de HomeKit sin la nube del fabricante. | `catalogo/dispositivos.yaml`, `ecobee-termostato` | Prueba en banco con la propiedad desconectada de internet | Propuestas de aire forzado en Ontario |
+| M-13 | **Bitrate y resolucion del sub-stream, por modelo y firmware de camara.** Los campos existen y estan en `null`. Mientras lo esten, cada archivo de cliente tiene que declararlos o `validar.py` lo rechaza. | `catalogo/dispositivos.yaml`, `substream_bitrate_mbps` y `substream_resolucion` | Medicion en banco. Ver `docs/BANCO.md` | Que el archivo de cliente no tenga que medirlo sitio por sitio. *(Sucede a M-12, cerrada al implementar los dos escenarios.)* |
 
 ---
 
 ## URGENCIA BAJA
 
-| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | Bloquea |
+| # | Que hay que verificar | Donde vive el dato | Fuente a consultar | **Desbloquea** |
 |---|---|---|---|---|
-| B-01 | **Numeros de modelo concretos** de las familias donde `modelo` es `null`. Solo son necesarios al fijar el SKU de compra. | `catalogo/dispositivos.yaml`, campo `modelo` | Catalogo del distribuidor | Nada; mejora la precision del catalogo |
+| B-01 | **Numeros de modelo concretos** de las familias donde `modelo` es `null`. | `catalogo/dispositivos.yaml`, campo `modelo` | Catalogo del distribuidor | Nada; mejora la precision del catalogo |
 | B-02 | **Precio de lista** (`precio_lista_cad`). Util para calcular el descuento del distribuidor, no para cotizar. | `catalogo/dispositivos.yaml` | Retail publico | Nada |
 | B-03 | **`contacto_url` de los dieciseis proveedores.** | `catalogo/proveedores.yaml` | Web de cada proveedor | Nada |
-| B-04 | **Versiones a fijar de los veintisiete componentes de software.** Se fijan al estandarizar el banco de la empresa, no antes. | `catalogo/software.yaml`, `version_fijada` | Banco de pruebas de la empresa | Primer despliegue reproducible |
+| B-04 | **Versiones a fijar de los veintisiete componentes de software.** | `catalogo/software.yaml`, `version_fijada` | Banco de la empresa. Procedimiento en `docs/BANCO.md` | Primer despliegue reproducible de verdad |
 | B-05 | **Distribucion Linux concreta** para la opcion de anfitrion minimo con contenedores. | `catalogo/software.yaml`, `linux-minimo-con-contenedores` | Decision interna al estandarizar el banco | Nada |
 | B-06 | **Cobertura provincial real de Memory Express**, antes de prometer plazos de entrega. | `catalogo/proveedores.yaml`, `memory-express` | Web del proveedor | Nada |
 
@@ -73,4 +100,6 @@ fuente primaria. Es una cola de trabajo, no un apendice. La regla que la crea es
 
 | Fecha | Dato | Resultado | Quien | Fuente |
 |---|---|---|---|---|
-| _(vacio)_ | | | | |
+| 2026-08-19 | **M-08**, discrepancia de recuento de VLAN en el nivel M | **Resuelta por ADR-009.** Management es VLAN separada de L en adelante; en S y M se pliega en Controller sin que las reglas de cortafuegos dejen de aplicarse. Recuento final 4 / 5 / 6 / 6, verificado por `generador/test_vlans.py` sobre la plantilla renderizada | sesion 2 | Contradiccion interna entre los cap. 8.1 y 8.2.1 del plan, resuelta por criterio de diseno |
+| 2026-08-19 | **M-12**, sub-stream como parametro de diseno | **Cerrada.** `substream_bitrate_mbps` y `substream_resolucion` anadidos al esquema de camara; `calc_ancho_banda.py` los lee del registro del dispositivo en lugar de una constante y evalua dos escenarios. Hallazgo asociado: **el minimo de 10 Mbps publicado para el paquete M cubre la vista general pero no que un visor abra una camara 4K en principal**, que pide 17,5 Mbps. La medicion por modelo pasa a M-13 | sesion 2 | Implementacion y prueba `test_el_minimo_publicado_del_paquete_m_no_sobrevive_al_escalamiento` |
+| 2026-08-19 | **A-03**, modulo de dosel certificado | **Fusionada en A-02.** Las dos preguntas comparten decision: si Caseta no tiene ruta local sin cuenta, la rama 2 del arbol cae y el peso recae entero sobre el dosel de la rama 3 | sesion 2 | ADR-008 |

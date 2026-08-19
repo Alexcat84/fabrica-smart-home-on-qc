@@ -123,9 +123,21 @@ La politica de licencias esta en `docs/LICENCIAS.md`. Resumen: **no forkeamos**.
 
 ## 6. Segmentacion fisica y logica
 
-Una sola red fisica. Seis VLAN con separacion aplicada por cortafuegos direccional y con estado. El
-segundo octeto se asigna por cliente desde el registro de la empresa, para que dos sitios nunca
-colisionen cuando un tecnico esta conectado a ambos por la superposicion de soporte.
+Una sola red fisica. Hasta seis VLAN con separacion aplicada por cortafuegos direccional y con
+estado. El segundo octeto se asigna por cliente desde el registro de la empresa, para que dos sitios
+nunca colisionen cuando un tecnico esta conectado a ambos por la superposicion de soporte.
+
+**Cuantas VLAN por nivel** (ADR-009):
+
+| Paquete | VLAN | Presentes | Notas |
+|---|---|---|---|
+| S | 4 | Trusted, IoT, Camera, Controller | Management plegada en Controller; sin Guest |
+| M | 5 | + Guest | Management plegada en Controller |
+| L | 6 | + Management | Primer nivel con VLAN de gestion separada |
+| XL | 6 o mas | Las seis | Separacion adicional por inquilino donde aplique |
+
+Plegar Management **no relaja la politica**: las reglas que la nombran se aplican igualmente sobre
+las interfaces de gestion, que en S y M viven dentro del segmento Controller.
 
 ```
    10.<octeto>.10.0/24   Trusted      familia
@@ -148,7 +160,7 @@ Los competidores citan periodos de retencion sin hacer el calculo. Nosotros lo a
 |---|---|---|
 | Almacenamiento | `TB = (Mbps / 8) x 86400 x camaras x dias / 1e6` | `herramientas/calc_almacenamiento.py` |
 | Presupuesto PoE | Suma del peor caso, con infrarrojo nocturno y calefactor, mas **40 % de holgura** | `herramientas/calc_poe.py` |
-| Ancho de banda de subida | Bitrate del sub-stream x visores concurrentes + margen del hogar | `herramientas/calc_ancho_banda.py` |
+| Ancho de banda de subida | Dos escenarios: (1) sub-stream x visores + margen; (2) lo anterior mas el salto de una camara a stream principal | `herramientas/calc_ancho_banda.py` |
 
 Regla practica de referencia: una camara a 8 Mbps consume unos 86 GB al dia.
 

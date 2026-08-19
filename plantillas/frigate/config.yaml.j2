@@ -152,6 +152,7 @@ cameras:
 # Presupuesto PoE segun herramientas/calc_poe.py:
 #   peor caso {{ calculos.poe_peor_caso_w }} W, requerido con 40 % de holgura
 #   {{ calculos.poe_requerido_w }} W (switch: {{ poe.presupuesto_switch_w }} W)
-# Ancho de banda de subida segun herramientas/calc_ancho_banda.py:
-#   {{ visores_concurrentes }} visor(es) => {{ calculos.subida_requerida_mbps }} Mbps
-#   (contratado: {{ red.subida_mbps }} Mbps)
+# Ancho de banda de subida segun herramientas/calc_ancho_banda.py (contratado: {{ red.subida_mbps }} Mbps):
+#   escenario 1, vista general con {{ visores_concurrentes }} visor(es) => {{ calculos.subida_requerida_mbps }} Mbps
+#   escenario 2, uno de ellos escala una camara a principal => {{ calculos.subida_requerida_escalamiento_mbps }} Mbps
+#   (salto maximo del inventario: {{ calculos.subida_salto_maximo_mbps }} Mbps)

@@ -135,6 +135,32 @@ a tu propio telefono", que es la posicion de venta que sostiene todo el modelo.
 - La actualizacion de firmware de camaras pasa a ser tarea manual programada del tecnico. Es un argumento
   del plan de cuidado, no un defecto.
 
+### Enmienda 2026-08-19: Lutron Caseta pasa de solucion de referencia a excepcion documentada
+
+La primera version del catalogo trataba Lutron Caseta como **la** solucion para cajas sin neutro. Esa
+posicion es incompatible con esta ADR y con la regla de red unica, y se retira.
+
+**Motivo, explicito:** Caseta introduce un **puente propietario adicional** en la propiedad, con
+**registro en la nube del fabricante**. Eso choca con dos reglas a la vez:
+
+1. **Control local sin cuenta (esta ADR).** El control local depende de una interfaz del puente cuya
+   disponibilidad sin cuenta de fabricante **no esta confirmada** (fila A-02 de
+   `docs/POR-VERIFICAR.md`). Mientras no lo este, la afirmacion "funciona sin internet y sin cuenta"
+   no se puede sostener ante el cliente.
+2. **Red unica de radio** (regla de diseno del cap. 6.2, recogida en `docs/ARQUITECTURA.md`): una red
+   Zigbee por propiedad, un coordinador. Caseta anade un segundo ecosistema de radio con su propio
+   puente, y cada ecosistema adicional multiplica la carga de soporte sin anadir capacidad.
+
+**Nueva posicion:** excepcion documentada. Se especifica solo cuando el arbol de decision de ADR-008
+llega a la rama "sin neutro, con espacio" y **ninguna alternativa certificada de un solo ecosistema
+sirve** para ese circuito. Cuando se especifique:
+
+- Se registra el motivo en el archivo de variables del cliente.
+- Se declara al cliente por escrito, en el as-built, que hay un puente adicional y que su registro
+  en la nube del fabricante es una dependencia externa del sistema.
+- Queda condicionada a que A-02 se resuelva a favor. Si se resuelve en contra, Caseta pasa al
+  registro de exclusion y las ramas 2 y 3 de ADR-008 son las unicas disponibles.
+
 ---
 
 ## ADR-004 - No hay fuego: exclusion total de seguridad de vida
@@ -278,3 +304,129 @@ sea el plan de negocio lo declara en `notas` cuando no exista URL primaria.
 ### Motivo
 
 Trazabilidad del dato hasta su origen, que es precisamente lo que ADR-001 exige poder demostrar.
+
+---
+
+## ADR-008 - Iluminacion sin neutro: arbol de decision, no solucion unica
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `catalogo/dispositivos.yaml`, relevamiento, diseno de iluminacion
+
+### Contexto
+
+Una parte grande del parque de vivienda de Ontario y Quebec anterior a los anos ochenta no tiene
+conductor neutro en la caja del interruptor. Es el obstaculo tecnico mas frecuente del trabajo de
+reforma y hay que resolverlo en el relevamiento, no el dia de la instalacion.
+
+La primera version del catalogo trataba Lutron Caseta como **la solucion de referencia** para este
+caso. Eso era un error de arquitectura: convertia un caso particular en la ruta por defecto, y
+arrastraba consigo un puente propietario adicional que choca con dos reglas del repositorio.
+
+### Opciones consideradas
+
+1. Mantener una solucion de referencia unica. Rechazada: hace depender toda la linea de iluminacion
+   en vivienda antigua de un solo fabricante y de su ruta de control local, que ni siquiera esta
+   confirmada (fila A-02 de `docs/POR-VERIFICAR.md`).
+2. Decidir caso por caso en obra. Rechazada: la decision se toma con el material ya comprado.
+3. **Arbol de decision explicito, evaluado en el relevamiento.** Elegida.
+
+### Decision
+
+El caso se resuelve **en este orden**, y la primera rama que aplique es la que se especifica:
+
+```
+  Hay neutro en la caja?
+   |
+   +-- SI  --> INTERRUPTOR O ATENUADOR ESTANDAR
+   |           Ruta por defecto. La mas amplia en catalogo, la mas barata y la que menos
+   |           piezas anade. Leviton Decora Smart, Inovelli Blue 2-1, Sinope.
+   |
+   +-- NO --> Hay espacio en la caja?
+               |
+               +-- SI  --> ATENUADOR SIN NEUTRO CERTIFICADO
+               |           Dispositivo disenado para el mercado norteamericano, con marca cULus,
+               |           cETL o CSA verificada sobre la unidad fisica. Verificar la
+               |           compatibilidad con la lampara LED concreta ANTES de cotizar, y si la
+               |           carga exige modulo de bypass.
+               |
+               +-- NO  --> MODULO DE DOSEL
+                           Montado en el dosel del luminario, con mando inalambrico de pared.
+                           Requiere acceso al luminario. Certificado para Canada.
+```
+
+Circuitos multivia: dispositivos companeros **de la misma familia**. Nunca se mezclan fabricantes
+dentro de un grupo multivia, en ninguna de las tres ramas.
+
+### Motivo
+
+Las tres ramas son soluciones legitimas para situaciones distintas. Nombrar una como *la* solucion
+esconde que las otras dos existen, y empuja a comprar el producto equivocado para el caso que se
+tiene delante. El relevamiento (`plantillas-cliente/informe-relevamiento.*`) ya recoge las tres
+preguntas que este arbol necesita: neutro presente, profundidad de caja y multivia.
+
+### Consecuencias
+
+- La rama por defecto es la de neutro presente, no la de Lutron. La mayoria de las cajas de
+  construccion posterior a los ochenta caen ahi.
+- La rama sin neutro depende de la fila **A-08** de `docs/POR-VERIFICAR.md`: confirmar operacion sin
+  neutro y certificacion cETL del Inovelli Blue Series 2-1, incluida la necesidad de modulo de
+  bypass segun carga.
+- La rama de dosel depende de la fila **A-02**, que absorbio la antigua A-03.
+- Lutron Caseta deja de ser solucion de referencia y pasa a **excepcion documentada**. Ver
+  ADR-003, seccion de consecuencias.
+
+---
+
+## ADR-009 - Management es VLAN separada de L en adelante
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente. Resuelve la discrepancia registrada como M-08.
+- **Ambito:** `paquetes/`, `plantillas/red/`, `docs/ARQUITECTURA.md`, `docs/SEGURIDAD.md`
+
+### Contexto
+
+El plan de negocio se contradecia a si mismo. El cap. 8.1 fija el numero de VLAN por paquete en
+4 / 5 / 6 / 6 para S / M / L / XL. El cap. 8.2.1 describe Management (50) y Guest (60) como presentes
+"de M en adelante", lo que daria seis en M y haria a M y L identicos en segmentacion.
+
+La primera version del repositorio adopto una lectura provisional y abrio la fila M-08 para que el
+autor lo confirmase. Esta entrada la cierra.
+
+### Opciones consideradas
+
+1. Seis VLAN desde M. Rechazada: contradice el recuento publicado y deja M y L sin diferencia de
+   segmentacion, lo que hace la tabla de paquetes incoherente como argumento de venta.
+2. Guest desde M y Management desde L. **Elegida.**
+3. Management desde M y Guest desde L. Rechazada: Guest es lo que el cliente pide y ve; Management es
+   una decision interna. Retrasar Guest hasta L seria retrasar una funcion visible por una razon
+   invisible.
+
+### Decision
+
+| Paquete | VLAN | Management (50) | Guest (60) |
+|---|---|---|---|
+| S | 4 | Plegada en Controller | No se despliega |
+| M | 5 | Plegada en Controller | **Presente** |
+| L | 6 | **Presente** | Presente |
+| XL | 6 o mas | Presente | Presente |
+
+### Motivo
+
+En S y M el numero de equipos de red gestionados es pequeno -una pasarela, un switch y uno o dos
+puntos de acceso- y un segmento propio para ellos anade mantenimiento sin anadir seguridad real. A
+partir de L hay varios switches y tres o mas puntos de acceso, y el segmento propio empieza a pagar
+por si mismo.
+
+Guest, en cambio, es una funcion que el cliente pide explicitamente y que sin aislamiento es un
+agujero: por eso aparece antes.
+
+### Consecuencias
+
+- **Plegar Management NO relaja la politica de cortafuegos.** Las reglas que la nombran se aplican
+  igualmente sobre las interfaces de gestion, que en S y M viven dentro del segmento Controller. Esta
+  advertencia esta escrita en `plantillas/red/firewall.yaml.j2` para que nadie la deduzca al reves.
+- El acceso administrativo sigue restringido a un equipo autorizado declarado o a una sesion de
+  soporte autorizada, en los cuatro niveles.
+- `generador/test_vlans.py` comprueba el recuento por paquete. La contradiccion no puede volver a
+  entrar sin que una prueba falle.

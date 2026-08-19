@@ -1,4 +1,4 @@
-# Prompt de continuacion — sesion 2
+# Prompt de continuacion — sesion 3
 
 Copia todo lo que sigue (desde la linea de guiones) y pegalo en Claude Code, en el directorio del
 repositorio.
@@ -8,9 +8,15 @@ repositorio.
 # ESTADO
 
 Trabajas en `fabrica-smart-home-on-qc`, el repositorio de ingenieria de una integradora de smart
-homes local-first para Ontario y Quebec. Las fases 0 a 4 estan completas y en `main`. Lee primero
-`README.md`, `docs/DECISIONES.md` (las cinco reglas inviolables) y `docs/POR-VERIFICAR.md` (la cola
-de trabajo real).
+homes local-first para Ontario y Quebec. Las fases 0 a 5 estan completas y en `main`.
+
+Lee primero, en este orden:
+
+1. `README.md`
+2. `docs/DECISIONES.md` — nueve ADR. Las cinco primeras son las reglas inviolables
+3. `docs/POR-VERIFICAR-REGULATORIO.md` — **empieza por R-01**
+4. `docs/POR-VERIFICAR.md` — cola tecnica, ordenada por lo que desbloquea
+5. `docs/BANCO.md` — requisito previo a escribir roles de ansible
 
 # PRIMER PASO, OBLIGATORIO
 
@@ -27,51 +33,66 @@ Los diez pasos deben pasar antes de tocar nada. Si alguno falla, arreglar eso es
 
 # LO QUE TOCA EN ESTA SESION
 
-Elige con el usuario entre estos frentes. Estan en orden de valor:
+Los frentes estan en orden de riesgo, no de comodidad. Elige con el usuario.
 
-## A. Vaciar la cola de urgencia ALTA (recomendado)
+## A. R-01, y el resto de la cola regulatoria
 
-Siete filas de `docs/POR-VERIFICAR.md` bloquean el primer proyecto pagado. Ninguna se resuelve
-escribiendo codigo: son llamadas, cuentas de distribucion y verificaciones fisicas. El trabajo del
-repositorio es soportarlas:
+**R-01 bloquea toda venta en Quebec**: si instalar camaras IP y sensores locales sin panel de
+intrusion y sin monitoreo exige licencia de agencia de seguridad privada. Es la primera llamada del
+negocio y ninguna cantidad de codigo compensa equivocarse ahi.
 
-- A-01: certificacion por SKU de los 22 dispositivos instalables en caja.
-- A-02: ruta de control local de Lutron Caseta sin cuenta de fabricante. **Si no existe, cae ADR-003
-  y hay que sustituir la solucion de referencia para cajas sin neutro**, que es el caso mas frecuente
-  del parque antiguo. Es el riesgo tecnico mas serio del catalogo.
-- A-03: modulo de dosel certificado para Canada.
-- A-04 y A-05: requisitos de apertura de cuenta y precio real de distribuidor.
-- A-06: linaje de cadena de suministro de camaras.
-- A-07: limite de duracion de sirena del reglamento de ruido de Ottawa, Gatineau y Montreal.
+Detras van R-06 (RBQ) y R-09 (comerciante itinerante), que tambien afectan a si se puede firmar un
+contrato en Quebec, y R-16 (seguro), que es prerrequisito para abrir varias cuentas de distribucion.
 
-A medida que se verifiquen: actualizar el YAML, poner `verificado: true`, rellenar `fuente_url`,
-borrar la fila de la tabla y anotarla en el registro de verificaciones del final del documento.
+El trabajo del repositorio aqui es de registro, no de codigo: actualizar estado, fecha y respuesta
+escrita en `docs/POR-VERIFICAR-REGULATORIO.md`, y aplicar la consecuencia donde toque. **No cierres
+una fila con una llamada telefonica**: se pide confirmacion por correo y se archiva.
 
-## B. Completar los roles de ansible
+Falta abrir **R-18** (trabajo en altura y seguridad en construccion, item 23 del cap. 14), que quedo
+anotada pero sin fila para no simular cobertura. Abrela cuando haya personal contratado.
 
-`base/` y `soporte_remoto/` estan implementados. Los otros ocho (`docker`, `homeassistant`,
-`frigate`, `mosquitto`, `zigbee2mqtt`, `red`, `backup`, `monitorizacion`) son esqueletos con
-`tasks/main.yml` vacio a proposito: no se escribieron a ciegas porque no habia banco donde probarlos.
+## B. Montar el banco, y solo entonces escribir los roles
 
-Se implementan contra el banco de la empresa, uno por uno, verificando idempotencia: ejecutar dos
-veces seguidas no debe cambiar nada la segunda vez. El objetivo que hay que poder demostrar es el de
-`runbooks/restaurar-controlador.md`: reconstruccion completa en menos de cuatro horas.
+`docs/BANCO.md` especifica hardware minimo, que se prueba y como se fijan las 27 versiones.
 
-## C. Fijar versiones del stack
+Ocho roles de `ansible/roles/` siguen siendo esqueletos a proposito: `docker`, `homeassistant`,
+`frigate`, `mosquitto`, `zigbee2mqtt`, `red`, `backup`, `monitorizacion`. `base` y `soporte_remoto`
+si estan implementados.
 
-`catalogo/software.yaml` tiene los 27 componentes con `version_fijada: null`. Se fijan al
-estandarizar el banco, no antes. Hasta entonces no hay despliegue reproducible de verdad (ADR-006).
+**No los escribas sin banco.** Un rol sin ejecutar es una suposicion con sintaxis YAML. El criterio
+de aceptacion de cada uno es `changed=0` en la segunda pasada, medido, y va a la tabla de la seccion
+3.1 de `docs/BANCO.md`.
 
-## D. Segundo cliente real
+El banco cierra ademas siete filas de la cola tecnica de una sola vez: A-08, A-02, M-02, M-04, M-11,
+M-13 y B-04.
 
-Copiar `clientes/_plantilla-cliente.yaml`, rellenarlo con un relevamiento real y validarlo. Es la
-prueba de que la fabrica sirve para algo mas que para el demo. **Ojo:** el validador rechaza a
-proposito la verificacion de certificacion marcada `EJEMPLO-NO-REAL` en cualquier cliente que no
-declare `es_ejemplo: true`. Eso es deliberado, no un fallo.
+## C. Abrir el canal de distribucion
+
+A-04 y A-05 encabezan la cola tecnica **porque son la via por la que se responden A-01, A-06 y parte
+de A-02**. Una conversacion con el distribuidor resuelve precio, disponibilidad, certificacion por
+SKU y buena parte del linaje. Requiere R-16 (prueba de seguro) resuelto antes.
+
+## D. Cerrar el arbol de ADR-008
+
+A-08 (Inovelli Blue 2-1 sin neutro, cETL, y a partir de que carga exige bypass) es la fila que
+decide si la rama 2 del arbol se cubre **sin puente propietario**. Si sale a favor, la excepcion de
+Lutron Caseta deja de ser necesaria y el catalogo vuelve a un solo ecosistema de radio.
+
+Si A-02 (a) sale en contra, Caseta pasa al registro de exclusion y hay que reescribir la rama 2.
+
+## E. Segundo cliente real
+
+Copiar `clientes/_plantilla-cliente.yaml`, rellenarlo con un relevamiento real y validarlo.
+
+Dos cosas que el validador rechaza a proposito y no son fallos:
+
+- La verificacion de certificacion marcada `EJEMPLO-NO-REAL` en cualquier cliente que no declare
+  `es_ejemplo: true`.
+- Una camara sin bitrate de sub-stream medido, ni en catalogo ni en el archivo de cliente.
 
 # REGLAS QUE NO CAMBIAN
 
-1. No se inventan numeros de parte, precios ni certificaciones. `null` y fila en POR-VERIFICAR.
+1. No se inventan numeros de parte, precios ni certificaciones. `null` y fila en la cola.
 2. Nada instalable en caja electrica sin marca canadiense visible (cULus, cETL o CSA).
 3. Ningun componente puede requerir cuenta en la nube de un fabricante.
 4. No hay fuego: nada toca seguridad de vida.
@@ -80,8 +101,16 @@ declare `es_ejemplo: true`. Eso es deliberado, no un fallo.
 Ramas por fase, un commit por unidad logica, mensajes en espanol. `README` y runbooks en espanol; lo
 que ve el cliente, en ingles y frances.
 
+# COSAS QUE YA SE DECIDIERON, NO LAS REABRAS SIN MOTIVO
+
+- **ADR-008**: la iluminacion sin neutro es un arbol de tres ramas, no una solucion de referencia.
+- **ADR-009**: Management es VLAN separada de L en adelante. 4 / 5 / 6 / 6.
+- **ADR-003, enmienda**: Lutron Caseta es excepcion documentada, no ruta por defecto.
+- El ancho de banda se evalua en **dos escenarios** y los dos tienen que caber.
+- Los identificadores de las colas **no se renumeran** al reordenarlas.
+
 # AL CERRAR
 
-Commitea y pushea todo. Entrega: (1) que quedo hecho, (2) que quedo abierto, (3)
-`docs/POR-VERIFICAR.md` en orden de urgencia, y (4) el prompt de continuacion para la siguiente
-sesion, empezando por commitear y pushear lo pendiente.
+Commitea y pushea todo. Entrega: (1) que quedo hecho, (2) que quedo abierto, (3) el estado de las dos
+colas en orden de urgencia, y (4) el prompt de continuacion para la siguiente sesion, empezando por
+commitear y pushear lo pendiente.

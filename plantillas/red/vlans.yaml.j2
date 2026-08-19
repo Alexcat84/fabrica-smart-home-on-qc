@@ -83,12 +83,16 @@ vlans:
     acceso_internet_detalle: Salvo descarga deliberada de firmware por el tecnico.
 {% if 50 in paquete_def.vlans.presentes %}
     presente: true
+    nota: >-
+      Management separada. Se despliega de L en adelante (ADR-009), cuando el numero de equipos de
+      red gestionados justifica el segmento propio.
 {% else %}
     presente: false
     plegada_en: 40
     nota: >-
-      En este nivel Management se pliega dentro de Controller. El acceso administrativo sigue
-      restringido a un equipo autorizado o a una sesion de soporte autorizada.
+      En este nivel (S y M) Management se pliega dentro de Controller (ADR-009). El acceso
+      administrativo sigue restringido a un equipo autorizado o a una sesion de soporte autorizada:
+      la restriccion la aplica el cortafuegos, no la existencia de una VLAN separada.
 {% endif %}
 
   - id: 60
