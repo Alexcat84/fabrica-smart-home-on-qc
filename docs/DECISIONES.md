@@ -777,3 +777,65 @@ Vale para cualquier segmento que se pliegue en el futuro, no solo para Managemen
 
 Las tres fallan contra el modelo anterior. Comprobado degradando la plantilla a proposito: seis
 fallos en los cuatro paquetes.
+
+---
+
+## ADR-013 - La reversion depende de si la actualizacion migra el esquema del recorder
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `docs/BANCO.md` seccion 3.2.1, `herramientas-empresa/runbooks/aplicar-actualizacion.md`
+
+### Contexto
+
+El ensayo de reversion de ADR anteriores fija un criterio de **cero datos perdidos**. Ese criterio no
+se puede cumplir siempre, y darlo por universal es peor que no tenerlo.
+
+Home Assistant migra periodicamente el esquema de la base de datos del `recorder`. **La migracion es
+unidireccional**: al arrancar la version nueva, la base se transforma, y la version anterior ya no la
+puede leer. Revertir el binario deja al sistema con una base ilegible.
+
+En ese caso la reversion, tal como se definio, **no existe**. La unica via es restaurar respaldo, y
+eso pierde todo el historial desde el punto de respaldo: eventos de camara, estados, energia.
+
+Hoy eso se descubre **despues** de actualizar, que es exactamente cuando ya no sirve saberlo.
+
+### Decision
+
+**Paso previo obligatorio en toda actualizacion**, antes de tocar nada:
+
+> Leer las notas de version y **determinar si la actualizacion migra el esquema del recorder**.
+
+De ahi salen dos rutas con criterios distintos:
+
+| | **RUTA A — sin migracion** | **RUTA B — con migracion** |
+|---|---|---|
+| Reversion | Existe | **No existe** |
+| Mecanismo | Volver al binario o imagen anterior | Restaurar respaldo |
+| Criterio de datos | **Cero perdidos** | **Perdida declarada**, no cero |
+| Que se mide | Tiempo de reversion < 30 min | Tiempo de restauracion **y volumen de historial perdido** |
+| Rodaje en banco | Opcional | **Obligatorio** |
+| Ventana con el cliente | Recomendada | **Obligatoria, acordada por adelantado** |
+
+**En ruta B, el volumen de historial que se va a perder se calcula y se dice al cliente ANTES de
+aplicar**, no despues. Es la diferencia entre una decision informada y una disculpa.
+
+### Motivo
+
+Un criterio que no se puede cumplir se incumple en silencio. Si el runbook dice "cero datos
+perdidos" y la realidad de una migracion es que se pierden dos semanas de historial, lo que pasa es
+que nadie apunta la perdida y el criterio deja de significar nada, tambien para los casos donde si
+era alcanzable.
+
+Separar las dos rutas conserva el criterio duro donde aplica, y sustituye la promesa imposible por
+una **medicion declarada** donde no aplica.
+
+### Consecuencias
+
+- El paso previo es **el primero** del runbook de actualizacion, antes incluso de la instantanea.
+- Ruta B exige rodaje en banco: no se aplica a un cliente una migracion que no se ha visto correr.
+- El registro de servicio del cliente anota la ruta usada. A los dos anos, "por que falta el
+  historico de marzo" tiene respuesta.
+- Esto no aplica solo a Home Assistant. Cualquier componente con estado migrado -base de datos de
+  Zigbee, indice del grabador- se clasifica igual. La pregunta es la misma: **¿la version anterior
+  puede leer lo que escribio la nueva?**
