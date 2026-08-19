@@ -1,0 +1,93 @@
+# Paquete XL - Estate / light commercial
+#
+# Fuente: cap. 8.1, 8.2.1, 8.3.2 y 8.5 del plan de negocio.
+# ADR-001: el valor de proyecto se cotiza caso por caso. No hay rango publicado.
+---
+id: XL
+nombre: Estate
+propiedad_objetivo: Propiedad grande, varios edificios, local comercial pequeno
+
+capacidad:
+  dispositivos_automatizados_min: 120
+  dispositivos_automatizados_max: null    # 250 o mas; se dimensiona por calculo
+  camaras_min: 13
+  camaras_max: 24
+  resolucion_camaras: 4K
+  notas: >-
+    Por encima de 100 a 150 dispositivos con malla sana conviene dividir en una segunda red Zigbee o
+    pasar a solucion cableada. Un solo coordinador no cubre este nivel por si solo.
+
+retencion:
+  continua_dias: 14
+  continua_dias_max: 30
+  eventos_dias: 90
+  politica: hibrida
+
+controlador:
+  tipo: servidor de rack, o controlador y grabador en anfitriones separados
+  ram_gb_min: 32
+  ram_gb_max: null
+  candidatos: [servidor-rack-xl]
+  inferencia: grafica Intel integrada (OpenVINO); acelerador discreto opcional
+  notas: >-
+    Unico nivel donde el acelerador de inferencia discreto entra como opcion, y sigue sin ser la ruta
+    por defecto.
+
+almacenamiento:
+  nvme_sistema_gb: 500
+  vigilancia_tb: 32            # util, no bruto
+  redundancia: paridad o espejo en NAS
+  candidatos: [nas-synology, wd-purple-vigilancia, seagate-skyhawk-vigilancia, nvme-sistema]
+  notas: >-
+    32 TB utiles o mas, calculados con herramientas/calc_almacenamiento.py sobre el bitrate real de
+    cada camara. Las instantaneas del sistema de archivos mitigan borrado y corrupcion; la redundancia
+    no lo hace.
+
+red:
+  gateway: 1
+  switch_poe_puertos: null     # varios switches; se dimensiona por conteo de puertos y presupuesto PoE
+  puntos_acceso: null          # diseno inalambrico dedicado
+  enlaces_fibra_entre_edificios: true
+  candidatos: [unifi-gateway, switch-poe-plus-24, punto-acceso-wifi]
+  patch_panel_obligatorio: true
+
+energia:
+  ups_va: null                 # UPS de rack, dimensionado por carga calculada
+  ups_camaras_dedicado: true
+  circuito_dedicado_rack: true
+  candidatos: [ups-cyberpower-senoidal, ups-apc-senoidal]
+  carga_rack_w_min: 400
+  carga_rack_w_max: null
+  failover_celular_recomendado: true
+
+vlans:
+  cantidad: 6                  # o mas
+  presentes: [10, 20, 30, 40, 50, 60]
+  ausentes: []
+  separacion_por_inquilino: true
+  notas: >-
+    Seis o mas, con separacion adicional por inquilino cuando la propiedad aloja mas de una unidad
+    ocupante. El segundo octeto se asigna por cliente desde el registro de la empresa.
+
+internet_minimo:
+  bajada_mbps: 300
+  subida_mbps: 40
+  simetrico_preferido: true
+  motivo: >-
+    Modelo de tres flujos (ADR-012). Escenario vinculante: cuadricula de 18 camaras con tres
+    visores (32,0) mas apertura sobre flujo medio (+1,5) => 33,5 Mbps. Se publica 40. BAJA DESDE
+    LOS 50 PUBLICADOS ANTES por el mismo motivo que L. Se mantiene la preferencia por enlace
+    simetrico: a este numero de camaras, la cuadricula sola ya domina el enlace.
+  recalculado: 2026-08-19
+
+esfuerzo:
+  instalacion_dias_min: 12
+  instalacion_dias_max: null
+
+comercial:
+  valor_proyecto_cad_min: 30000
+  valor_proyecto_cad_max: null
+  plan_cuidado_cad_mes: null   # cotizado caso por caso
+  verificado: false
+  notas: >-
+    A partir de 30.000 CAD. El plan de cuidado se cotiza; no hay tarifa publicada para este nivel.

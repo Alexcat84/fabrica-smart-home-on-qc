@@ -29,6 +29,7 @@ archivada.
 | Estado | Significado |
 |---|---|
 | `abierta` | Nadie ha preguntado todavia |
+| `preparada` | Texto redactado y listo para enviar, con fecha de preparacion. **Todavia no enviado**: enviarlo es una accion humana y la fecha de envio la rellena quien lo envie |
 | `consultada` | Preguntado, sin respuesta aun |
 | `respondida` | Respuesta recibida, pendiente de aplicar al repositorio o al contrato |
 | `cerrada` | Respuesta recibida, archivada y aplicada |
@@ -40,7 +41,7 @@ archivada.
 
 | # | Pregunta | Organismo | Estado | Fecha de consulta | Respuesta escrita | Que bloquea |
 |---|---|---|---|---|---|---|
-| **R-01** | **Instalar camaras IP y sensores locales sin panel de intrusion y sin monitoreo, ¿exige licencia de agencia de seguridad privada?** | Bureau de la securite privee | `abierta` | — | ☐ No | **TODA VENTA EN QUEBEC.** Es la primera llamada del negocio. Si la respuesta es que si, no se puede firmar ni un solo contrato en Quebec hasta tener la licencia, y el calendario y el coste de obtenerla cambian el plan financiero entero. Si es que no, **hay que conservar esa respuesta por escrito**: es la defensa si alguien lo cuestiona despues. Nada de lo que hay en este repositorio compensa equivocarse aqui |
+| **R-01** | **Instalar camaras IP y sensores locales sin panel de intrusion y sin monitoreo, ¿exige licencia de agencia de seguridad privada?** Se pregunta ademas si la respuesta cambia **con panel de intrusion y sirena local, sin monitoreo**. Texto listo en [consultas/R-01-bureau-securite-privee.md](consultas/R-01-bureau-securite-privee.md) | Bureau de la securite privee | `preparada` 2026-08-19 | _(pendiente de envio)_ | ☐ No | **TODA VENTA EN QUEBEC.** Es la primera llamada del negocio. Si la respuesta es que si, no se puede firmar ni un solo contrato en Quebec hasta tener la licencia, y el calendario y el coste de obtenerla cambian el plan financiero entero. Si es que no, **hay que conservar esa respuesta por escrito**: es la defensa si alguien lo cuestiona despues. Nada de lo que hay en este repositorio compensa equivocarse aqui |
 
 ---
 
@@ -64,7 +65,7 @@ archivada.
 |---|---|---|---|---|---|---|
 | R-09 | ¿Hacen falta permiso de comerciante itinerante y deposito de garantia para contratos firmados en el domicilio del cliente? | Office de la protection du consommateur | `abierta` | — | ☐ No | **La forma de cerrar una venta en Quebec.** Si hace falta, cambia donde se firma el contrato, no solo el papeleo |
 | R-10 | Requisitos de contenido del acuerdo directo y restricciones vigentes de venta a domicilio | Ontario Ministry of Public and Business Service Delivery | `abierta` | — | ☐ No | Plantilla de contrato en Ontario |
-| R-12 | Obligaciones linguisticas segun numero de empleados, y regla del contrato de adhesion | Office quebecois de la langue francaise | `abierta` | — | ☐ No | Los documentos de cliente ya se generan en frances (`plantillas-cliente/*.fr.md.j2`). Esta fila confirma si eso basta y desde que plantilla de empleados hay obligaciones adicionales |
+| R-12 | Obligaciones linguisticas segun numero de empleados, y regla del contrato de adhesion | Office quebecois de la langue francaise | `abierta` | — | ☐ No | Los documentos de cliente ya se generan en frances (`producto-cliente/documentos/*.fr.md.j2`). Esta fila confirma si eso basta y desde que plantilla de empleados hay obligaciones adicionales |
 
 ---
 
@@ -72,7 +73,7 @@ archivada.
 
 | # | Pregunta | Organismo | Estado | Fecha de consulta | Respuesta escrita | Que bloquea |
 |---|---|---|---|---|---|---|
-| R-11 | Obligaciones de la Ley 25 para una empresa de este tamano, requisitos del registro de incidentes y umbrales de notificacion | Commission d'acces a l'information du Quebec | `abierta` | — | ☐ No | El procedimiento de `runbooks/responder-incidente-seguridad.md` y la seccion 9 de `docs/SEGURIDAD.md` estan escritos con umbrales sin confirmar. Tambien la politica de privacidad publicada |
+| R-11 | Obligaciones de la Ley 25 para una empresa de este tamano, requisitos del registro de incidentes y umbrales de notificacion | Commission d'acces a l'information du Quebec | `abierta` | — | ☐ No | El procedimiento de `herramientas-empresa/runbooks/responder-incidente-seguridad.md` y la seccion 9 de `docs/SEGURIDAD.md` estan escritos con umbrales sin confirmar. Tambien la politica de privacidad publicada |
 
 ---
 

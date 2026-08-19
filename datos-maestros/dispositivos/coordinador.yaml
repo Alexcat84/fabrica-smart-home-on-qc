@@ -1,0 +1,116 @@
+# Categoria: coordinador
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: coordinador-zigbee-ethernet
+  categoria: coordinador
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: poe
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [aartech-canada, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    OPCION PREFERENTE. Un unico coordinador por propiedad, en el centro geometrico de la poblacion de
+    dispositivos, a dos metros como minimo del rack, de la pasarela y de cualquier dispositivo USB 3 o
+    SSD, que son fuentes fuertes de ruido en 2,4 GHz. Alimentado por Ethernet se puede colocar donde
+    llegue un cable, que es exactamente lo que hace falta. Consumo de 2 a 4 W, clase PoE.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: coordinador-zigbee-usb
+  categoria: coordinador
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [aartech-canada, newegg-ca, canada-computers]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M]
+  notas: >-
+    Alternativa cuando en Canada solo hay coordinador USB. Extender con cable USB apantallado y
+    mantenerlo lejos de puertos USB 3 y de unidades SSD. Peor emplazamiento que la version Ethernet:
+    usar solo si no hay otra.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: controlador-zwave-usb
+  categoria: coordinador
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zwave
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [aartech-canada, adi-global-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Solo cuando un dispositivo concreto lo exija. No se levanta una red Z-Wave sin motivo: cada
+    ecosistema de radio adicional multiplica la carga de soporte sin anadir capacidad. Ventaja real:
+    evita la banda de 2,4 GHz, util para contactos de puerta a larga distancia en casas grandes.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false

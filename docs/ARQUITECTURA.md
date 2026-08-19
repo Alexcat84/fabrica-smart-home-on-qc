@@ -5,15 +5,16 @@
 Una **fabrica de despliegues**. No un almacen de configuraciones de cliente.
 
 ```
-  catalogo/  +  paquetes/  +  plantillas/        clientes/<cliente>/cliente.yaml
+  datos-maestros/ + comercial/paquetes/         clientes/<cliente>/cliente.yaml
+  + producto-cliente/
         (lo que es igual en todas las casas)     (lo unico que es de esta casa)
                         \                       /
                          \                     /
                           v                   v
-                        generador/validar.py   -->  rechaza antes de comprar nada
+                        herramientas-empresa/validador/validar.py   -->  rechaza antes de comprar nada
                           |
                           v
-                        generador/generar.py
+                        herramientas-empresa/generador/generar.py
                           |
                           v
                         salida/<cliente>/
@@ -21,7 +22,7 @@ Una **fabrica de despliegues**. No un almacen de configuraciones de cliente.
                           + calculos justificados + documentos EN/FR
                           |
                           v
-                        ansible/  -->  aprovisiona el anfitrion desde cero
+            herramientas-empresa/ansible/  -->  aprovisiona el anfitrion desde cero
 ```
 
 Cuando llega un cliente nuevo el trabajo es: rellenar su archivo de variables, ejecutar el generador,
@@ -101,7 +102,7 @@ carga de soporte sin anadir capacidad.
    Ansible: herramienta INTERNA de la empresa. Aprovisiona todo lo anterior. No se entrega.
 ```
 
-El detalle por componente, con licencia y obligacion practica, esta en `catalogo/software.yaml`.
+El detalle por componente, con licencia y obligacion practica, esta en `datos-maestros/software-cliente.yaml`.
 La politica de licencias esta en `docs/LICENCIAS.md`. Resumen: **no forkeamos**.
 
 ---
@@ -131,13 +132,18 @@ nunca colisionen cuando un tecnico esta conectado a ambos por la superposicion d
 
 | Paquete | VLAN | Presentes | Notas |
 |---|---|---|---|
-| S | 4 | Trusted, IoT, Camera, Controller | Management plegada en Controller; sin Guest |
-| M | 5 | + Guest | Management plegada en Controller |
+| S | 4 | Trusted, IoT, Camera, Controller | Management plegada en **Trusted**; sin Guest |
+| M | 5 | + Guest | Management plegada en **Trusted** |
 | L | 6 | + Management | Primer nivel con VLAN de gestion separada |
 | XL | 6 o mas | Las seis | Separacion adicional por inquilino donde aplique |
 
 Plegar Management **no relaja la politica**: las reglas que la nombran se aplican igualmente sobre
-las interfaces de gestion, que en S y M viven dentro del segmento Controller.
+las interfaces de gestion, que en S y M viven dentro del segmento Trusted.
+
+Se pliega en Trusted y **no en Controller** a proposito: el anfitrion del controlador contiene las
+camaras y su grabacion, es el objetivo de mayor valor de la instalacion, y no debe tener alcance
+administrativo sobre la pasarela ni los switches. **Controller nunca alcanza Management**, en ningun
+nivel, plegada o separada.
 
 ```
    10.<octeto>.10.0/24   Trusted      familia
@@ -148,23 +154,35 @@ las interfaces de gestion, que en S y M viven dentro del segmento Controller.
    10.<octeto>.60.0/24   Guest        visitas, aisladas
 ```
 
-La matriz completa esta en `plantillas/red/firewall.yaml.j2` y explicada en `docs/SEGURIDAD.md`.
+La matriz completa esta en `producto-cliente/stack/red/firewall.yaml.j2` y explicada en `docs/SEGURIDAD.md`.
 
 ---
 
 ## 7. Dimensionado: tres calculos que se publican en cada propuesta
 
+Los tres roles de flujo de camara (ADR-012), porque condicionan el tercero:
+
+| Rol | Trabajo | Sale por el tunel |
+|---|---|---|
+| `principal` | Grabacion local | **No**, salvo peticion explicita con advertencia |
+| `medio` | Apertura de UNA camara en remoto | Si |
+| `sub` | Deteccion y cuadricula remota | Si, por defecto |
+
+**No se transcodifica en el servidor** para fabricar un flujo que la camara no publique: el equipo es
+clase N100 y el transcodificado consume el presupuesto de inferencia de la deteccion.
+
+
 Los competidores citan periodos de retencion sin hacer el calculo. Nosotros lo adjuntamos.
 
 | Calculo | Formula | Herramienta |
 |---|---|---|
-| Almacenamiento | `TB = (Mbps / 8) x 86400 x camaras x dias / 1e6` | `herramientas/calc_almacenamiento.py` |
-| Presupuesto PoE | Suma del peor caso, con infrarrojo nocturno y calefactor, mas **40 % de holgura** | `herramientas/calc_poe.py` |
-| Ancho de banda de subida | Dos escenarios: (1) sub-stream x visores + margen; (2) lo anterior mas el salto de una camara a stream principal | `herramientas/calc_ancho_banda.py` |
+| Almacenamiento | `TB = (Mbps / 8) x 86400 x camaras x dias / 1e6` | `herramientas-empresa/calculadoras/calc_almacenamiento.py` |
+| Presupuesto PoE | Suma del peor caso, con infrarrojo nocturno y calefactor, mas **40 % de holgura** | `herramientas-empresa/calculadoras/calc_poe.py` |
+| Ancho de banda de subida | **Tres** escenarios (ADR-012): (1) cuadricula sobre `sub`, (2) apertura de una camara sobre `medio`, (3) apertura sobre `principal`. Los dos primeros rechazan; el tercero advierte | `herramientas-empresa/calculadoras/calc_ancho_banda.py` |
 
 Regla practica de referencia: una camara a 8 Mbps consume unos 86 GB al dia.
 
-`generador/validar.py` rechaza el archivo de cliente si cualquiera de los tres no cuadra. Un
+`herramientas-empresa/validador/validar.py` rechaza el archivo de cliente si cualquiera de los tres no cuadra. Un
 presupuesto PoE ajustado produce caidas intermitentes de camara de noche, y son extremadamente
 dificiles de diagnosticar despues porque solo aparecen con frio y oscuridad.
 
@@ -172,7 +190,7 @@ dificiles de diagnosticar despues porque solo aparecen con frio y oscuridad.
 
 ## 8. Que se decide por cliente y que no
 
-| Vive en el archivo de cliente | Vive en las plantillas |
+| Vive en el archivo de cliente | Vive en `producto-cliente/` |
 |---|---|
 | Identidad, provincia, idioma, paquete | Estructura de configuracion de todos los componentes |
 | Segundo octeto de red | Plan de direccionamiento y matriz de cortafuegos |

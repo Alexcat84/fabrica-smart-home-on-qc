@@ -6,7 +6,7 @@ y se escribe una nueva.
 
 Las cinco primeras entradas son las **reglas inviolables** del repositorio. No son preferencias de estilo:
 cada una existe porque su incumplimiento produce un dano concreto, medible y caro. Estan implementadas
-como comprobaciones ejecutables en `generador/validar.py` y en `herramientas/detectar_secretos.py`.
+como comprobaciones ejecutables en `herramientas-empresa/validador/validar.py` y en `herramientas-empresa/detectar_secretos.py`.
 
 ---
 
@@ -14,7 +14,7 @@ como comprobaciones ejecutables en `generador/validar.py` y en `herramientas/det
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `catalogo/`, `paquetes/`, listas de materiales generadas
+- **Ambito:** `datos-maestros/`, `comercial/paquetes/`, listas de materiales generadas
 
 ### Contexto
 
@@ -38,7 +38,7 @@ confirmacion contra la fuente primaria. El catalogo hereda esa condicion.
 ### Decision
 
 Cada entrada del catalogo lleva `certificacion`, `fuente_url` y `verificado: false`. Todo dato que no se
-conozca con certeza se escribe `null` y genera una fila en `docs/POR-VERIFICAR.md`. `generador/validar.py`
+conozca con certeza se escribe `null` y genera una fila en `docs/POR-VERIFICAR.md`. `herramientas-empresa/validador/validar.py`
 rechaza cualquier archivo de cliente que dependa de un dato inventado.
 
 ### Motivo
@@ -58,7 +58,7 @@ una cotizacion que no se puede sostener o en una reclamacion de seguro denegada.
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `catalogo/dispositivos.yaml`, `catalogo/excluidos.yaml`, validacion de cliente
+- **Ambito:** `datos-maestros/dispositivos/`, `datos-maestros/excluidos.yaml`, validacion de cliente
 
 ### Contexto
 
@@ -78,8 +78,8 @@ certificacion distinta bajo el mismo nombre de modelo segun el mercado de destin
 ### Decision
 
 Ningun dispositivo entra al catalogo como `instalable_en_caja: true` sin `certificacion` en
-{cULus, cETL, CSA}. Los dispositivos con marcado europeo unicamente van a `catalogo/excluidos.yaml`
-con su motivo. `generador/validar.py` rechaza el archivo de cliente si un dispositivo marcado
+{cULus, cETL, CSA}. Los dispositivos con marcado europeo unicamente van a `datos-maestros/excluidos.yaml`
+con su motivo. `herramientas-empresa/validador/validar.py` rechaza el archivo de cliente si un dispositivo marcado
 `instalable_en_caja` no tiene certificacion.
 
 ### Motivo
@@ -101,7 +101,7 @@ categoria donde la decision correcta cuesta dinero y hay que preciarla.
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `catalogo/dispositivos.yaml`, `catalogo/software.yaml`, `plantillas/`
+- **Ambito:** `datos-maestros/dispositivos/`, `datos-maestros/software-cliente.yaml`, `producto-cliente/stack/`
 
 ### Contexto
 
@@ -118,7 +118,7 @@ exija cuenta de fabricante para operar destruye esa afirmacion y la convierte en
 ### Decision
 
 Ningun componente del stack ni del catalogo puede requerir una cuenta en la nube de un fabricante para
-funcionar. Si la requiere, va a `catalogo/excluidos.yaml` con el motivo. El campo
+funcionar. Si la requiere, va a `datos-maestros/excluidos.yaml` con el motivo. El campo
 `control_local_sin_nube: true` es obligatorio en todo dispositivo del catalogo.
 
 ### Motivo
@@ -194,7 +194,7 @@ Consecuencias concretas ya implementadas:
   temporal-tres, reservado a la senalizacion de evacuacion.
 - No se instala rele, atenuador ni modulo alguno en un circuito compartido con detectores interconectados.
 - No se automatizan enclavamientos de ventilacion exigidos por codigo.
-- `docs/NOMENCLATURA.md` mantiene la lista de terminos vetados y `generador/validar.py` la verifica.
+- `docs/NOMENCLATURA.md` mantiene la lista de terminos vetados y `herramientas-empresa/validador/validar.py` la verifica.
 
 ### Motivo
 
@@ -229,7 +229,7 @@ que afecta a una casa concreta y que git conserva para siempre aunque el archivo
 ### Decision
 
 Contrasenas, claves y tokens van cifrados con `ansible-vault` o quedan como marcadores de posicion
-explicitos. `herramientas/detectar_secretos.py` corre como hook de pre-commit y bloquea el commit al
+explicitos. `herramientas-empresa/detectar_secretos.py` corre como hook de pre-commit y bloquea el commit al
 detectar material sensible. Las credenciales reales viven en el baul de credenciales del cliente
 (Vaultwarden), que se entrega al cliente en el cierre del proyecto; la empresa no conserva copia.
 
@@ -251,7 +251,7 @@ contradice ese modelo y convierte al repositorio en el punto unico de compromiso
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `plantillas/`, `generador/`, `clientes/`, `ansible/`
+- **Ambito:** `producto-cliente/stack/`, `generador/`, `clientes/`, `herramientas-empresa/ansible/`
 
 ### Contexto
 
@@ -266,8 +266,8 @@ seguridad hay que aplicarla quince veces a mano.
 
 ### Decision
 
-Todo lo especifico de un cliente vive en su archivo de variables. Todo lo demas vive en `plantillas/`.
-`generador/generar.py` produce el paquete completo en `salida/<cliente>/`, que es un artefacto derivado
+Todo lo especifico de un cliente vive en su archivo de variables. Todo lo demas vive en `producto-cliente/stack/`.
+`herramientas-empresa/generador/generar.py` produce el paquete completo en `salida/<cliente>/`, que es un artefacto derivado
 y no se commitea. Nada se construye a mano en casa del cliente. No hay copos de nieve.
 
 ### Motivo
@@ -311,7 +311,7 @@ Trazabilidad del dato hasta su origen, que es precisamente lo que ADR-001 exige 
 
 - **Fecha:** 2026-08-19
 - **Estado:** vigente
-- **Ambito:** `catalogo/dispositivos.yaml`, relevamiento, diseno de iluminacion
+- **Ambito:** `datos-maestros/dispositivos/`, relevamiento, diseno de iluminacion
 
 ### Contexto
 
@@ -362,7 +362,7 @@ dentro de un grupo multivia, en ninguna de las tres ramas.
 
 Las tres ramas son soluciones legitimas para situaciones distintas. Nombrar una como *la* solucion
 esconde que las otras dos existen, y empuja a comprar el producto equivocado para el caso que se
-tiene delante. El relevamiento (`plantillas-cliente/informe-relevamiento.*`) ya recoge las tres
+tiene delante. El relevamiento (`producto-cliente/documentos/informe-relevamiento.*`) ya recoge las tres
 preguntas que este arbol necesita: neutro presente, profundidad de caja y multivia.
 
 ### Consecuencias
@@ -382,7 +382,7 @@ preguntas que este arbol necesita: neutro presente, profundidad de caja y multiv
 
 - **Fecha:** 2026-08-19
 - **Estado:** vigente. Resuelve la discrepancia registrada como M-08.
-- **Ambito:** `paquetes/`, `plantillas/red/`, `docs/ARQUITECTURA.md`, `docs/SEGURIDAD.md`
+- **Ambito:** `comercial/paquetes/`, `producto-cliente/stack/red/`, `docs/ARQUITECTURA.md`, `docs/SEGURIDAD.md`
 
 ### Contexto
 
@@ -425,8 +425,288 @@ agujero: por eso aparece antes.
 
 - **Plegar Management NO relaja la politica de cortafuegos.** Las reglas que la nombran se aplican
   igualmente sobre las interfaces de gestion, que en S y M viven dentro del segmento Controller. Esta
-  advertencia esta escrita en `plantillas/red/firewall.yaml.j2` para que nadie la deduzca al reves.
+  advertencia esta escrita en `producto-cliente/stack/red/firewall.yaml.j2` para que nadie la deduzca al reves.
 - El acceso administrativo sigue restringido a un equipo autorizado declarado o a una sesion de
   soporte autorizada, en los cuatro niveles.
-- `generador/test_vlans.py` comprueba el recuento por paquete. La contradiccion no puede volver a
+- `herramientas-empresa/validador/test_vlans.py` comprueba el recuento por paquete. La contradiccion no puede volver a
   entrar sin que una prueba falle.
+
+### Enmienda 2026-08-19: en S y M, Management se pliega en TRUSTED, no en Controller
+
+Los recuentos no cambian: siguen siendo **4 / 5 / 6 / 6**. Lo que cambia es **donde** se pliega la
+VLAN de gestion cuando no esta separada.
+
+**Motivo.** El anfitrion del controlador es **el objetivo de mayor valor de toda la instalacion**,
+porque contiene las camaras y su grabacion. Es lo que un atacante quiere y es lo que un intruso
+querria apagar. Plegar la gestion de red dentro de su segmento le daba alcance administrativo sobre
+la pasarela, los switches y los puntos de acceso.
+
+Eso convertia un compromiso del grabador en un compromiso de **la infraestructura de red entera**:
+quien controle el equipo que graba podria reescribir las reglas del cortafuegos que lo contienen,
+abrir un puerto o desactivar el aislamiento del segmento de camaras. La segmentacion existe
+precisamente para que eso no sea posible, y la version anterior de esta ADR abria el camino en los
+dos niveles mas vendidos.
+
+Trusted no tiene ese problema. Contiene equipos personales, que son un objetivo de menor valor y que
+ya tienen prohibido alcanzar Camera. El acceso administrativo sale del **equipo autorizado
+declarado** en `red.equipo_administrativo`, no de cualquier telefono de la casa.
+
+**Regla nueva, que no depende del nivel:**
+
+> **Controller NUNCA alcanza Management.** Ni plegada ni separada, ni en S ni en XL.
+
+Esta escrita como regla `controller_a_management` en `producto-cliente/stack/red/firewall.yaml.j2` y
+tiene prueba propia en `test_vlans.py`, que la comprueba en los cuatro paquetes. No es una
+consecuencia del pliegue: es una regla por si misma, y por eso se prueba por separado.
+
+**Que no cambia:** el acceso administrativo sigue restringido al equipo autorizado o a una sesion de
+soporte, y plegar la VLAN sigue sin relajar la politica. Solo reduce el numero de segmentos que hay
+que mantener en una instalacion pequena.
+
+---
+
+## ADR-010 - La linea divisoria de licencias es la entrega, no el uso
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `datos-maestros/software-cliente.yaml`, `datos-maestros/software-empresa.yaml`,
+  `docs/LICENCIAS.md`, apendice de licencias generado
+
+### Contexto
+
+Hasta ahora los 27 componentes vivian en un solo archivo, con un campo `obligacion_licencia` que
+mezclaba dos cosas distintas: **que exige la licencia** y **que nos exige a nosotros en la practica**.
+
+El caso que lo hace evidente es Ansible. Es GPL-3.0, la licencia mas copyleft del stack. En el
+archivo unico aparecia con `obligacion_licencia: fuente_si_modificado`, junto a Zigbee2MQTT y
+Vaultwarden, como si las tres nos obligaran a lo mismo. No es cierto: Ansible se ejecuta desde
+nuestra estacion de trabajo contra el anfitrion del cliente por SSH y **no queda instalado en el
+equipo que se le vende**.
+
+Eso importa en los dos sentidos. Sobrestimar la obligacion lleva a publicar codigo que no hace falta
+publicar. Subestimarla lleva a entregar un binario modificado sin la fuente correspondiente, que es
+un incumplimiento real.
+
+### Opciones consideradas
+
+1. Un solo archivo con un campo booleano `se_entrega_al_cliente`. Rechazada: el campo se olvida al
+   anadir una entrada nueva, y un descuido no produce ningun sintoma visible.
+2. **Dos archivos, y la separacion fisica hace la pregunta inevitable.** Elegida. Para anadir un
+   componente hay que decidir primero en cual de los dos va.
+3. Deducirlo de la ruta del repositorio, `producto-cliente/` frente a `herramientas-empresa/`.
+   Rechazada: no todo componente tiene plantilla, y la deduccion se rompe en cuanto uno la tenga en
+   los dos sitios.
+
+### Decision
+
+**El disparador de la obligacion de licencia es la ENTREGA en hardware del cliente, no el uso.**
+
+| | `software-cliente.yaml` | `software-empresa.yaml` |
+|---|---|---|
+| Que es | Se instala en hardware que el cliente compra y conserva | Corre en nuestra estacion de trabajo o en el banco |
+| Es distribucion | **Si** | No |
+| Obligacion | `aviso` o `fuente_si_modificado` segun licencia | **`ninguna`, sea cual sea la licencia** |
+| Aparece en el apendice del cliente | Si | **No** |
+| Componentes | 26 | 6 |
+
+La prueba para clasificar, en una pregunta: **¿queda instalado en el equipo que el cliente se lleva?**
+Si la respuesta es si, va a `software-cliente.yaml` y adquiere su obligacion. Si es no, no la tiene,
+por copyleft que sea.
+
+Ansible (GPL-3.0) y Git (GPL-2.0) estan los dos en el lado de empresa con `ninguna`, y es correcto.
+
+### Motivo
+
+Porque la obligacion de GPL y AGPL se activa al **transmitir** el software a un tercero. Usarlo
+internamente no es transmitirlo. La AGPL anade el uso en red de una version **modificada**, que es
+por lo que Vaultwarden y Grafana estan en el lado del cliente con `fuente_si_modificado` y con
+`modificado_por_nosotros: false` bien visible.
+
+### Consecuencias
+
+- **El apendice de licencias del cliente se genera SOLO desde `software-cliente.yaml`.** Listar
+  Ansible en el documento que recibe el cliente sugeriria una obligacion que no existe, y confundiria
+  a quien lo lea buscando que codigo puede pedir.
+- `validar.py` **rechaza** un archivo de cliente que declare como desplegado un componente de
+  `software-empresa.yaml`. No es un descuido de catalogo: es afirmar que se entrega algo que no se
+  entrega.
+- Cada registro lleva `se_entrega_al_cliente`, `modificado_por_nosotros` y `url_parche_publicado`.
+  La columna de parches del apendice esta vacia en toda la tabla, que es exactamente el objetivo de
+  la politica de no forkear.
+- Si un componente cruza la linea -por ejemplo, si algun dia se instalara un agente propio en el
+  equipo del cliente-, se mueve de archivo y **en ese momento**, no antes, adquiere su obligacion.
+
+---
+
+## ADR-011 - La interfaz se entrega sobre Home Assistant, no como aplicacion propia
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `producto-cliente/marca/`, `producto-cliente/interfaz/`, `producto-cliente/app/`
+
+### Decision
+
+**La interfaz se entrega como tema, paneles y modo kiosco sobre Home Assistant y su aplicacion
+Companion. No se desarrolla aplicacion propia.**
+
+### Motivos, en orden de peso
+
+**1. La marca de Home Assistant refuerza la propuesta de valor ante este cliente, en lugar de
+restarle.**
+
+El perfil objetivo es tecnicamente alfabetizado, averso a la suscripcion y sensible a la privacidad.
+Para ese cliente, ver una plataforma abierta reconocible es una **confirmacion** de que lo que se le
+vendio es cierto, no una carencia de acabado.
+
+Una aplicacion propia sustituiria esa plataforma reconocible por una **dependencia de un proveedor
+pequeno**, y contradiria directamente la prueba de cancelacion que es el eje del argumento comercial:
+"si dejas de pagarnos, el sistema sigue funcionando exactamente igual que el dia anterior". Con app
+propia, esa frase deja de ser cierta el dia que la empresa cierra o retira la aplicacion de la
+tienda. El argumento entero se cae.
+
+**2. Una app propia obliga a publicar y mantener en dos tiendas de forma permanente, y a rebasar
+sobre el proyecto original en cada cambio aguas arriba.**
+
+Eso es carga recurrente, no coste de desarrollo: revisiones de tienda, cambios de politica, versiones
+minimas de sistema operativo, y un rebase por cada version de Home Assistant. **Inasumible antes de
+tener parque instalado**, y el momento de decidirlo es antes de escribir la primera linea, no
+despues.
+
+**3. La personalizacion disponible sin bifurcar cubre la totalidad de la experiencia de uso.**
+
+Tema, colores, tipografia, iconos, disposicion de paneles, vistas por usuario, modo kiosco, textos.
+**Lo unico no personalizable es el nombre y el icono en la tienda de aplicaciones.**
+
+### Limites que se declaran al cliente en la fase de diseno
+
+No al final, ni cuando pregunte. En el diseno, por escrito:
+
+1. **El modelo de permisos por usuario es de grano grueso.** Sirve para separar a los miembros de un
+   hogar. **No es apto como barrera dura en escenarios de alquiler o multiinquilino**, donde la
+   separacion tiene que ser de verdad. Para esos casos la separacion es de red y de sistema, no de
+   interfaz.
+2. **La visualizacion simultanea de varias camaras de alta resolucion en la app es inferior a un
+   visor NVR dedicado.** Se explica junto al calculo de ancho de banda, porque la causa es la misma
+   y el cliente que lo pregunta suele estar pensando en las dos cosas a la vez.
+
+### Regla operativa
+
+**Un solo tema de producto y una sola biblioteca de paneles para toda la flota.**
+
+Lo especifico de un cliente es **la distribucion de zonas y la nomenclatura**, nunca el tema. Un tema
+por cliente son quince temas que mantener a los quince clientes, y una correccion visual que hay que
+aplicar quince veces.
+
+`validar.py` **rechaza** un archivo de cliente que defina tema propio.
+
+### Disparadores para reabrir
+
+Esta decision se revisa, no se hereda, si ocurre cualquiera de estas tres:
+
+- **Mas de 150 instalaciones activas.** A esa escala la carga de mantener una app se reparte entre
+  suficientes clientes.
+- **Contrato comercial que exija marca propia.** Un cliente de tamano suficiente puede pagar la
+  diferencia.
+- **Cambio aguas arriba que rompa el uso profesional**, por ejemplo que la aplicacion Companion deje
+  de permitir el modo kiosco o el tema personalizado.
+
+### Consecuencias
+
+- `producto-cliente/marca/` e `interfaz/` son **capa separada y parametrizada**. Ninguna plantilla
+  del stack contiene color, tipografia ni texto de marca: los toma de ahi.
+- Por eso una migracion futura seria **cambio de envase, no rehacer el producto**. Si algun dia se
+  cruza un disparador, lo que hay que reescribir es la capa de presentacion, no la logica ni los
+  datos.
+- `producto-cliente/app/` documenta el flujo de alta de un miembro del hogar de principio a fin, que
+  es la parte de la experiencia que mas se improvisa y peor se recuerda.
+
+---
+
+## ADR-012 - Tres roles de flujo de camara, y prohibicion de transcodificar
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `datos-maestros/dispositivos/camara.yaml`, `producto-cliente/stack/frigate/`,
+  `producto-cliente/stack/red/`, `herramientas-empresa/calculadoras/calc_ancho_banda.py`,
+  `comercial/paquetes/`
+
+### Contexto
+
+El modelo anterior tenia dos flujos: `sub` para deteccion y cuadricula, y `principal` para grabacion.
+Cuando el cliente abria **una** camara en remoto, no habia nada intermedio: se le servia el
+principal. Para una camara 4K a 8 Mbps eso es un salto de 7,5 Mbps sobre un enlace residencial, y
+convertia el gesto mas natural del mundo -tocar la camara donde acabas de ver movimiento- en el
+momento en que el sistema se pone lento.
+
+Casi todas las camaras profesionales publican **tres** flujos. No usarlo era desperdiciar una
+capacidad que ya estaba pagada.
+
+### Decision
+
+**Tres roles de flujo, cada uno con un trabajo:**
+
+| Rol | Trabajo | Se sirve por el tunel |
+|---|---|---|
+| `principal` | Grabacion local | **No**, salvo peticion explicita con advertencia |
+| `medio` | Apertura de UNA camara en remoto | Si |
+| `sub` | Deteccion y cuadricula remota | Si, por defecto |
+
+**Tres escenarios en el calculo, dos vinculantes y uno que solo advierte:**
+
+| # | Escenario | Si no cabe |
+|---|---|---|
+| 1 | Cuadricula remota: N visores concurrentes sobre `sub` | **RECHAZA** |
+| 2 | Uno de ellos abre una camara sobre `medio` | **RECHAZA** |
+| 3 | Esa apertura sobre `principal` | **Advierte**, no rechaza |
+
+El escenario 3 no rechaza porque es una **excepcion bajo demanda**: el cliente pide calidad de
+grabacion para revisar algo concreto, sabiendo que va lento. Rechazar por el obligaria a contratar
+enlaces que nadie necesita el 99 % del tiempo. Pero se advierte, y la advertencia sale impresa en el
+documento de calculos, para que no lo interprete como averia.
+
+**Si la camara solo publica dos flujos**, no hay `medio`: el escenario 2 usa el `principal` y
+**rechaza en consecuencia**. Esa es la penalizacion real de esos modelos, y es la razon de que
+`streams_soportados` sea dato de catalogo y no un detalle de configuracion.
+
+### PROHIBIDO transcodificar en el servidor
+
+**No se resuelve la falta de un flujo intermedio transcodificando en el controlador.**
+
+El equipo es **clase N100**. Su presupuesto de graficos integrados esta comprometido con la
+**inferencia de deteccion**, que es una funcion que el cliente ha comprado y que corre todo el dia
+sobre todas las camaras. Transcodificar un flujo 4K a resolucion intermedia consume ese mismo
+presupuesto, y el resultado es que la deteccion empieza a perder cuadros exactamente cuando alguien
+esta mirando: es decir, cuando pasa algo.
+
+El intercambio esta mal por los dos lados. Se cambia una funcion contratada y permanente por una
+comodidad ocasional, y se cambia en el peor momento posible. Si una camara no publica un flujo
+intermedio util, la consecuencia se **asume en el calculo de ancho de banda** o se **cambia la
+camara**, no se tapa con CPU que no hay.
+
+Esta prohibicion se releeria solo si el hardware del controlador cambiara de clase, y en ese caso
+seria un ADR nuevo con su propia medicion, no una excepcion a este.
+
+### Consecuencias
+
+- Tres campos nuevos en el registro de camara, en `null` y sin verificar: `streams_soportados`,
+  `stream_medio_bitrate_mbps` y `stream_medio_resolucion`. **Fila M-14** para medirlos en banco por
+  modelo y firmware.
+- `calc_ancho_banda.py` **falla** si falta `streams_soportados`: sin ese dato no se sabe si abrir una
+  camara sirve un intermedio o el principal, y la diferencia decide si el enlace aguanta.
+- **Minimos publicados recalculados** en los cuatro paquetes. Ver la tabla de abajo.
+- El cliente de demostracion **baja de 25 a 15 Mbps**: con flujo medio, el requisito vinculante pasa
+  de 17,5 a 13,5. Lleva ademas una camara de dos flujos a proposito, para que el calculo muestre la
+  penalizacion en lugar de describirla.
+
+### Minimos publicados, antes y despues
+
+| Paquete | Subida antes | **Subida ahora** | Vinculante calculado | Por que cambia |
+|---|---|---|---|---|
+| S | 5 | **5** | 4,2 | Sin cambio: con tres camaras 2K el flujo medio apenas mueve la aguja |
+| M | 10 | **15** | 11,5 | **Sube.** Los 10 publicados solo cubrian la cuadricula, no abrir una camara |
+| L | 25 | **20** | 16,5 | **Baja.** Con flujo medio, abrir una camara ya no cuesta el principal entero |
+| XL | 50 | **40** | 33,5 | **Baja**, por el mismo motivo. Se mantiene la preferencia por enlace simetrico |
+
+El caso de M es el importante: el minimo publicado estaba **por debajo** de lo que el uso normal
+exige, y llevaba ahi desde el plan de negocio original. El de L y XL es el contrario, y es la ventaja
+de haber medido: se pueden publicar minimos mas bajos y ganar clientes que antes quedaban fuera.

@@ -1,0 +1,218 @@
+# Categoria: termostato
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: sinope-th1123zb
+  categoria: termostato
+  fabricante: Sinope Technologies
+  pais_fabricante: Canada (Quebec)
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null            # el plan indica CSA; confirmar por SKU y por carga
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [sinope, franklin-empire, lumen, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Termostato de tension de linea para zocalos electricos, que dominan el parque de vivienda de
+    Quebec. Confirmar el calculo de carga por circuito antes de especificar el modelo. Linea de
+    producto principal, no accesorio.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: stelpro-termostato-zigbee
+  categoria: termostato
+  fabricante: Stelpro
+  pais_fabricante: Canada (Quebec)
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [stelpro, franklin-empire, lumen, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Segunda fuente de tension de linea, fabricante quebequense. Mantener dos fuentes evita depender
+    de la disponibilidad de un solo fabricante en temporada de calefaccion.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: termostato-piso-radiante
+  categoria: termostato
+  fabricante: null
+  pais_fabricante: Canada (Quebec)
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [sinope, stelpro, franklin-empire, lumen]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Termostato de calefaccion de piso con sonda. Verificar compatibilidad de la sonda con la ya
+    instalada en el piso: es la causa habitual de que el reemplazo falle en obra.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: ecobee-termostato
+  categoria: termostato
+  fabricante: ecobee
+  pais_fabricante: Canada (Ontario)
+  modelo: null
+  protocolo: matter
+  tension: baja
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca, nedco]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Sistemas de aire forzado de 24 V, caso tipico de Ontario. Se integra por su ruta local (Matter o
+    la interfaz local de HomeKit) para no depender de la nube del fabricante (ADR-003). Confirmar que
+    la ruta local del modelo concreto cubre las funciones que se venden.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: honeywell-t6-pro-zwave
+  categoria: termostato
+  fabricante: Resideo (Honeywell Home)
+  pais_fabricante: Estados Unidos
+  modelo: T6 Pro Z-Wave
+  protocolo: zwave
+  tension: baja
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada, aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Alternativa Z-Wave con control totalmente local para aire forzado de 24 V. Sin dependencia de
+    nube. El plan nombra este modelo explicitamente en el cap. 6.7.2.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: interfaz-minisplit-esphome
+  categoria: termostato
+  fabricante: null                # nodo propio construido sobre ESPHome
+  pais_fabricante: null
+  modelo: null
+  protocolo: wifi
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Interfaz local para mini-split mediante puerto serie del fabricante o emision infrarroja, con
+    firmware ESPHome. Da control completo sin conexion y es un diferenciador frente a todo competidor
+    de nube. No se instala en caja electrica y no toca controles de combustion (ADR-004). Verificar
+    ISED del modulo de radio empleado.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false

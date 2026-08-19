@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proveedor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "nombre", "tipo", "provincias", "requiere_cuenta_corporativa",
+    "requiere_licencia", "categorias_que_surte", "contacto_url", "cuenta_abierta", "notas"
+  ],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "nombre": {"type": "string", "minLength": 1},
+    "tipo": {
+      "enum": ["distribucion_seguridad", "distribucion_electrica", "fabricante_directo",
+               "retail_ti", "reacondicionador"]
+    },
+    "provincias": {"type": "array", "items": {"enum": ["ON", "QC"]}},
+    "requiere_cuenta_corporativa": {"type": ["boolean", "null"]},
+    "requiere_licencia": {"type": ["boolean", "null"]},
+    "categorias_que_surte": {"type": "array", "items": {"type": "string"}},
+    "contacto_url": {"type": ["string", "null"]},
+    "cuenta_abierta": {"type": "boolean"},
+    "notas": {"type": "string"}
+  }
+}

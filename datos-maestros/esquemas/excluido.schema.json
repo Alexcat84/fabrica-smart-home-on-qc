@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Entrada del registro de exclusion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "que", "tipo", "motivo", "regla_violada", "alternativa_aprobada",
+               "reevaluable_si", "fuente_url", "verificado"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "que": {"type": "string", "minLength": 1},
+    "tipo": {"enum": ["dispositivo", "categoria", "practica"]},
+    "motivo": {"type": "string", "minLength": 10},
+    "regla_violada": {"type": "string", "minLength": 1},
+    "alternativa_aprobada": {"type": "array", "items": {"type": "string"}},
+    "reevaluable_si": {"type": "string", "minLength": 1},
+    "fuente_url": {"type": ["string", "null"]},
+    "verificado": {"type": "boolean"}
+  }
+}

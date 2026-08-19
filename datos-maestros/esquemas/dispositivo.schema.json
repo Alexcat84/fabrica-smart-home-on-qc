@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dispositivo del catalogo",
+  "description": "Un registro de datos-maestros/dispositivos/*.yaml. additionalProperties es false a proposito: un campo mal escrito se rechaza en lugar de ignorarse en silencio, que es el modo de fallo que hace parecer certificado a un dispositivo que no lo esta.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "categoria",
+    "fabricante",
+    "pais_fabricante",
+    "modelo",
+    "protocolo",
+    "tension",
+    "instalable_en_caja",
+    "certificacion",
+    "ised",
+    "control_local_sin_nube",
+    "disponibilidad_canada",
+    "proveedores",
+    "precio_lista_cad",
+    "precio_distribuidor_cad",
+    "paquetes",
+    "notas",
+    "fuente_url",
+    "verificado",
+    "sku_interno",
+    "sku_fabricante",
+    "upc",
+    "unidad",
+    "cantidad_por_empaque",
+    "tipo_stock",
+    "serializado",
+    "plazo_entrega_dias",
+    "stock_minimo",
+    "proveedor_preferente",
+    "proveedores_alternos",
+    "estado_ciclo_vida"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "categoria": {
+      "enum": [
+        "iluminacion",
+        "interruptor",
+        "rele",
+        "toma",
+        "ventilador",
+        "termostato",
+        "sensor",
+        "camara",
+        "sirena",
+        "red",
+        "computo",
+        "almacenamiento",
+        "energia",
+        "coordinador",
+        "cableado"
+      ]
+    },
+    "fabricante": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "pais_fabricante": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "modelo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "protocolo": {
+      "enum": [
+        "zigbee",
+        "zwave",
+        "wifi",
+        "matter",
+        "poe",
+        "cableado",
+        "ninguno"
+      ]
+    },
+    "tension": {
+      "enum": [
+        "linea",
+        "baja",
+        "bateria",
+        "poe",
+        "ninguno"
+      ]
+    },
+    "instalable_en_caja": {
+      "type": "boolean"
+    },
+    "certificacion": {
+      "description": "ADR-002. Solo marcas canadienses. null mientras no se verifique sobre la unidad fisica en recepcion.",
+      "enum": [
+        "cULus",
+        "cETL",
+        "CSA",
+        null
+      ]
+    },
+    "ised": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "control_local_sin_nube": {
+      "description": "ADR-003. Debe ser true en todo dispositivo aprobado. Lo que no cumpla vive en excluidos.yaml.",
+      "const": true
+    },
+    "disponibilidad_canada": {
+      "enum": [
+        "distribucion_seguridad",
+        "distribucion_electrica",
+        "distribuidor_electrico",
+        "fabricante_directo",
+        "retail_ti",
+        "reacondicionador",
+        null
+      ]
+    },
+    "proveedores": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      }
+    },
+    "precio_lista_cad": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "precio_distribuidor_cad": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "paquetes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "S",
+          "M",
+          "L",
+          "XL"
+        ]
+      }
+    },
+    "notas": {
+      "type": "string"
+    },
+    "fuente_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verificado": {
+      "type": "boolean"
+    },
+    "estado": {
+      "description": "Solo para entradas que no son ruta por defecto. Ver ADR-003 y ADR-008.",
+      "enum": [
+        "excepcion_documentada"
+      ]
+    },
+    "substream_bitrate_mbps": {
+      "description": "Solo categoria camara. Medido en banco por modelo y firmware. Fila M-13.",
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "substream_resolucion": {
+      "description": "Solo categoria camara. Del tipo 640x480@5.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sku_interno": {
+      "description": "Identificador ESTABLE de la empresa. No cambia aunque el fabricante cambie de modelo. Es la clave por la que gestion/ referencia el producto, para no redescribirlo.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-Z0-9-]+$"
+    },
+    "sku_fabricante": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "upc": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{12,14}$"
+    },
+    "unidad": {
+      "enum": [
+        "unidad",
+        "metro",
+        "rollo",
+        "caja"
+      ]
+    },
+    "cantidad_por_empaque": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tipo_stock": {
+      "description": "existencia: se mantiene en almacen. por_proyecto: se compra al cerrar el proyecto. especial: pedido bajo demanda con plazo largo.",
+      "enum": [
+        "existencia",
+        "por_proyecto",
+        "especial"
+      ]
+    },
+    "serializado": {
+      "description": "true si cada unidad fisica se rastrea por numero de serie. Determina si genera registro de DISPOSITIVO INSTALADO al desplegarse.",
+      "type": "boolean"
+    },
+    "plazo_entrega_dias": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "stock_minimo": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "proveedor_preferente": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "proveedores_alternos": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      }
+    },
+    "estado_ciclo_vida": {
+      "enum": [
+        "activo",
+        "descontinuado",
+        "en_evaluacion"
+      ]
+    },
+    "streams_soportados": {
+      "description": "Cuantos flujos simultaneos publica la camara. 3 permite principal/medio/sub; 2 obliga a escalar directo a principal, que es mucho mas caro en subida. Medido en banco por modelo y firmware (M-14).",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 4
+    },
+    "stream_medio_bitrate_mbps": {
+      "description": "Flujo intermedio, el que se sirve al abrir UNA camara en remoto. Medido en banco (M-14).",
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "stream_medio_resolucion": {
+      "description": "Del tipo 1280x720@15.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "categoria": {
+            "const": "camara"
+          }
+        },
+        "required": [
+          "categoria"
+        ]
+      },
+      "then": {
+        "required": [
+          "substream_bitrate_mbps",
+          "substream_resolucion",
+          "streams_soportados",
+          "stream_medio_bitrate_mbps",
+          "stream_medio_resolucion"
+        ]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "substream_bitrate_mbps"
+              ]
+            },
+            {
+              "required": [
+                "substream_resolucion"
+              ]
+            },
+            {
+              "required": [
+                "streams_soportados"
+              ]
+            },
+            {
+              "required": [
+                "stream_medio_bitrate_mbps"
+              ]
+            },
+            {
+              "required": [
+                "stream_medio_resolucion"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

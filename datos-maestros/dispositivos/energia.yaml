@@ -1,0 +1,183 @@
+# Categoria: energia
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: sinope-controlador-de-carga
+  categoria: energia
+  fabricante: Sinope Technologies
+  pais_fabricante: Canada (Quebec)
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [sinope, franklin-empire, lumen, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Control de cargas de alto consumo (calentador de agua, cargador de vehiculo electrico, circuitos
+    de zocalo). Instalacion por electricista licenciado. Es la respuesta estandar en Quebec para
+    desplazamiento de carga.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: toma-metering-zigbee
+  categoria: energia
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Medicion de consumo por carga. Util para propuestas de desplazamiento de carga en Ontario;
+    de utilidad marginal como argumento de ahorro en Quebec por la estructura tarifaria.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: medicion-energia-panel-ct
+  categoria: energia
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: wifi
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [nedco, westburne, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Transformadores de corriente en el panel para visibilidad por circuito. Instalacion exclusiva por
+    electricista licenciado.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: ups-cyberpower-senoidal
+  categoria: energia
+  fabricante: CyberPower
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Onda senoidal pura obligatoria: las fuentes modernas con correccion activa del factor de potencia
+    se comportan mal con onda senoidal simulada. Puerto de datos obligatorio para integrar Network UPS
+    Tools y conseguir apagado ordenado y aviso de bateria baja.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false
+
+- id: ups-apc-senoidal
+  categoria: energia
+  fabricante: APC (Schneider Electric)
+  pais_fabricante: Francia
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca, nedco]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Segunda fuente de UPS de onda senoidal pura con puerto de datos. Comprar el SKU norteamericano
+    (ADR-002). Objetivo de autonomia estandar de 15 a 30 minutos; de 2 a 4 horas para el subsistema de
+    camaras y grabacion cuando la prioridad es seguridad.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false

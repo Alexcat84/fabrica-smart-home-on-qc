@@ -1,0 +1,44 @@
+# Categoria: interruptor
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: leviton-decora-smart-interruptor
+  categoria: interruptor
+  fabricante: Leviton
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [nedco, westburne, guillevin, franklin-empire, lumen]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Distribucion canadiense universal y certificacion inequivoca. Verificar la variante de protocolo
+    del SKU: la familia Decora Smart existe en Wi-Fi, Z-Wave y Zigbee o Matter segun la linea.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
+  fuente_url: null
+  verificado: false

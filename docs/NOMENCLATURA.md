@@ -4,7 +4,7 @@ Un tecnico que nunca ha visto una instalacion debe poder leerla sin abrir la doc
 prueba a la que responde este documento. Si un nombre necesita explicacion, el nombre esta mal.
 
 Se aplica a areas, dispositivos, entidades, automatizaciones, etiquetas de cable, puertos de switch y
-nombres de camara. `generador/validar.py` comprueba mecanicamente la parte verificable.
+nombres de camara. `herramientas-empresa/validador/validar.py` comprueba mecanicamente la parte verificable.
 
 ---
 
@@ -131,7 +131,7 @@ automation.sistema_soporte_remoto_expiracion
 
 ## 6. Paquetes de configuracion por dominio
 
-`plantillas/homeassistant/packages/` tiene un archivo por dominio, con los mismos nombres que la
+`producto-cliente/stack/homeassistant/packages/` tiene un archivo por dominio, con los mismos nombres que la
 tabla anterior: `iluminacion.yaml`, `clima.yaml`, `seguridad.yaml`, `energia.yaml`, `red.yaml`,
 `sistema.yaml`.
 

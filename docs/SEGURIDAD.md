@@ -101,7 +101,7 @@ disponible en la conversacion de venta con este segmento.
 ## 4. Modelo de acceso de soporte
 
 Pieza firma de la oferta. Se implementa con exactitud, y su implementacion vive en
-`plantillas/homeassistant/packages/sistema.yaml.j2`.
+`producto-cliente/stack/homeassistant/packages/sistema.yaml.j2`.
 
 1. La empresa **no** tiene acceso permanente a ningun sistema de cliente.
 2. El cliente habilita el soporte desde un control claramente etiquetado en su propio panel, o con un
@@ -135,10 +135,10 @@ la vez mas segura y mas barata que cablear en paralelo.
 | IoT | Reles Wi-Fi, termostatos, enchufes, paneles tactiles | Restringido: hora y puntos de actualizacion concretos | Sin ruta hacia Trusted |
 | Camera | Camaras IP unicamente | Ninguno | Las camaras aceptan conexiones del grabador y **no originan ninguna** |
 | Controller | Home Assistant y anfitrion de grabacion | Restringido: actualizaciones y repositorios | Alcanza IoT y Camera; alcanzable desde Trusted y desde el tunel |
-| Management | Pasarela, switches, puntos de acceso, interfaces fuera de banda | Ninguno, salvo descarga deliberada de firmware | Accesible solo desde equipo administrativo o sesion de soporte autorizada. **VLAN separada de L en adelante**; en S y M se pliega en Controller (ADR-009) sin que las reglas dejen de aplicarse |
+| Management | Pasarela, switches, puntos de acceso, interfaces fuera de banda | Ninguno, salvo descarga deliberada de firmware | Accesible solo desde equipo administrativo o sesion de soporte autorizada. **VLAN separada de L en adelante**; en S y M se pliega en **Trusted** (ADR-009 y su enmienda) sin que las reglas dejen de aplicarse. **Controller nunca la alcanza**, en ningun nivel |
 | Guest | Visitas | Completo, aislado de todo lo demas | Aislamiento entre clientes activado |
 
-La matriz direccional completa esta en `plantillas/red/firewall.yaml.j2`.
+La matriz direccional completa esta en `producto-cliente/stack/red/firewall.yaml.j2`.
 
 **La regla que mas se implementa mal:** la regla de camara es direccional y con estado. El grabador
 abre la conexion hacia la camara; la camara no puede abrir una conexion hacia nada. Una regla escrita
@@ -176,7 +176,7 @@ independencia de quien tomara la decision.
 
 ## 7. Respaldo y recuperacion
 
-Ver `plantillas/backup/respaldo.yaml.j2` para la implementacion. Los tres puntos que se le dicen al
+Ver `producto-cliente/stack/backup/respaldo.yaml.j2` para la implementacion. Los tres puntos que se le dicen al
 cliente por escrito:
 
 1. **El video no se respalda.** Se protege solo por redundancia de disco. Se dice explicitamente.
@@ -224,7 +224,7 @@ registro de servicio.
    toda la flota **a traves de las plantillas de configuracion**, que es exactamente para lo que
    sirve la fabrica de despliegues.
 
-El procedimiento completo esta en `runbooks/responder-incidente-seguridad.md`.
+El procedimiento completo esta en `herramientas-empresa/runbooks/responder-incidente-seguridad.md`.
 
 ---
 

@@ -35,12 +35,20 @@ red:
   dominio_local: casa.local
   zona_horaria: America/Toronto
   bajada_mbps: 150.0           # medidas en el relevamiento
-  # 15 Mbps de subida NO bastan, aunque superen con holgura el minimo de 10 Mbps publicado para el
-  # paquete M. Los dos visores en vista general piden 10 Mbps justos, y en cuanto uno abre la camara
-  # frontal en stream principal el salto de 7,5 Mbps lleva el total a 17,5. El validador lo rechaza
-  # por escenario 2. Es exactamente el hallazgo de la fila M-12: el minimo publicado solo cubre la
-  # vista general, no el uso que el cliente hace treinta segundos despues.
-  subida_mbps: 25.0
+  # BAJA DE 25 A 15 Mbps AL INTRODUCIR EL TERCER FLUJO (ADR-012).
+  #
+  # Con el modelo de dos flujos, abrir una camara en remoto servia el stream principal: el salto de
+  # la camara frontal era de 7,5 Mbps y el requisito vinculante subia a 17,5. Con flujo medio, ese
+  # salto pasa a 1,5 Mbps.
+  #
+  # El requisito vinculante queda en 13,5 Mbps, y lo marca la camara del GARAJE, que en este demo
+  # solo publica dos flujos a proposito: al abrirla se sirve su principal. Es la penalizacion real
+  # de esos modelos, y por eso `streams_soportados` es dato de catalogo.
+  #
+  # A 15 Mbps los escenarios 1 y 2 caben con holgura. El escenario 3 -abrir sobre principal, que
+  # pide 17,5- no cabe y genera AVISO, no rechazo: es una excepcion bajo demanda que se explica al
+  # cliente en el diseno.
+  subida_mbps: 15.0
   margen_hogar_mbps: 5.0
   cgnat: false
   failover_celular: false
@@ -112,11 +120,14 @@ camaras:
     consumo_w: null
     clase_poe: 802.3at
     bitrate_principal_mbps: 8.0
+    bitrate_medio_mbps: 2.0
     bitrate_substream_mbps: 0.5
+    streams_soportados: 3
     substream_ancho: 640
     substream_alto: 480
     substream_fps: 5
     ruta_principal: /h264Preview_01_main
+    ruta_medio: /h264Preview_02_main    # solo si streams_soportados >= 3
     ruta_substream: /h264Preview_01_sub
     fraccion_eventos: 0.20     # da a la via publica: mas actividad de la habitual
     descripcion_campo_vision: "Puerta de entrada y camino de acceso, hasta la acera."
@@ -141,11 +152,14 @@ camaras:
     consumo_w: null
     clase_poe: 802.3at
     bitrate_principal_mbps: 8.0
+    bitrate_medio_mbps: 2.0
     bitrate_substream_mbps: 0.5
+    streams_soportados: 3
     substream_ancho: 640
     substream_alto: 480
     substream_fps: 5
     ruta_principal: /h264Preview_01_main
+    ruta_medio: /h264Preview_02_main    # solo si streams_soportados >= 3
     ruta_substream: /h264Preview_01_sub
     fraccion_eventos: 0.05
     descripcion_campo_vision: "Patio trasero y puerta del jardin."
@@ -166,11 +180,14 @@ camaras:
     consumo_w: null
     clase_poe: 802.3at
     bitrate_principal_mbps: 4.0
+    bitrate_medio_mbps: 1.2
     bitrate_substream_mbps: 0.5
+    streams_soportados: 3
     substream_ancho: 640
     substream_alto: 480
     substream_fps: 5
     ruta_principal: /h264Preview_01_main
+    ruta_medio: /h264Preview_02_main    # solo si streams_soportados >= 3
     ruta_substream: /h264Preview_01_sub
     fraccion_eventos: 0.05
     descripcion_campo_vision: "Paso lateral este, entre la casa y la valla."
@@ -191,11 +208,17 @@ camaras:
     consumo_w: null
     clase_poe: 802.3af
     bitrate_principal_mbps: 4.0
+    # DOS FLUJOS a proposito en el demo, para que el calculo muestre la penalizacion: al abrirla
+    # en remoto no hay flujo intermedio y se sirve el principal. Es lo que ocurre de verdad con
+    # varios modelos del catalogo, y por eso `streams_soportados` es dato de catalogo (M-14).
+    bitrate_medio_mbps: null
     bitrate_substream_mbps: 0.5
+    streams_soportados: 2
     substream_ancho: 640
     substream_alto: 480
     substream_fps: 5
     ruta_principal: /h264Preview_01_main
+    ruta_medio: /h264Preview_02_main    # solo si streams_soportados >= 3
     ruta_substream: /h264Preview_01_sub
     fraccion_eventos: 0.05
     descripcion_campo_vision: "Interior del garaje, puerta basculante y puerta de servicio."
@@ -216,11 +239,14 @@ camaras:
     consumo_w: null
     clase_poe: 802.3af
     bitrate_principal_mbps: 4.0
+    bitrate_medio_mbps: 1.2
     bitrate_substream_mbps: 0.5
+    streams_soportados: 3
     substream_ancho: 640
     substream_alto: 480
     substream_fps: 5
     ruta_principal: /h264Preview_01_main
+    ruta_medio: /h264Preview_02_main    # solo si streams_soportados >= 3
     ruta_substream: /h264Preview_01_sub
     fraccion_eventos: 0.05
     descripcion_campo_vision: "Terraza trasera y puerta corredera."
@@ -266,7 +292,7 @@ dispositivos:
       marca: cULus
       sku: EJEMPLO-SKU-NO-REAL
       verificado_por: EJEMPLO-NO-REAL
-      fecha: 2026-08-19
+      fecha: "2026-08-19"
       metodo: marca impresa en la unidad fisica en recepcion
 
   - nombre: atenuador_planta_baja_comedor
@@ -282,7 +308,7 @@ dispositivos:
       marca: cULus
       sku: EJEMPLO-SKU-NO-REAL
       verificado_por: EJEMPLO-NO-REAL
-      fecha: 2026-08-19
+      fecha: "2026-08-19"
       metodo: marca impresa en la unidad fisica en recepcion
 
   - nombre: atenuador_planta_baja_cocina
@@ -298,7 +324,7 @@ dispositivos:
       marca: cETL
       sku: EJEMPLO-SKU-NO-REAL
       verificado_por: EJEMPLO-NO-REAL
-      fecha: 2026-08-19
+      fecha: "2026-08-19"
       metodo: marca impresa en la unidad fisica en recepcion
 
   - nombre: interruptor_planta_baja_entrada
@@ -314,7 +340,7 @@ dispositivos:
       marca: cULus
       sku: EJEMPLO-SKU-NO-REAL
       verificado_por: EJEMPLO-NO-REAL
-      fecha: 2026-08-19
+      fecha: "2026-08-19"
       metodo: marca impresa en la unidad fisica en recepcion
 
   - nombre: interruptor_exterior_frente_porche
@@ -330,7 +356,7 @@ dispositivos:
       marca: cULus
       sku: EJEMPLO-SKU-NO-REAL
       verificado_por: EJEMPLO-NO-REAL
-      fecha: 2026-08-19
+      fecha: "2026-08-19"
       metodo: marca impresa en la unidad fisica en recepcion
 
   # --- Climatizacion ---
@@ -351,7 +377,7 @@ dispositivos:
       marca: cULus
       sku: EJEMPLO-SKU-NO-REAL
       verificado_por: EJEMPLO-NO-REAL
-      fecha: 2026-08-19
+      fecha: "2026-08-19"
       metodo: marca impresa en la unidad fisica en recepcion
 
   # --- Ventilacion ---
@@ -373,7 +399,7 @@ dispositivos:
       marca: cULus
       sku: EJEMPLO-SKU-NO-REAL
       verificado_por: EJEMPLO-NO-REAL
-      fecha: 2026-08-19
+      fecha: "2026-08-19"
       metodo: marca impresa en la unidad fisica en recepcion
 
   # --- Sensores ---

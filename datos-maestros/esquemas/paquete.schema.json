@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Paquete comercial",
+  "type": "object",
+  "required": ["id", "nombre", "propiedad_objetivo", "capacidad", "retencion", "controlador",
+               "almacenamiento", "red", "energia", "vlans", "internet_minimo", "esfuerzo",
+               "comercial"],
+  "properties": {
+    "id": {"enum": ["S", "M", "L", "XL"]},
+    "nombre": {"type": "string"},
+    "propiedad_objetivo": {"type": "string"},
+    "vlans": {
+      "type": "object",
+      "required": ["cantidad", "presentes", "ausentes"],
+      "properties": {
+        "cantidad": {"type": "integer", "minimum": 1, "maximum": 6},
+        "presentes": {"type": "array", "items": {"enum": [10, 20, 30, 40, 50, 60]}},
+        "ausentes": {"type": "array", "items": {"enum": [10, 20, 30, 40, 50, 60]}},
+        "resuelto_por": {"type": "string"},
+        "notas": {"type": "string"},
+        "separacion_por_inquilino": {"type": "boolean"}
+      }
+    },
+    "internet_minimo": {
+      "type": "object",
+      "required": ["bajada_mbps", "subida_mbps"],
+      "properties": {
+        "bajada_mbps": {"type": "number", "minimum": 0},
+        "subida_mbps": {"type": "number", "minimum": 0},
+        "simetrico_preferido": {"type": "boolean"},
+        "motivo": {"type": "string"},
+        "notas": {"type": "string"}
+      }
+    }
+  }
+}
