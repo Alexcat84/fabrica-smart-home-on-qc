@@ -1,0 +1,26 @@
+# Lista de control de acceso de Mosquitto
+# GENERADO. No editar a mano (ADR-006).
+#
+# Privilegio minimo por usuario. Un dispositivo comprometido no debe poder publicar en los temas de
+# otro subsistema ni leer el estado de toda la casa.
+
+# Home Assistant: acceso completo, es el nucleo de automatizacion.
+user {{ mqtt.usuario_homeassistant | default('homeassistant') }}
+topic readwrite #
+
+# Zigbee2MQTT: solo su propio arbol.
+user {{ mqtt.usuario_zigbee2mqtt | default('zigbee2mqtt') }}
+topic readwrite zigbee2mqtt/#
+topic read homeassistant/status
+
+# Frigate: publica eventos y estado; no lee nada del resto de la casa.
+user {{ mqtt.usuario_frigate | default('frigate') }}
+topic readwrite frigate/#
+topic read homeassistant/status
+
+# Nodos ESPHome: cada nodo, solo su propio subarbol.
+{% for n in nodos_esphome | default([]) %}
+user {{ n.usuario }}
+topic readwrite esphome/{{ n.id }}/#
+topic read homeassistant/status
+{% endfor %}

@@ -1,0 +1,45 @@
+# Redes inalambricas
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cada SSID se mapea a una VLAN. La red de gestion NUNCA se expone por radio (docs/SEGURIDAD.md).
+
+ssids:
+  - nombre: "{{ red.ssid_familia | default(cliente.id ~ '-home') }}"
+    vlan: 10
+    seguridad: {{ red.seguridad_wifi | default('WPA3') }}
+    clave: CAMBIAR-EN-COMISIONAMIENTO
+    wps: false
+    banda: ambas
+    notas: Red de la familia.
+
+  - nombre: "{{ red.ssid_iot | default(cliente.id ~ '-iot') }}"
+    vlan: 20
+    seguridad: {{ red.seguridad_wifi_iot | default('WPA2-AES') }}
+    clave: CAMBIAR-EN-COMISIONAMIENTO
+    wps: false
+    banda: 2.4
+    notas: >-
+      Clave UNICA por segmento, distinta de la de la familia. Muchos dispositivos IoT no soportan
+      WPA3 ni la banda de 5 GHz; se documenta el motivo en el as-built en lugar de degradar toda la
+      red inalambrica.
+
+{% if 60 in paquete_def.vlans.presentes %}
+  - nombre: "{{ red.ssid_invitados | default(cliente.id ~ '-guest') }}"
+    vlan: 60
+    seguridad: {{ red.seguridad_wifi | default('WPA3') }}
+    clave: CAMBIAR-EN-COMISIONAMIENTO
+    wps: false
+    aislamiento_de_clientes: true
+    notas: Visitas. Aislado de todo lo demas y con aislamiento entre clientes.
+{% endif %}
+
+# La red de gestion (VLAN 50) NO tiene SSID. Se alcanza por cable desde el equipo administrativo o
+# por una sesion de soporte autorizada. Exponer la gestion por radio anula la razon de separarla.
+
+politica:
+  wps: deshabilitado
+  puertos_switch_sin_uso: deshabilitados_administrativamente
+  seleccion_canal_zigbee: >-
+    Elegir un canal Zigbee que no solape con los canales Wi-Fi en uso en el sitio. Relevar ambas
+    bandas antes de la puesta en servicio, no despues de las quejas. Canal elegido para este
+    cliente: {{ zigbee.canal }}.

@@ -1,0 +1,62 @@
+# Textes vus par le client, en francais.
+# Memes regles que en.yaml : contenu minimal dans les notifications push, et aucun terme evoquant une
+# fonction de securite des personnes (ADR-004). Pas d'« alarme », « urgence », « incendie », « fumee »,
+# « gaz » ni « CO ».
+
+soporte_abierto_titulo: "Acces de soutien active"
+soporte_abierto_mensaje: >-
+  Vous avez active l'acces de soutien a votre systeme. Il expire automatiquement et vous serez avise
+  a sa fermeture. Vous pouvez l'annuler a tout moment depuis votre tableau de bord.
+soporte_cerrado_titulo: "Acces de soutien ferme"
+soporte_cerrado_mensaje: >-
+  L'acces de soutien a votre systeme est ferme. Personne ne peut y acceder tant que vous ne
+  l'activez pas de nouveau.
+
+aviso_apertura_titulo: "Porte ou fenetre ouverte"
+aviso_apertura_mensaje: "Ouverture detectee. Ouvrez l'application pour les details."
+
+aviso_movimiento_titulo: "Mouvement detecte"
+aviso_movimiento_mensaje: "Mouvement detecte. Ouvrez l'application pour voir la sequence."
+
+disuasion_titulo: "Sirene de dissuasion activee"
+disuasion_mensaje: >-
+  La sirene de dissuasion s'est activee puis arretee d'elle-meme. Il ne s'agit pas d'un systeme
+  surveille et aucun service d'urgence n'a ete contacte.
+
+aviso_fuga_titulo: "Eau detectee"
+aviso_fuga_mensaje: "Eau detectee. La vanne d'arret a ete fermee. Ouvrez l'application."
+
+aviso_congelacion_titulo: "Temperature basse"
+aviso_congelacion_mensaje: "Une temperature basse a ete relevee. Ouvrez l'application."
+
+aviso_corte_energia_titulo: "Interruption de courant"
+aviso_corte_energia_mensaje: "L'equipement fonctionne sur batterie. Votre systeme enregistre toujours."
+
+aviso_bateria_baja_titulo: "Batterie faible"
+aviso_bateria_baja_mensaje: "La batterie de secours est faible. Le systeme s'arretera de facon ordonnee."
+
+aviso_red_titulo: "Connexion Internet retablie"
+aviso_red_mensaje: "L'acces a distance est de nouveau disponible. Votre systeme a continue de fonctionner."
+
+aviso_camara_titulo: "Une camera ne repond plus"
+aviso_camara_mensaje: "Une camera ne repond pas. Ouvrez l'application pour les details."
+
+# ---------------------------------------------------------------------------------------------
+# Tableau de bord du client
+# ---------------------------------------------------------------------------------------------
+panel:
+  titulo: "Maison"
+  vista_casa: "Maison"
+  vista_camaras: "Cameras"
+  vista_clima: "Climat"
+  vista_sistema: "Systeme"
+  salud: "Etat du systeme"
+  soporte_titulo: "Acces de soutien"
+  soporte_interruptor: "Autoriser notre technicien"
+  soporte_restante: "Temps restant"
+  soporte_ultimo: "Dernier evenement de soutien"
+  soporte_explicacion: >-
+    Nous ne pouvons pas acceder a votre systeme tant que vous n'activez pas ce controle. Il se
+    desactive automatiquement, au redemarrage, et des que vous le desactivez vous-meme. Chaque
+    seance est inscrite dans un journal sur votre propre machine, que vous pouvez consulter, et
+    vous etes avise a l'ouverture et a la fermeture.

@@ -1,0 +1,112 @@
+# Respaldo y restauracion
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cliente : {{ cliente.nombre }} ({{ cliente.id }})
+# Herramienta: {{ respaldo.herramienta | default('restic') }}
+# Generado: {{ generado_en }}
+#
+# TRES COSAS QUE HAY QUE DECIR AL CLIENTE POR ESCRITO, Y QUE ESTAN IMPLEMENTADAS AQUI:
+#
+#   1. EL VIDEO NO SE RESPALDA. Se protege solo por redundancia de disco, y solo en los niveles que
+#      la incluyen. Respaldar semanas de video seria absurdamente caro y el cliente debe saberlo
+#      antes de firmar, no despues de un borrado.
+#   2. LA REDUNDANCIA NO ES RESPALDO. Un conjunto de discos en espejo o con paridad protege frente a
+#      fallo de disco. No protege frente a borrado, corrupcion ni cifrado malicioso. Las instantaneas
+#      del sistema de archivos mitigan lo segundo.
+#   3. LA CLAVE DE CIFRADO ES DEL CLIENTE. La empresa no aloja respaldos de cliente y no conserva la
+#      clave. Si el cliente la pierde, el respaldo es irrecuperable, y eso tambien va por escrito.
+
+herramienta: {{ respaldo.herramienta | default('restic') }}
+
+que_se_respalda:
+  - ruta: /config
+    descripcion: Configuracion de Home Assistant, automatizaciones, paneles y base de dispositivos
+  - ruta: /config/registro-soporte.log
+    descripcion: Registro de sesiones de soporte, legible por el cliente
+  - ruta: /opt/frigate/config
+    descripcion: Configuracion del grabador, zonas y mascaras
+  - ruta: /opt/zigbee2mqtt/data
+    descripcion: Base de la red Zigbee, incluida la clave de red y los emparejamientos
+  - ruta: /opt/mosquitto/config
+    descripcion: Configuracion del broker y su lista de control de acceso
+  - ruta: /opt/vaultwarden/data
+    descripcion: Baul de credenciales del cliente
+  - ruta: /etc/red
+    descripcion: Exportaciones de configuracion de la pasarela, switches y puntos de acceso
+
+que_NO_se_respalda:
+  - ruta: /media/vigilancia
+    motivo: >-
+      Video. Protegido por redundancia de disco donde el paquete la incluye, no por respaldo. El
+      cliente lo sabe y lo firma en el acta de aceptacion.
+
+cifrado:
+  activo: true
+  clave_en_poder_de: cliente
+  ubicacion_de_la_clave: Baul de credenciales del cliente y copia impresa que el cliente custodia
+  nota: >-
+    La empresa no conserva la clave. Sin ella el respaldo es irrecuperable. Consta por escrito en el
+    documento as-built, seccion de credenciales.
+
+destinos:
+  - id: local_primario
+    tipo: disco_interno
+    ruta: {{ respaldo.destino_local | default('/mnt/respaldo') }}
+    frecuencia: diaria
+    hora: "{{ respaldo.hora | default('03:15') }}"
+    retencion:
+      diarias: 7
+      semanales: 4
+      mensuales: 6
+
+  - id: local_secundario
+    tipo: dispositivo_fisico_separado
+    ruta: {{ respaldo.destino_secundario | default('/mnt/respaldo-secundario') }}
+    frecuencia: diaria
+    nota: >-
+      Segundo destino local en un dispositivo fisico distinto. Si el primero comparte controladora o
+      fuente con el primario, no es un segundo destino: es el mismo punto de fallo.
+
+{% if respaldo.destino_externo %}
+  - id: externo_del_cliente
+    tipo: {{ respaldo.destino_externo.tipo }}
+    destino: {{ respaldo.destino_externo.destino }}
+    frecuencia: semanal
+    controlado_por: cliente
+    nota: >-
+      Opcional y CONTROLADO POR EL CLIENTE: su propia cuenta de almacenamiento, o un disco externo
+      cifrado que el cliente rota. La empresa no aloja respaldos de cliente.
+{% else %}
+  # El cliente no eligio destino externo. Queda documentado como decision suya en el as-built,
+  # junto con lo que implica: un incendio o un robo que se lleve el equipo se lleva tambien las dos
+  # copias locales.
+{% endif %}
+
+# -------------------------------------------------------------------------------------------------
+# Prueba de restauracion
+# -------------------------------------------------------------------------------------------------
+# Un respaldo que nadie ha restaurado nunca no es un respaldo: es una suposicion. Esta tarea es
+# VERIFICABLE y su resultado se adjunta al registro de servicio del plan de cuidado.
+prueba_de_restauracion:
+  frecuencia: {{ respaldo.frecuencia_prueba | default('anual') }}
+  procedimiento: runbooks/restaurar-controlador.md
+  objetivo_declarado: >-
+    Reconstruccion completa desde plantilla mas respaldo en MENOS DE CUATRO HORAS, sin conocimiento
+    tribal. Si la prueba tarda mas, el defecto esta en la plantilla o en la documentacion y hay que
+    corregirlo, no anotar el tiempo y seguir.
+  evidencia:
+    - Instantanea del sistema restaurado funcionando
+    - Tiempo total empleado
+    - Incidencias encontradas y correcciones aplicadas a la plantilla
+  automatizable:
+    verificacion_integridad: true
+    frecuencia_verificacion: semanal
+    comando: >-
+      {% if respaldo.herramienta | default('restic') == 'restic' -%}
+      restic check --read-data-subset=5%
+      {%- else -%}
+      borg check --verify-data --last 1
+      {%- endif %}
+    nota: >-
+      La verificacion semanal de integridad NO sustituye a la prueba de restauracion completa.
+      Comprueba que los datos se pueden leer, no que el sistema se pueda reconstruir con ellos.

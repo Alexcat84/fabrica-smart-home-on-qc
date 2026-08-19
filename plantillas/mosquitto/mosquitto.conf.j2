@@ -1,0 +1,37 @@
+# Eclipse Mosquitto - configuracion
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cliente : {{ cliente.nombre }} ({{ cliente.id }})
+# Generado: {{ generado_en }}
+#
+# AUTENTICACION OBLIGATORIA, SIN EXCEPCION. Tampoco en el banco de pruebas de la empresa: una
+# configuracion de banco relajada acaba copiada a produccion, y un broker MQTT anonimo da control
+# total sobre cada dispositivo de la casa a cualquiera que alcance el segmento.
+
+listener 1883 10.{{ red.octeto }}.40.10
+protocol mqtt
+
+# Sin acceso anonimo. Esta linea no se toca.
+allow_anonymous false
+password_file /mosquitto/config/passwd
+acl_file /mosquitto/config/acl
+
+persistence true
+persistence_location /mosquitto/data/
+autosave_interval 300
+
+log_dest file /mosquitto/log/mosquitto.log
+log_type error
+log_type warning
+log_type notice
+log_type information
+connection_messages true
+log_timestamp true
+
+max_inflight_messages 40
+max_queued_messages 1000
+message_size_limit 0
+
+# El broker escucha SOLO en la direccion del controlador dentro de la VLAN Controller.
+# No se expone a IoT, a Camera ni a Trusted directamente: quien necesita publicar lo hace a traves
+# de los servicios del propio controlador.

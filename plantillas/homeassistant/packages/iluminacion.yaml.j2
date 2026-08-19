@@ -1,0 +1,104 @@
+# Paquete de dominio: ILUMINACION
+# GENERADO. No editar a mano (ADR-006).
+#
+# Principio de diseno: se controla el CIRCUITO en el interruptor, no la lampara. Si el controlador
+# esta caido, la luz sigue funcionando desde la pared. La lampara inteligente solo aparece donde el
+# cliente pidio color o temperatura de color (cap. 6.3.1).
+#
+# Nomenclatura: docs/NOMENCLATURA.md, secciones 3, 4 y 5.
+
+{% set luces = dispositivos | selectattr('categoria', 'in', ['iluminacion', 'interruptor']) | list %}
+
+# =================================================================================================
+# Areas de iluminacion
+# =================================================================================================
+{% if luces %}
+light:
+  - platform: group
+    name: "Iluminacion planta baja"
+    unique_id: grupo_iluminacion_planta_baja
+    entities:
+{% for d in luces if d.area.startswith('planta_baja') %}
+      - light.{{ d.nombre }}
+{% endfor %}
+
+  - platform: group
+    name: "Iluminacion exterior"
+    unique_id: grupo_iluminacion_exterior
+    entities:
+{% for d in luces if d.area.startswith('exterior') %}
+      - light.{{ d.nombre }}
+{% endfor %}
+{% endif %}
+
+# =================================================================================================
+# Automatizaciones
+# =================================================================================================
+
+automation:
+{% for d in dispositivos if d.categoria == 'sensor' and d.tipo_sensor == 'movimiento' and d.controla_luz %}
+  - id: iluminacion_ocupacion_{{ d.area }}
+    alias: "Iluminacion - ocupacion - {{ d.area }}"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.{{ d.nombre }}
+        to: "on"
+    condition:
+      - condition: numeric_state
+        entity_id: sensor.{{ d.area }}_iluminancia
+        below: {{ d.umbral_lux | default(40) }}
+    action:
+      - service: light.turn_on
+        target:
+          entity_id: light.{{ d.controla_luz }}
+        data:
+          brightness_pct: {{ d.brillo_pct | default(70) }}
+      - wait_for_trigger:
+          - platform: state
+            entity_id: binary_sensor.{{ d.nombre }}
+            to: "off"
+            for: "00:{{ '%02d' % (d.minutos_apagado | default(5)) }}:00"
+      - service: light.turn_off
+        target:
+          entity_id: light.{{ d.controla_luz }}
+{% endfor %}
+
+{% if luces %}
+  # Apagado general al salir. No toca exterior: dejar la casa a oscuras cuando no hay nadie es
+  # exactamente lo contrario de lo que el cliente quiere.
+  - id: iluminacion_apagado_al_salir
+    alias: "Iluminacion - apagado general al salir"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: group.familia
+        to: "not_home"
+        for: "00:10:00"
+    action:
+      - service: light.turn_off
+        target:
+          entity_id:
+            - light.grupo_iluminacion_planta_baja
+{% endif %}
+
+# =================================================================================================
+# Escenas
+# =================================================================================================
+# Los niveles minimo y maximo de atenuacion se fijan por circuito en el comisionamiento, no aqui:
+# la mayor parte de las quejas de atenuacion son incompatibilidad con la lampara LED concreta, y se
+# resuelven ajustando el rango util del atenuador (cap. 6.3.3).
+
+scene:
+{% for esc in escenas | default([]) %}
+  - id: escena_{{ esc.id }}
+    name: "{{ esc.nombre }}"
+    entities:
+{% for e in esc.entidades %}
+      {{ e.entidad }}:
+        state: "{{ e.estado }}"
+{% if e.brillo_pct is defined %}
+        brightness_pct: {{ e.brillo_pct }}
+{% endif %}
+{% endfor %}
+{% endfor %}

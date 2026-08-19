@@ -1,0 +1,116 @@
+# Paquete de dominio: CLIMA
+# GENERADO. No editar a mano (ADR-006).
+#
+# ADR-004, FRONTERA DURA: nada de este paquete toca controles de combustion, controles internos de
+# caldera, enclavamientos de seguridad de panel de zonas, ni ventilacion mecanica exigida por codigo.
+# En construccion reciente de Quebec el extractor de bano puede estar ligado al ventilador recuperador
+# de calor: se verifica antes de tocar el circuito y, si lo esta, no se automatiza.
+#
+# Contexto de mercado: en Quebec domina el zocalo electrico con termostato de tension de linea; en
+# Ontario domina el aire forzado de 24 V (cap. 6.7).
+
+{% set termostatos = dispositivos | selectattr('categoria', 'equalto', 'termostato') | list %}
+
+# =================================================================================================
+# Programacion y retroceso
+# =================================================================================================
+
+automation:
+{% if termostatos %}
+  - id: clima_retroceso_nocturno
+    alias: "Clima - retroceso nocturno"
+    mode: single
+    trigger:
+      - platform: time
+        at: "{{ clima.hora_retroceso | default('22:30:00') }}"
+    action:
+{% for t in termostatos if t.retroceso_nocturno | default(true) %}
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.{{ t.nombre }}
+        data:
+          temperature: {{ t.consigna_noche_c | default(17) }}
+{% endfor %}
+
+  - id: clima_recuperacion_manana
+    alias: "Clima - recuperacion de manana"
+    mode: single
+    trigger:
+      - platform: time
+        at: "{{ clima.hora_recuperacion | default('06:00:00') }}"
+    action:
+{% for t in termostatos if t.retroceso_nocturno | default(true) %}
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.{{ t.nombre }}
+        data:
+          temperature: {{ t.consigna_dia_c | default(21) }}
+{% endfor %}
+
+  # Retroceso por ausencia prolongada. Nunca por debajo del limite antihielo: una casa canadiense sin
+  # calefaccion en enero revienta la fontaneria en horas.
+  - id: clima_retroceso_por_ausencia
+    alias: "Clima - retroceso por ausencia"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: group.familia
+        to: "not_home"
+        for: "{{ clima.horas_ausencia_retroceso | default(4) }}:00:00"
+    action:
+{% for t in termostatos %}
+      - service: climate.set_temperature
+        target:
+          entity_id: climate.{{ t.nombre }}
+        data:
+          temperature: {{ [t.consigna_ausencia_c | default(16), clima.limite_antihielo_c | default(12)] | max }}
+{% endfor %}
+{% endif %}
+
+  # Aviso de congelacion. Es alerta al propietario, NO funcion de seguridad de vida (ADR-004).
+{% for s in dispositivos if s.categoria == 'sensor' and s.tipo_sensor == 'temperatura' and s.aviso_congelacion | default(false) %}
+  - id: clima_aviso_congelacion_{{ s.area }}
+    alias: "Clima - aviso de congelacion - {{ s.area }}"
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.{{ s.nombre }}
+        below: {{ s.umbral_congelacion_c | default(5) }}
+        for: "00:30:00"
+    action:
+      - service: notify.familia
+        data:
+          title: "{{ textos.aviso_congelacion_titulo }}"
+          message: "{{ textos.aviso_congelacion_mensaje }}"
+{% endfor %}
+
+# =================================================================================================
+# Extractores de bano
+# =================================================================================================
+{% for v in dispositivos if v.categoria == 'ventilador' and v.tipo | default('') == 'extractor_bano' %}
+{% if v.ligado_a_hrv | default(false) %}
+# {{ v.nombre }}: NO SE AUTOMATIZA. Esta ligado al ventilador recuperador de calor y su control
+# corresponde a la ventilacion mecanica exigida por codigo (ADR-004). Queda documentado y sin tocar.
+{% else %}
+  - id: clima_extractor_humedad_{{ v.area }}
+    alias: "Clima - extractor por humedad - {{ v.area }}"
+    mode: restart
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.{{ v.sensor_humedad }}
+        above: {{ v.umbral_humedad_pct | default(65) }}
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.{{ v.nombre }}
+      - wait_for_trigger:
+          - platform: numeric_state
+            entity_id: sensor.{{ v.sensor_humedad }}
+            below: {{ (v.umbral_humedad_pct | default(65)) - 10 }}
+        timeout: "01:00:00"
+      - delay: "00:{{ '%02d' % (v.minutos_marcha_posterior | default(10)) }}:00"
+      - service: switch.turn_off
+        target:
+          entity_id: switch.{{ v.nombre }}
+{% endif %}
+{% endfor %}

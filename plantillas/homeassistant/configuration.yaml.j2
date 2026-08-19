@@ -1,0 +1,162 @@
+# Home Assistant - configuracion principal
+# GENERADO. No editar a mano en casa del cliente (ADR-006).
+#
+# Cliente : {{ cliente.nombre }} ({{ cliente.id }})
+# Paquete : {{ paquete }}
+# Generado: {{ generado_en }}
+#
+# Cualquier cambio se hace en plantillas/homeassistant/ o en el archivo de variables del cliente,
+# y se regenera. Un cambio manual aqui se pierde en la siguiente regeneracion y, peor, deja de estar
+# en control de versiones.
+
+default_config:
+
+homeassistant:
+  name: "{{ cliente.nombre_sistema }}"
+  latitude: {{ cliente.latitud | default('!secret latitud', true) }}
+  longitude: {{ cliente.longitud | default('!secret longitud', true) }}
+  elevation: {{ cliente.elevacion_m | default(70) }}
+  unit_system: metric
+  currency: CAD
+  country: CA
+  time_zone: "{{ red.zona_horaria }}"
+  language: "{{ cliente.idioma }}"
+
+  # Solo se confia en el proxy inverso local y en el rango del tunel. Nada mas.
+  # No hay puertos abiertos hacia internet: el acceso remoto entra por WireGuard (docs/SEGURIDAD.md).
+  external_url: "https://{{ cliente.id }}.{{ red.dominio_local }}"
+  internal_url: "https://{{ cliente.id }}.{{ red.dominio_local }}"
+
+  packages: !include_dir_named packages
+
+http:
+  server_host:
+    - 127.0.0.1
+    - 10.{{ red.octeto }}.40.10
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - 10.{{ red.octeto }}.40.10
+  ip_ban_enabled: true
+  login_attempts_threshold: 5
+
+# ---------------------------------------------------------------------------------------------
+# Registro
+# ---------------------------------------------------------------------------------------------
+# Retencion dimensionada para que una pregunta de hace un mes siga teniendo respuesta (cap. 7.13).
+recorder:
+  db_url: !secret recorder_db_url
+  purge_keep_days: {{ registro.dias_retencion | default(35) }}
+  auto_purge: true
+  commit_interval: 5
+  exclude:
+    domains:
+      - automation
+      - update
+    entity_globs:
+      - sensor.*_uptime
+      - sensor.*_last_seen
+
+logger:
+  default: warning
+  logs:
+    homeassistant.components.mqtt: info
+    custom_components: info
+
+# ---------------------------------------------------------------------------------------------
+# Historico de energia y ambiente
+# ---------------------------------------------------------------------------------------------
+{% if 'influxdb' in software_desplegado or 'victoriametrics' in software_desplegado %}
+influxdb:
+  api_version: 2
+  host: 10.{{ red.octeto }}.40.10
+  port: 8086
+  ssl: false
+  token: !secret influxdb_token
+  organization: "{{ cliente.id }}"
+  bucket: domotica
+  tags:
+    instalacion: "{{ cliente.id }}"
+  include:
+    domains:
+      - sensor
+      - climate
+      - binary_sensor
+{% else %}
+# Historico de largo plazo no desplegado en este paquete.
+{% endif %}
+
+# ---------------------------------------------------------------------------------------------
+# MQTT
+# ---------------------------------------------------------------------------------------------
+# Autenticacion obligatoria. No hay acceso anonimo en ninguna instalacion, ni en el banco de pruebas.
+mqtt:
+  broker: 10.{{ red.octeto }}.40.10
+  port: 1883
+  username: !secret mqtt_usuario
+  password: !secret mqtt_contrasena
+  discovery: true
+  discovery_prefix: homeassistant
+
+# ---------------------------------------------------------------------------------------------
+# Frigate y camaras
+# ---------------------------------------------------------------------------------------------
+{% if camaras %}
+# Las camaras viven en la VLAN Camera (10.{{ red.octeto }}.30.0/24) y no originan conexiones.
+# El grabador abre la conexion hacia la camara; nunca al reves (matriz de firewall, cap. 7.4.1).
+ffmpeg:
+
+stream:
+{% endif %}
+
+# ---------------------------------------------------------------------------------------------
+# Notificaciones
+# ---------------------------------------------------------------------------------------------
+{% if notificaciones.modo == 'push_mitigado' %}
+# DIVULGACION AL CLIENTE (cap. 7.6.2, y declaracion de alcance firmada):
+# las notificaciones push de Android e iOS viajan por la infraestructura del fabricante del sistema
+# operativo movil. Es una propiedad arquitectonica de las plataformas moviles y ningun proveedor
+# puede evitarla. Mitigacion aplicada aqui: el contenido se reduce a categoria y hora. Sin imagen,
+# sin nombre de camara y sin detalle de ubicacion. La imagen o el video se traen solo cuando el
+# cliente abre la aplicacion, y entonces viajan por el tunel cifrado desde su propio servidor.
+{% else %}
+# El cliente eligio alerta SOLO LOCAL: sin servicio push de terceros. Los avisos se entregan por
+# aviso sonoro y visual en la vivienda y por el canal autoalojado, alcanzable cuando el telefono
+# esta en la red local o en el tunel.
+{% endif %}
+
+notify:
+  # Registro local de soporte, legible por el cliente sin ayuda tecnica (cap. 7.7).
+  - name: registro_soporte_local
+    platform: file
+    filename: /config/registro-soporte.log
+    timestamp: true
+
+  # Grupo de destinatarios del hogar. Los miembros y su plataforma movil salen del archivo de cliente.
+  - name: familia
+    platform: group
+    services:
+{% for m in hogar %}
+{% if notificaciones.modo == 'push_mitigado' %}
+      - service: mobile_app_{{ m.dispositivo_movil }}
+{% endif %}
+{% endfor %}
+{% if notificaciones.modo != 'push_mitigado' or not hogar %}
+      # Alerta solo local: el canal autoalojado es alcanzable con el telefono en la red local o en
+      # el tunel. Ningun servicio de terceros interviene.
+      - service: persistent_notification
+{% endif %}
+
+# ---------------------------------------------------------------------------------------------
+# Actualizaciones
+# ---------------------------------------------------------------------------------------------
+# ADR-006: versiones fijadas, actualizaciones automaticas deshabilitadas. Se aplican de forma
+# deliberada tras validarlas en el banco de la empresa, con instantanea previa y reversion
+# documentada (runbooks/aplicar-actualizacion.md).
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include_dir_merge_list automations
+script: !include_dir_merge_named scripts
+scene: !include_dir_merge_list scenes

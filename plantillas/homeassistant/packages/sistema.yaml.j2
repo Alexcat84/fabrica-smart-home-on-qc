@@ -1,0 +1,193 @@
+# Paquete de dominio: SISTEMA
+# GENERADO. No editar a mano (ADR-006).
+#
+# Contiene el INTERRUPTOR DE SOPORTE REMOTO, que es la pieza firma de la oferta y debe implementarse
+# con exactitud (cap. 7.7 del plan de negocio):
+#
+#   - La empresa NO tiene acceso permanente a ningun sistema de cliente.
+#   - El cliente habilita el soporte desde un control claramente etiquetado en su propio panel, o con
+#     un toque en la aplicacion movil.
+#   - Habilitarlo crea una autorizacion limitada en el tiempo, por defecto {{ soporte.duracion_horas | default(2) }} horas,
+#     implementada como automatizacion explicita con temporizador que revoca el acceso al expirar,
+#     al reiniciar y al cancelar manualmente.
+#   - Cada apertura, conexion y expiracion queda registrada localmente en un archivo que el cliente
+#     puede leer sin ayuda tecnica.
+#   - El cliente recibe notificacion al abrirse y al cerrarse la sesion.
+#   - El cliente puede retirar el acceso de forma permanente con un procedimiento documentado.
+
+# =================================================================================================
+# Soporte remoto
+# =================================================================================================
+
+input_boolean:
+  soporte_remoto:
+    name: "Permitir acceso de soporte"
+    icon: mdi:account-wrench
+
+timer:
+  soporte_remoto:
+    name: "Tiempo restante de acceso de soporte"
+    duration: "{{ '%02d' % (soporte.duracion_horas | default(2)) }}:00:00"
+    restore: false      # DELIBERADO: al reiniciar, el temporizador NO se restaura y el acceso cae
+
+input_text:
+  soporte_ultimo_evento:
+    name: "Ultimo evento de soporte"
+    max: 255
+
+automation:
+  # -----------------------------------------------------------------------------------------------
+  # Apertura de sesion
+  # -----------------------------------------------------------------------------------------------
+  - id: sistema_soporte_remoto_apertura
+    alias: "Sistema - soporte remoto - apertura de sesion"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.soporte_remoto
+        from: "off"
+        to: "on"
+    action:
+      # Sin `duration`: se usa la del propio temporizador, que ya viene del archivo de cliente.
+      - service: timer.start
+        target:
+          entity_id: timer.soporte_remoto
+      - service: shell_command.soporte_habilitar
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.soporte_ultimo_evento
+        data:
+          value: "Sesion abierta {{ '{{' }} now().strftime('%Y-%m-%d %H:%M') {{ '}}' }}"
+      - service: notify.registro_soporte_local
+        data:
+          message: >-
+            SESION DE SOPORTE ABIERTA por el propietario desde el panel.
+            Expira automaticamente en {{ soporte.duracion_horas | default(2) }} horas.
+      - service: logbook.log
+        data:
+          name: "Soporte remoto"
+          message: "Sesion abierta por el propietario"
+          entity_id: input_boolean.soporte_remoto
+      - service: notify.familia
+        data:
+          title: "{{ textos.soporte_abierto_titulo }}"
+          message: "{{ textos.soporte_abierto_mensaje }}"
+
+  # -----------------------------------------------------------------------------------------------
+  # Expiracion por temporizador
+  # -----------------------------------------------------------------------------------------------
+  - id: sistema_soporte_remoto_expiracion
+    alias: "Sistema - soporte remoto - expiracion"
+    mode: single
+    trigger:
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.soporte_remoto
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.soporte_remoto
+      - service: shell_command.soporte_revocar
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.soporte_ultimo_evento
+        data:
+          value: "Sesion expirada {{ '{{' }} now().strftime('%Y-%m-%d %H:%M') {{ '}}' }}"
+      - service: notify.registro_soporte_local
+        data:
+          message: "SESION DE SOPORTE CERRADA por expiracion del temporizador. Acceso revocado."
+      - service: logbook.log
+        data:
+          name: "Soporte remoto"
+          message: "Sesion cerrada por expiracion"
+          entity_id: input_boolean.soporte_remoto
+      - service: notify.familia
+        data:
+          title: "{{ textos.soporte_cerrado_titulo }}"
+          message: "{{ textos.soporte_cerrado_mensaje }}"
+
+  # -----------------------------------------------------------------------------------------------
+  # Cancelacion manual por el propietario
+  # -----------------------------------------------------------------------------------------------
+  - id: sistema_soporte_remoto_cancelacion
+    alias: "Sistema - soporte remoto - cancelacion manual"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.soporte_remoto
+        from: "on"
+        to: "off"
+    action:
+      - service: timer.cancel
+        target:
+          entity_id: timer.soporte_remoto
+      - service: shell_command.soporte_revocar
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.soporte_ultimo_evento
+        data:
+          value: "Sesion cancelada {{ '{{' }} now().strftime('%Y-%m-%d %H:%M') {{ '}}' }}"
+      - service: notify.registro_soporte_local
+        data:
+          message: "SESION DE SOPORTE CERRADA manualmente por el propietario. Acceso revocado."
+      - service: logbook.log
+        data:
+          name: "Soporte remoto"
+          message: "Sesion cancelada por el propietario"
+          entity_id: input_boolean.soporte_remoto
+      - service: notify.familia
+        data:
+          title: "{{ textos.soporte_cerrado_titulo }}"
+          message: "{{ textos.soporte_cerrado_mensaje }}"
+
+  # -----------------------------------------------------------------------------------------------
+  # Revocacion al reinicio
+  # -----------------------------------------------------------------------------------------------
+  # Sin esto, un reinicio durante una sesion abierta dejaria el acceso vivo sin temporizador que lo
+  # cierre. Es el fallo silencioso que convierte una promesa contractual en una mentira.
+  - id: sistema_soporte_remoto_revocacion_al_reinicio
+    alias: "Sistema - soporte remoto - revocacion al reinicio"
+    mode: single
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.soporte_remoto
+      - service: timer.cancel
+        target:
+          entity_id: timer.soporte_remoto
+      - service: shell_command.soporte_revocar
+      - service: notify.registro_soporte_local
+        data:
+          message: "Reinicio del controlador: acceso de soporte revocado por politica."
+
+shell_command:
+  # Los scripts viven en el anfitrion y los despliega ansible/roles/soporte_remoto.
+  # Levantan y retiran la autorizacion en el plano de control de la malla. Sin credencial permanente
+  # de la empresa en el sistema del cliente (ADR-005).
+  soporte_habilitar: "/config/scripts/soporte-habilitar.sh"
+  soporte_revocar: "/config/scripts/soporte-revocar.sh"
+
+# =================================================================================================
+# Salud del sistema
+# =================================================================================================
+
+template:
+  - binary_sensor:
+      - name: "Sistema respaldo reciente"
+        unique_id: sistema_respaldo_reciente
+        state: >-
+          {{ '{{' }} (as_timestamp(now()) - as_timestamp(states('sensor.ultimo_respaldo'), 0)) < 172800 {{ '}}' }}
+        device_class: problem
+
+  - sensor:
+      - name: "Version fijada del stack"
+        unique_id: sistema_version_stack
+        state: "{{ version_stack | default('sin fijar') }}"
+        attributes:
+          generado_en: "{{ generado_en }}"
+          paquete: "{{ paquete }}"
+          cliente: "{{ cliente.id }}"

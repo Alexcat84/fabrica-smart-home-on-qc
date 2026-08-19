@@ -39,6 +39,11 @@ MARCADORES_PERMITIDOS = re.compile(
         | XXX+
         | \{\{.*\}\}                 # expresion Jinja: el valor lo inyecta el generador
         | !vault.*
+        | !secreto?\s+\S+           # referencia a secrets.yaml de Home Assistant
+        | \{[A-Z0-9_]+\}             # sustitucion por variable de entorno (Frigate, docker)
+        | \$\{[A-Za-z0-9_]+\}
+        | \$[A-Z][A-Z0-9_]*
+        | <[^>]+>                    # marcador angular del tipo <contrasena-del-cliente>
         | \$ANSIBLE_VAULT.*
         | \s*
         | null | ~ | ""|''
@@ -91,7 +96,7 @@ PATRONES = [
     ),
     (
         "hash de contrasena de sistema",
-        re.compile(r"(\$[0-9a-z]{1,2}\$[./A-Za-z0-9]{8,}\$[./A-Za-z0-9]{20,})"),
+        re.compile(r"(\$[0-9a-z]{1,3}\$(?:[./A-Za-z0-9=,]+\$)+[./A-Za-z0-9]{20,})"),
         1,
     ),
 ]
