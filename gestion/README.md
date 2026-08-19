@@ -39,6 +39,12 @@ Porque modelar la gestion antes de tener un solo cliente real produce un modelo 
 tirar. El primer contenido de este directorio deberia salir del **primer proyecto pagado**, no de una
 sesion de diseno.
 
-Lo unico que se adelanta es el **esquema del dispositivo instalado**
+Lo unico que se adelanta es el **registro de dispositivo instalado**
 (`datos-maestros/esquemas/dispositivo-instalado.schema.json`), porque es la union entre inventario,
-parque instalado y garantia, y el generador ya tiene que emitirlo para que se rellene en obra.
+parque instalado y garantia, y el generador ya lo emite vacio en cada paquete
+(`salida/<cliente>/dispositivos-instalados.yaml`) para que se rellene en obra.
+
+Ese registro guarda **hechos**: que unidad fisica, con que numero de serie, en que casa, desde que
+dia y hasta cuando en garantia. Referencia el producto por `sku_interno` y no lo redescribe. Cuando
+`gestion/` exista de verdad, ese archivo sera su entrada principal, y por eso su esquema se escribio
+antes que el resto.

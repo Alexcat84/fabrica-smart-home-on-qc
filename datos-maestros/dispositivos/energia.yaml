@@ -29,6 +29,18 @@
     Control de cargas de alto consumo (calentador de agua, cargador de vehiculo electrico, circuitos
     de zocalo). Instalacion por electricista licenciado. Es la respuesta estandar en Quebec para
     desplazamiento de carga.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -51,6 +63,18 @@
   notas: >-
     Medicion de consumo por carga. Util para propuestas de desplazamiento de carga en Ontario;
     de utilidad marginal como argumento de ahorro en Quebec por la estructura tarifaria.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -73,6 +97,18 @@
   notas: >-
     Transformadores de corriente en el panel para visibilidad por circuito. Instalacion exclusiva por
     electricista licenciado.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -96,6 +132,18 @@
     Onda senoidal pura obligatoria: las fuentes modernas con correccion activa del factor de potencia
     se comportan mal con onda senoidal simulada. Puerto de datos obligatorio para integrar Network UPS
     Tools y conseguir apagado ordenado y aviso de bateria baja.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -119,5 +167,17 @@
     Segunda fuente de UPS de onda senoidal pura con puerto de datos. Comprar el SKU norteamericano
     (ADR-002). Objetivo de autonomia estandar de 15 a 30 minutos; de 2 a 4 horas para el subsistema de
     camaras y grabacion cuando la prioridad es seguridad.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false

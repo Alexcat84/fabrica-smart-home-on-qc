@@ -196,6 +196,38 @@ def documentos_bilingues() -> tuple[bool, str]:
     return True, f"{len(esperados)} documentos de cliente en ingles y frances"
 
 
+def dispositivos_instalados_validos() -> tuple[bool, str]:
+    """El registro que el generador emite tiene que cumplir su propio esquema.
+
+    Es la union entre inventario, parque instalado y garantia. Si el generador emite algo que el
+    esquema rechaza, quien lo rellene en obra no tiene forma de saberlo hasta que ya esta relleno.
+    """
+    import json
+
+    import jsonschema
+    import yaml
+
+    ruta = RAIZ / "salida" / "EJEMPLO-demo" / "dispositivos-instalados.yaml"
+    if not ruta.is_file():
+        return False, "el generador no emitio dispositivos-instalados.yaml"
+
+    esquema = json.loads(
+        (RAIZ / "datos-maestros" / "esquemas" / "dispositivo-instalado.schema.json")
+        .read_text(encoding="utf-8")
+    )
+    registros = yaml.safe_load(ruta.read_text(encoding="utf-8")) or []
+    validador = jsonschema.Draft202012Validator(esquema)
+
+    fallos = []
+    for i, registro in enumerate(registros):
+        for fallo in validador.iter_errors(registro):
+            campo = ".".join(str(x) for x in fallo.path) or "(raiz)"
+            fallos.append(f"registro {i} campo `{campo}`: {fallo.message}")
+    if fallos:
+        return False, "registros invalidos: " + "; ".join(fallos[:5])
+    return True, f"{len(registros)} registros de dispositivo instalado, validos contra su esquema"
+
+
 def trazabilidad() -> tuple[bool, str]:
     """Todo `verificado: false` del catalogo tiene que tener su fila en POR-VERIFICAR."""
     import yaml
@@ -228,7 +260,8 @@ def main() -> int:
         ("7. Sin secretos (ADR-005)", sin_secretos),
         ("8. Regla del fuego (ADR-004)", regla_del_fuego),
         ("9. Documentos de cliente bilingues", documentos_bilingues),
-        ("10. Trazabilidad de datos sin verificar (ADR-001)", trazabilidad),
+        ("10. Registro de dispositivo instalado", dispositivos_instalados_validos),
+        ("11. Trazabilidad de datos sin verificar (ADR-001)", trazabilidad),
     ]
 
     resultados = [paso(titulo, fn) for titulo, fn in pasos]

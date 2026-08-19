@@ -29,6 +29,18 @@
     REGLA DE SEGURIDAD NO NEGOCIABLE: nunca se instala un atenuador de iluminacion sobre el motor de
     un ventilador de techo. Es riesgo de incendio y de falla del motor, y es un error frecuente de
     instalador. Verificar que el SKU esta explicitamente clasificado para carga de motor de ventilador.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -51,6 +63,18 @@
   notas: >-
     Control de velocidad con clasificacion para motor de ventilador. Ver la regla de seguridad de
     control-ventilador-lutron: jamas un atenuador de iluminacion sobre un motor.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -73,6 +97,18 @@
   notas: >-
     Para ventilador con luz integrada se separan las rutas de control de ventilador y de luz. Modulo
     en dosel cuando la caja solo tiene una pata conmutada.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -97,5 +133,17 @@
     ocupacion. ADR-004: NO se automatiza el enclavamiento de ventilacion mecanica exigido por codigo.
     En construccion reciente de Quebec el extractor puede estar ligado al ventilador recuperador de
     calor: verificar antes de tocar el circuito.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false

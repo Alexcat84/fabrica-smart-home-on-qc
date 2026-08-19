@@ -28,6 +28,18 @@
   notas: >-
     Toma controlada permanente en pared. Nunca se instala en un circuito que alimente equipo de
     seguridad de vida (ADR-004).
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -50,5 +62,17 @@
   notas: >-
     Control flexible o temporal sin obra. Al ser alimentado de red, extiende la malla Zigbee: util
     para reforzar cobertura en plantas con pocos dispositivos cableados.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false

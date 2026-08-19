@@ -31,6 +31,18 @@
     Verificar por modelo el rango de temperatura de operacion para invierno canadiense.
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -56,6 +68,18 @@
     segmento sensible a linaje de cadena de suministro sin divulgarlo por escrito.
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -80,6 +104,18 @@
     defensa. Linaje de cadena de suministro claro. Coste mayor, justificado por el segmento.
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -104,5 +140,17 @@
     Axis. Verificar rango de temperatura y calefactor por modelo.
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false

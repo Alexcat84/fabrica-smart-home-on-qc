@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dispositivo instalado",
+  "description": "UN REGISTRO POR UNIDAD FISICA en casa de un cliente. Es la union entre tres cosas que hasta ahora vivian separadas: el inventario (que producto es), el parque instalado (donde esta) y la garantia (hasta cuando responde). El generador emite este registro VACIO, con lo que ya sabe, para que se rellene en obra; el documento as-built lo lee. Sin el, la pregunta 'que unidad exacta hay en el pasillo de casa de este cliente, y le queda garantia' no tiene respuesta sin ir a mirar.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sku_interno",
+    "numero_serie",
+    "cliente",
+    "ubicacion",
+    "circuito",
+    "fecha_instalacion",
+    "fin_garantia",
+    "estado"
+  ],
+  "properties": {
+    "sku_interno": {
+      "description": "Referencia al producto en datos-maestros/dispositivos/. Puede ser null mientras el registro esta `pendiente`, porque el generador lo emite antes de que el producto tenga SKU asignado. Obligatorio en cuanto el estado pasa a `instalado`: instalar algo que no esta en el inventario es exactamente lo que este registro existe para impedir. NO se redescribe el producto aqui.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[A-Z0-9-]+$"
+    },
+    "numero_serie": {
+      "description": "De la unidad fisica. null cuando el producto no esta serializado; obligatorio cuando `serializado: true` en el catalogo.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "cliente": {
+      "description": "Id del cliente, tal como aparece en clientes/<id>/cliente.yaml.",
+      "type": "string"
+    },
+    "ubicacion": {
+      "description": "Area donde esta instalado, con la nomenclatura de docs/NOMENCLATURA.md.",
+      "type": "string"
+    },
+    "circuito": {
+      "description": "Circuito de derivacion del panel. null para lo que no va a tension de linea.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fecha_instalacion": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "fin_garantia": {
+      "description": "Fecha de fin de garantia del fabricante. Lo que convierte este registro en util a los tres anos.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "estado": {
+      "description": "pendiente: emitido por el generador, sin instalar. instalado: en servicio. retirado: desinstalado y no sustituido. sustituido: reemplazado por otra unidad, que tiene su propio registro. averiado: en servicio pero con fallo conocido.",
+      "enum": [
+        "pendiente",
+        "instalado",
+        "retirado",
+        "sustituido",
+        "averiado"
+      ]
+    },
+    "nombre_entidad": {
+      "description": "entity_id con el que quedo en el sistema. Facilita cruzar este registro con el as-built y con el registro de soporte.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "etiqueta_cable": {
+      "description": "Solo para lo que lleva cable. Mismo codigo en ambos extremos y en el plano.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "certificacion_verificada": {
+      "description": "ADR-002. La marca comprobada sobre ESTA unidad en recepcion, no sobre la familia.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "marca",
+        "sku",
+        "verificado_por",
+        "fecha"
+      ],
+      "properties": {
+        "marca": {
+          "enum": [
+            "cULus",
+            "cETL",
+            "CSA"
+          ]
+        },
+        "sku": {
+          "type": "string"
+        },
+        "verificado_por": {
+          "type": "string"
+        },
+        "fecha": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "metodo": {
+          "type": "string"
+        }
+      }
+    },
+    "sustituye_a": {
+      "description": "numero_serie de la unidad que reemplaza, cuando aplica. Es lo que permite reconstruir el historial de un punto de instalacion.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notas": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "description": "Un registro en estado instalado tiene que tener fecha. Sin fecha no hay garantia calculable.",
+      "if": {
+        "properties": {
+          "estado": {
+            "const": "instalado"
+          }
+        },
+        "required": [
+          "estado"
+        ]
+      },
+      "then": {
+        "properties": {
+          "fecha_instalacion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fecha_instalacion"
+        ]
+      }
+    },
+    {
+      "description": "Un registro instalado tiene que apuntar a un producto del inventario.",
+      "if": {
+        "properties": {
+          "estado": {
+            "const": "instalado"
+          }
+        },
+        "required": [
+          "estado"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sku_interno": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku_interno"
+        ]
+      }
+    }
+  ]
+}

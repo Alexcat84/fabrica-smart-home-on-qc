@@ -29,6 +29,18 @@
     Termostato de tension de linea para zocalos electricos, que dominan el parque de vivienda de
     Quebec. Confirmar el calculo de carga por circuito antes de especificar el modelo. Linea de
     producto principal, no accesorio.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -51,6 +63,18 @@
   notas: >-
     Segunda fuente de tension de linea, fabricante quebequense. Mantener dos fuentes evita depender
     de la disponibilidad de un solo fabricante en temporada de calefaccion.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -73,6 +97,18 @@
   notas: >-
     Termostato de calefaccion de piso con sonda. Verificar compatibilidad de la sonda con la ya
     instalada en el piso: es la causa habitual de que el reemplazo falle en obra.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -96,6 +132,18 @@
     Sistemas de aire forzado de 24 V, caso tipico de Ontario. Se integra por su ruta local (Matter o
     la interfaz local de HomeKit) para no depender de la nube del fabricante (ADR-003). Confirmar que
     la ruta local del modelo concreto cubre las funciones que se venden.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -118,6 +166,18 @@
   notas: >-
     Alternativa Z-Wave con control totalmente local para aire forzado de 24 V. Sin dependencia de
     nube. El plan nombra este modelo explicitamente en el cap. 6.7.2.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false
 
@@ -142,5 +202,17 @@
     firmware ESPHome. Da control completo sin conexion y es un diferenciador frente a todo competidor
     de nube. No se instala en caja electrica y no toca controles de combustion (ADR-004). Verificar
     ISED del modulo de radio empleado.
+  sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
+  sku_fabricante: null
+  upc: null
+  unidad: unidad                 # unidad | metro | rollo | caja
+  cantidad_por_empaque: 1
+  tipo_stock: por_proyecto       # existencia | por_proyecto | especial
+  serializado: false             # true si cada unidad se rastrea por numero de serie
+  plazo_entrega_dias: null
+  stock_minimo: 0
+  proveedor_preferente: null
+  proveedores_alternos: []
+  estado_ciclo_vida: en_evaluacion   # activo | descontinuado | en_evaluacion
   fuente_url: null
   verificado: false

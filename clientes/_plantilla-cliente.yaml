@@ -3,6 +3,10 @@
 # Copiar a `clientes/<APELLIDO-ciudad>/cliente.yaml` y rellenar con los datos del relevamiento.
 # Este archivo es LO UNICO especifico de una casa. Todo lo demas vive en plantillas/ y se genera.
 #
+# Las fechas van ENTRE COMILLAS. YAML sin comillas las convierte en objetos date, y el
+# esquema de dispositivo instalado espera cadenas. Misma clase de sorpresa que `ON` como
+# booleano, que ya costo un fallo en los datos maestros.
+#
 # ADR-005: NINGUNA contrasena, clave ni token aqui. Usar `CAMBIAR-EN-COMISIONAMIENTO`. Las
 # credenciales reales se generan en el sitio y viven en el baul del cliente (Vaultwarden).
 #

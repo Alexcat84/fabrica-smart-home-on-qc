@@ -282,6 +282,69 @@ def apendice_licencias(cliente: dict, catalogo: dict) -> str:
     return "\n".join(lineas)
 
 
+def dispositivos_instalados(cliente: dict, catalogo: dict) -> str:
+    """Emite un registro de DISPOSITIVO INSTALADO por unidad fisica, vacio, para rellenar en obra.
+
+    Es la union entre inventario, parque instalado y garantia. El generador pone lo que ya sabe
+    -que producto, en que cliente, en que ubicacion, en que circuito- y deja en `null` lo que solo
+    se sabe con la unidad en la mano: numero de serie, fecha de instalacion y fin de garantia.
+
+    Sale del generador y no de una hoja de calculo porque asi nace ya cuadrado con el archivo de
+    variables: mismas ubicaciones, mismos circuitos, mismos identificadores. El documento as-built
+    lo lee, y `gestion/` lo consumira sin volver a describir el producto.
+    """
+    por_id = {d["id"]: d for d in catalogo["dispositivos"]}
+    id_cliente = cliente["cliente"]["id"]
+    registros = []
+
+    for item in (cliente.get("dispositivos") or []) + (cliente.get("camaras") or []):
+        cat = por_id.get(item.get("id_catalogo"), {})
+        registros.append(
+            {
+                "sku_interno": cat.get("sku_interno"),
+                "numero_serie": None,
+                "cliente": id_cliente,
+                "ubicacion": item.get("area"),
+                "circuito": item.get("circuito"),
+                "fecha_instalacion": None,
+                "fin_garantia": None,
+                "estado": "pendiente",
+                "nombre_entidad": item.get("nombre"),
+                "etiqueta_cable": item.get("etiqueta_cable"),
+                "certificacion_verificada": item.get("certificacion_verificada"),
+                "sustituye_a": None,
+                "notas": None,
+            }
+        )
+
+    # Sin escapes: la cabecera se arma como lista de lineas y se une al final.
+    cabecera = "\n".join([
+        f'# Dispositivos instalados - {cliente["cliente"]["nombre"]}',
+        "# GENERADO VACIO PARA RELLENAR EN OBRA.",
+        "#",
+        "# Un registro por unidad fisica. Esquema en",
+        "# datos-maestros/esquemas/dispositivo-instalado.schema.json",
+        "#",
+        "# Lo que el generador ya sabe esta puesto. Lo que solo se sabe con la unidad en la",
+        "# mano esta en null y se rellena durante la instalacion:",
+        "#",
+        "#   numero_serie       de la etiqueta. Obligatorio si el producto es serializado",
+        "#   fecha_instalacion  el dia que queda en servicio",
+        "#   fin_garantia       desde la fecha de compra y la garantia del fabricante",
+        "#   estado             pasa de `pendiente` a `instalado`",
+        "#",
+        "# sku_interno en null significa que ese producto todavia no tiene SKU interno",
+        "# asignado en datos-maestros/dispositivos/. Asignarlo antes de comprar.",
+        "#",
+        "# NO se redescribe el producto aqui: fabricante, modelo y certificacion de familia",
+        "# viven en datos-maestros/ y solo alli. Este archivo guarda hechos que ocurren en",
+        "# el tiempo, no descripciones de cosas.",
+        "---",
+        "",
+    ])
+    return cabecera + yaml.safe_dump(registros, allow_unicode=True, sort_keys=False)
+
+
 def resumen_paquete(cliente: dict, generados: list[Path], destino_raiz: Path) -> str:
     lineas = [
         f"# Paquete generado - {cliente['cliente']['nombre']}",
@@ -392,6 +455,7 @@ def generar(ruta_cliente: Path, forzar: bool = False) -> int:
         ("lista-de-materiales.md", lista_de_materiales(cliente, catalogo)),
         ("calculos.md", documento_calculos(cliente, calculos)),
         ("licencias.md", apendice_licencias(cliente, catalogo)),
+        ("dispositivos-instalados.yaml", dispositivos_instalados(cliente, catalogo)),
     ]:
         ruta = destino / nombre
         ruta.write_text(contenido, encoding="utf-8")
