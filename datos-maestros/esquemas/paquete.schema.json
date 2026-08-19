@@ -1,16 +1,107 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Paquete comercial",
+  "description": "Un archivo de comercial/paquetes/. additionalProperties es false en la raiz Y EN CADA SUBOBJETO: era el unico de los seis esquemas sin la regla, y se comprobo que aceptaba subida_mbpz, vlanz y campo_totalmente_inventado sin rechazarlos. Un campo mal escrito en un paquete no da error de sintaxis: da un minimo de subida que nadie lee y un cliente al que se le promete un enlace que no cubre su uso.",
   "type": "object",
-  "required": ["id", "nombre", "propiedad_objetivo", "capacidad", "retencion", "controlador",
-               "almacenamiento", "red", "energia", "vlans", "internet_minimo", "esfuerzo",
-               "comercial"],
+  "additionalProperties": false,
+  "required": [
+    "id", "nombre", "propiedad_objetivo", "capacidad", "retencion", "controlador",
+    "almacenamiento", "red", "energia", "vlans", "internet_minimo", "esfuerzo", "comercial"
+  ],
   "properties": {
     "id": {"enum": ["S", "M", "L", "XL"]},
-    "nombre": {"type": "string"},
-    "propiedad_objetivo": {"type": "string"},
+    "nombre": {"type": "string", "minLength": 1},
+    "propiedad_objetivo": {"type": "string", "minLength": 1},
+
+    "capacidad": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["camaras_min", "camaras_max", "resolucion_camaras"],
+      "properties": {
+        "dispositivos_automatizados_min": {"type": ["integer", "null"], "minimum": 0},
+        "dispositivos_automatizados_max": {"type": ["integer", "null"], "minimum": 0},
+        "camaras_min": {"type": "integer", "minimum": 0},
+        "camaras_max": {"type": "integer", "minimum": 0},
+        "resolucion_camaras": {"type": "string"},
+        "notas": {"type": "string"}
+      }
+    },
+
+    "retencion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["continua_dias", "eventos_dias", "politica"],
+      "properties": {
+        "continua_dias": {"type": "integer", "minimum": 0},
+        "continua_dias_max": {"type": ["integer", "null"], "minimum": 0},
+        "eventos_dias": {"type": "integer", "minimum": 0},
+        "eventos_dias_max": {"type": ["integer", "null"], "minimum": 0},
+        "politica": {"enum": ["hibrida", "continua"]}
+      }
+    },
+
+    "controlador": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "ram_gb_min", "inferencia"],
+      "properties": {
+        "tipo": {"type": "string"},
+        "ram_gb_min": {"type": ["integer", "null"], "minimum": 0},
+        "ram_gb_max": {"type": ["integer", "null"], "minimum": 0},
+        "candidatos": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+        "inferencia": {"type": "string"},
+        "notas": {"type": "string"}
+      }
+    },
+
+    "almacenamiento": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nvme_sistema_gb", "vigilancia_tb", "redundancia"],
+      "properties": {
+        "nvme_sistema_gb": {"type": ["integer", "null"], "minimum": 0},
+        "vigilancia_tb": {"type": ["number", "null"], "minimum": 0},
+        "redundancia": {"enum": ["ninguna", "espejo", "paridad", "paridad o espejo en NAS"]},
+        "candidatos": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+        "notas": {"type": "string"}
+      }
+    },
+
+    "red": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gateway", "patch_panel_obligatorio"],
+      "properties": {
+        "gateway": {"type": "integer", "minimum": 0},
+        "switch_poe_puertos": {"type": ["integer", "null"], "minimum": 0},
+        "puntos_acceso": {"type": ["integer", "null"], "minimum": 0},
+        "puntos_acceso_min": {"type": ["integer", "null"], "minimum": 0},
+        "puntos_acceso_max": {"type": ["integer", "null"], "minimum": 0},
+        "enlaces_fibra_entre_edificios": {"type": "boolean"},
+        "candidatos": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+        "patch_panel_obligatorio": {"type": "boolean"}
+      }
+    },
+
+    "energia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ups_camaras_dedicado", "circuito_dedicado_rack"],
+      "properties": {
+        "ups_va": {"type": ["integer", "null"], "minimum": 0},
+        "ups_camaras_dedicado": {"type": "boolean"},
+        "circuito_dedicado_rack": {"type": "boolean"},
+        "candidatos": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+        "carga_rack_w_min": {"type": ["integer", "null"], "minimum": 0},
+        "carga_rack_w_max": {"type": ["integer", "null"], "minimum": 0},
+        "failover_celular_recomendado": {"type": "boolean"},
+        "notas": {"type": "string"}
+      }
+    },
+
     "vlans": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["cantidad", "presentes", "ausentes"],
       "properties": {
         "cantidad": {"type": "integer", "minimum": 1, "maximum": 6},
@@ -21,14 +112,44 @@
         "separacion_por_inquilino": {"type": "boolean"}
       }
     },
+
     "internet_minimo": {
       "type": "object",
-      "required": ["bajada_mbps", "subida_mbps"],
+      "additionalProperties": false,
+      "required": ["bajada_mbps", "subida_mbps", "motivo"],
       "properties": {
         "bajada_mbps": {"type": "number", "minimum": 0},
         "subida_mbps": {"type": "number", "minimum": 0},
         "simetrico_preferido": {"type": "boolean"},
-        "motivo": {"type": "string"},
+        "motivo": {"type": "string", "minLength": 1},
+        "recalculado": {
+          "description": "Fecha del ultimo recalculo del minimo publicado. STRING, no fecha: sin comillas YAML 1.1 la coacciona a datetime.date, y eso paso desapercibido justo porque el campo no estaba declarado y el esquema no rechazaba los no declarados.",
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "notas": {"type": "string"}
+      }
+    },
+
+    "esfuerzo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instalacion_dias_min"],
+      "properties": {
+        "instalacion_dias_min": {"type": "integer", "minimum": 0},
+        "instalacion_dias_max": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+
+    "comercial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valor_proyecto_cad_min", "verificado"],
+      "properties": {
+        "valor_proyecto_cad_min": {"type": ["number", "null"], "minimum": 0},
+        "valor_proyecto_cad_max": {"type": ["number", "null"], "minimum": 0},
+        "plan_cuidado_cad_mes": {"type": ["number", "null"], "minimum": 0},
+        "verificado": {"type": "boolean"},
         "notas": {"type": "string"}
       }
     }

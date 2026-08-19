@@ -74,8 +74,7 @@ internet_minimo:
     SUBE DESDE LOS 10 PUBLICADOS ANTES: los 10 solo cubrian la cuadricula. Abrir sobre principal
     pediria 17,5 y es excepcion bajo demanda. Con camaras de DOS flujos el vinculante sube, porque
     la apertura sirve el principal.
-  recalculado: 2026-08-19
-
+  recalculado: "2026-08-19"
 esfuerzo:
   instalacion_dias_min: 4
   instalacion_dias_max: 6

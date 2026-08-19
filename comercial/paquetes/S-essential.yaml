@@ -70,8 +70,7 @@ internet_minimo:
     Modelo de tres flujos (ADR-012). Escenario vinculante: cuadricula de 3 camaras a 0,5 Mbps con
     un visor, mas apertura de una camara sobre flujo medio, mas 2 Mbps de margen del hogar => 4,2
     Mbps. Se publica 5. Abrir sobre principal pediria 7,0 y va lento: es excepcion bajo demanda.
-  recalculado: 2026-08-19
-
+  recalculado: "2026-08-19"
 esfuerzo:
   instalacion_dias_min: 2
   instalacion_dias_max: 3
