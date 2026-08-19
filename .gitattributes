@@ -1,0 +1,19 @@
+# Normalizacion de fin de linea. Los hooks y los scripts deben ser LF en el repositorio,
+# aunque el arbol de trabajo en Windows los tenga como CRLF.
+* text=auto eol=lf
+
+*.sh   text eol=lf
+*.py   text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.j2   text eol=lf
+*.md   text eol=lf
+
+.githooks/* text eol=lf
+
+# Binarios: git no los toca.
+*.docx binary
+*.xlsx binary
+*.pdf  binary
+*.png  binary
+*.jpg  binary
