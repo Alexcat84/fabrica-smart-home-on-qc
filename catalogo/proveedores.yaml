@@ -1,3 +1,249 @@
-# proveedores - se puebla en la Fase 1 (catalogo e inventario).
-# Reglas aplicables: ADR-001, ADR-002, ADR-003 en docs/DECISIONES.md
+# Registro de proveedores
+#
+# ADR-001: `contacto_url` va en `null` hasta que alguien lo confirme; `cuenta_abierta: false` hasta
+# que la cuenta este realmente abierta y operativa.
+#
+# Regla comercial del plan de negocio (cap. 6.16): las cuentas de distribucion se abren ANTES del
+# primer proyecto pagado, no despues. La diferencia entre precio de distribuidor y precio de retail
+# es con frecuencia la diferencia entre un margen bruto viable y uno inviable, y varias cuentas
+# exigen numero de empresa, prueba de seguro y, en algunos casos, licencia.
+#
+# Esquema:
+#   id, nombre, tipo, provincias, requiere_cuenta_corporativa, requiere_licencia,
+#   categorias_que_surte, contacto_url, cuenta_abierta, notas
+#
+# tipo: distribucion_seguridad | distribucion_electrica | fabricante_directo | retail_ti |
+#       reacondicionador
 ---
+
+# =====================================================================================
+# DISTRIBUCION DE SEGURIDAD Y BAJA TENSION
+# =====================================================================================
+
+- id: adi-global-canada
+  nombre: ADI Global Distribution Canada
+  tipo: distribucion_seguridad
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null          # confirmar si exige licencia de agencia de seguridad privada
+  categorias_que_surte: [camara, sensor, sirena, cableado, red, coordinador, termostato]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Canal principal para camaras de gama premium (Axis, Hanwha), sensores, cableado, racks y catalogo
+    Z-Wave. Verificar los requisitos de apertura de cuenta: numero de empresa, prueba de seguro y
+    posiblemente licencia.
+
+- id: aartech-canada
+  nombre: Aartech Canada
+  tipo: distribucion_seguridad
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: null
+  requiere_licencia: null
+  categorias_que_surte: [sensor, coordinador, rele, iluminacion, sirena, camara]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Distribuidor canadiense orientado a domotica. Ruta habitual para Inovelli y para coordinadores
+    Zigbee y Z-Wave sin recurrir a importacion directa.
+
+# =====================================================================================
+# DISTRIBUCION ELECTRICA NACIONAL
+# =====================================================================================
+
+- id: nedco
+  nombre: Nedco
+  tipo: distribucion_electrica
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null          # confirmar si exige licencia de contratista electrico
+  categorias_que_surte: [iluminacion, interruptor, toma, termostato, cableado, rele, energia]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Distribucion electrica nacional: interruptores, atenuadores, tomas, cajas, cable y termostatos.
+
+- id: westburne
+  nombre: Westburne
+  tipo: distribucion_electrica
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null
+  categorias_que_surte: [iluminacion, interruptor, toma, termostato, cableado, rele, energia]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Segunda fuente nacional de distribucion electrica. Mantener dos cuentas nacionales evita quedar
+    parado por rotura de existencias en temporada.
+
+- id: guillevin
+  nombre: Guillevin International
+  tipo: distribucion_electrica
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null
+  categorias_que_surte: [iluminacion, interruptor, toma, termostato, cableado, rele, energia, ventilador]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Presencia en ambas provincias y fuerte en Quebec. Surte las lineas Sinope y Stelpro con soporte
+    en frances y recogida en mostrador local.
+
+# =====================================================================================
+# DISTRIBUCION ELECTRICA DE QUEBEC
+# =====================================================================================
+
+- id: franklin-empire
+  nombre: Franklin Empire
+  tipo: distribucion_electrica
+  provincias: [QC]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null
+  categorias_que_surte: [termostato, iluminacion, interruptor, toma, energia, cableado]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Distribuidor quebequense. Ruta natural para Sinope y Stelpro, con soporte en frances y recogida
+    en mostrador. Relevante para el volumen de termostatos de tension de linea.
+
+- id: lumen
+  nombre: Lumen
+  tipo: distribucion_electrica
+  provincias: [QC]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null
+  categorias_que_surte: [termostato, iluminacion, interruptor, toma, energia, cableado]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Segunda fuente quebequense para las lineas locales. Soporte en frances.
+
+# =====================================================================================
+# FABRICANTE DIRECTO Y CANAL DE DISTRIBUIDORES
+# =====================================================================================
+
+- id: sinope
+  nombre: Sinope Technologies
+  tipo: fabricante_directo
+  provincias: [QC, ON]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null
+  categorias_que_surte: [termostato, iluminacion, interruptor, toma, sensor, energia]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Fabricante quebequense. Argumento de compra local fuerte y linea central del negocio en Quebec:
+    termostatos de tension de linea, sensores de fuga con valvula de corte y controladores de carga.
+
+- id: stelpro
+  nombre: Stelpro
+  tipo: fabricante_directo
+  provincias: [QC, ON]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null
+  categorias_que_surte: [termostato]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Segundo fabricante quebequense de termostatos de tension de linea. Dos fuentes para la linea de
+    mayor volumen del mercado de Quebec.
+
+- id: lutron-canal-distribuidores
+  nombre: Lutron, canal de distribuidores
+  tipo: fabricante_directo
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: true
+  requiere_licencia: null
+  categorias_que_surte: [iluminacion, ventilador]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    El precio de distribuidor exige cuenta. Es la ruta a la solucion de referencia para cajas sin
+    neutro, que es el caso mas frecuente del parque de vivienda antiguo.
+
+- id: ubiquiti-revendedores-ca
+  nombre: Revendedores canadienses de Ubiquiti
+  tipo: fabricante_directo
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: null
+  requiere_licencia: false
+  categorias_que_surte: [red, camara]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Pasarelas, switches PoE, puntos de acceso y camaras UniFi Protect. Comprar por canal canadiense
+    para garantizar garantia y gestion de devoluciones.
+
+- id: ikea-canada
+  nombre: IKEA Canada
+  tipo: retail_ti
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: false
+  requiere_licencia: false
+  categorias_que_surte: [iluminacion]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Solo lamparas de acento. Verificar que el SKU es el norteamericano y no importacion europea.
+
+# =====================================================================================
+# RETAIL DE TECNOLOGIAS DE LA INFORMACION
+# =====================================================================================
+
+- id: canada-computers
+  nombre: Canada Computers & Electronics
+  tipo: retail_ti
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: false
+  requiere_licencia: false
+  categorias_que_surte: [red, almacenamiento, energia, computo, coordinador, iluminacion]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Equipo de red, discos y sistemas de alimentacion ininterrumpida. Preguntar por programa de cuenta
+    de empresa: mejora el margen frente al precio de mostrador.
+
+- id: memory-express
+  nombre: Memory Express
+  tipo: retail_ti
+  provincias: [ON]
+  requiere_cuenta_corporativa: false
+  requiere_licencia: false
+  categorias_que_surte: [red, almacenamiento, energia, computo]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Segunda fuente de retail de TI. Verificar cobertura real por provincia antes de prometer plazos.
+
+- id: newegg-ca
+  nombre: Newegg.ca
+  tipo: retail_ti
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: false
+  requiere_licencia: false
+  categorias_que_surte: [red, almacenamiento, energia, computo, coordinador]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Ultimo recurso para piezas sueltas. Vigilar que el articulo lo venda y despache Newegg Canada y
+    no un tercero desde el extranjero: rompe la regla de aprovisionamiento canadiense.
+
+# =====================================================================================
+# REACONDICIONADO
+# =====================================================================================
+
+- id: reacondicionadores-ca
+  nombre: Reacondicionadores canadienses de equipo empresarial
+  tipo: reacondicionador
+  provincias: [ON, QC]
+  requiere_cuenta_corporativa: null
+  requiere_licencia: false
+  categorias_que_surte: [computo]
+  contacto_url: null
+  cuenta_abierta: false
+  notas: >-
+    Entrada generica a proposito: hay que seleccionar y calificar al menos dos proveedores concretos
+    de escritorios empresariales fuera de arrendamiento. Criterios de calificacion: garantia ofrecida,
+    consistencia de generacion de procesador entre lotes, disponibilidad sostenida del mismo modelo y
+    tiempo de reposicion. La continuidad de modelo importa mas que el precio unitario, porque las
+    plantillas del stack asumen una plataforma conocida.

@@ -1,3 +1,374 @@
-# software - se puebla en la Fase 1 (catalogo e inventario).
-# Reglas aplicables: ADR-001, ADR-002, ADR-003 en docs/DECISIONES.md
+# Catalogo de componentes de software
+#
+# ADR-003: ningun componente puede requerir cuenta en la nube de un fabricante para funcionar.
+# ADR-006: las versiones se fijan y las actualizaciones automaticas quedan deshabilitadas. Mientras
+#          `version_fijada` sea `null`, la version aun no se ha validado en el banco de la empresa.
+#
+# `obligacion_licencia` resume la obligacion practica al ENTREGAR el software en hardware vendido al
+# cliente, que es distribucion en el sentido legal de estas licencias:
+#   - aviso              : conservar avisos de copyright y de licencia; entregar apendice de licencias
+#   - fuente_si_modificado: si LO MODIFICAMOS y lo entregamos, hay que ofrecer la fuente correspondiente
+#   - ninguna            : sin obligacion practica adicional
+#
+# La politica completa vive en docs/LICENCIAS.md. Resumen: NO forkeamos.
+#
+# Fuente de siembra: cap. 7.1 y 7.2 del plan de negocio.
+#
+# Esquema:
+#   id, nombre, licencia, repo_url, version_fijada, rol, obligacion_licencia, sustituible_por,
+#   paquetes, notas
 ---
+
+- id: home-assistant-os
+  nombre: Home Assistant Operating System
+  licencia: Apache-2.0
+  repo_url: https://github.com/home-assistant/operating-system
+  version_fijada: null
+  rol: Base gestionada del anfitrion, con actualizaciones supervisadas y aislamiento de complementos.
+  obligacion_licencia: aviso
+  sustituible_por: [linux-minimo-con-contenedores]
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Alternativa: anfitrion Linux minimo ejecutando contenedores, que es lo que se usa cuando el mismo
+    equipo hace de controlador y de grabador. La eleccion se registra en el archivo de cliente.
+
+- id: home-assistant-core
+  nombre: Home Assistant Core
+  licencia: Apache-2.0
+  repo_url: https://github.com/home-assistant/core
+  version_fijada: null
+  rol: Estado de dispositivos, logica de automatizacion, interfaz de usuario y backend de la app movil.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Nucleo del sistema. Version fijada, actualizacion deliberada tras validacion en banco, con
+    instantanea previa y procedimiento de reversion documentado.
+
+- id: mosquitto
+  nombre: Eclipse Mosquitto
+  licencia: EPL-2.0 / EDL-1.0
+  repo_url: https://github.com/eclipse/mosquitto
+  version_fijada: null
+  rol: Bus local de publicacion y suscripcion entre dispositivos y el nucleo.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Autenticacion obligatoria. `allow_anonymous` en false sin excepcion, tambien en el banco de
+    pruebas: una configuracion de banco relajada acaba copiada a produccion.
+
+- id: zigbee2mqtt
+  nombre: Zigbee2MQTT
+  licencia: GPL-3.0
+  repo_url: https://github.com/Koenkk/zigbee2mqtt
+  version_fijada: null
+  rol: Traduccion de protocolo Zigbee, desacoplando los dispositivos de concentradores propietarios.
+  obligacion_licencia: fuente_si_modificado
+  sustituible_por: [integracion-zigbee-nativa]
+  paquetes: [S, M, L, XL]
+  notas: >-
+    GPL-3.0. Si lo modificamos y lo entregamos en hardware del cliente, eso es distribucion y hay que
+    ofrecer la fuente correspondiente. Politica: no forkear; configurar y extender por mecanismos
+    soportados. Ver docs/LICENCIAS.md.
+
+- id: integracion-zigbee-nativa
+  nombre: Integracion Zigbee incorporada en Home Assistant
+  licencia: Apache-2.0
+  repo_url: https://github.com/home-assistant/core
+  version_fijada: null
+  rol: Alternativa a Zigbee2MQTT dentro del propio nucleo.
+  obligacion_licencia: aviso
+  sustituible_por: [zigbee2mqtt]
+  paquetes: [S, M]
+  notas: >-
+    Menos piezas moviles. Se elige por cliente y se registra la decision; no se mezclan las dos rutas
+    sobre el mismo coordinador.
+
+- id: zwave-js-ui
+  nombre: Z-Wave JS UI
+  licencia: MIT
+  repo_url: https://github.com/zwave-js/zwave-js-ui
+  version_fijada: null
+  rol: Gestion de la red Z-Wave donde se utilice.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [M, L, XL]
+  notas: >-
+    Solo se despliega si hay un dispositivo que justifique una red Z-Wave. No se levanta por defecto.
+
+- id: frigate
+  nombre: Frigate NVR
+  licencia: MIT
+  repo_url: https://github.com/blakeblackshear/frigate
+  version_fijada: null
+  rol: Grabacion, decodificacion acelerada por hardware y deteccion local de objetos.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Ruta por defecto de inferencia: OpenVINO sobre grafica Intel integrada. Sub-stream para deteccion,
+    stream principal para grabacion. Retencion hibrida: continua corta mas eventos larga.
+
+- id: go2rtc
+  nombre: go2rtc
+  licencia: MIT
+  repo_url: https://github.com/AlexxIT/go2rtc
+  version_fijada: null
+  rol: Manejo de flujos de baja latencia y redistribucion a clientes.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Evita que varios consumidores abran conexiones independientes contra la camara, que es una causa
+    habitual de saturacion del sub-stream.
+
+- id: esphome
+  nombre: ESPHome
+  licencia: GPL-3.0 / MIT (segun componente)
+  repo_url: https://github.com/esphome/esphome
+  version_fijada: null
+  rol: Firmware totalmente local para nodos de infrarrojo, serie y sensores propios.
+  obligacion_licencia: fuente_si_modificado
+  sustituible_por: []
+  paquetes: [M, L, XL]
+  notas: >-
+    Habilita el control local de mini-splits, que es un diferenciador frente a todo competidor de nube.
+    Las configuraciones YAML propias no son obra derivada del firmware, pero cualquier parche al
+    codigo si activa la obligacion. Ver docs/LICENCIAS.md.
+
+- id: wireguard
+  nombre: WireGuard
+  licencia: GPL-2.0
+  repo_url: https://www.wireguard.com/repositories/
+  version_fijada: null
+  rol: Tunel cifrado punto a punto para acceso remoto, sin exposicion de puertos entrantes.
+  obligacion_licencia: fuente_si_modificado
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Las claves pertenecen al cliente. La empresa no conserva material de clave persistente de ninguna
+    instalacion (ADR-005).
+
+- id: plano-control-malla
+  nombre: Plano de control de la malla (autoalojado u opcion comercial)
+  licencia: BSD-3-Clause / comercial segun opcion
+  repo_url: null
+  version_fijada: null
+  rol: Coordinacion de la superposicion WireGuard y distribucion de claves.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Se ofrecen las dos opciones y se registra la eleccion en el archivo de cliente. Por defecto, la
+    opcion autoalojada para el cliente cuya motivacion es la soberania: elimina al tercero a cambio de
+    mas responsabilidad operativa. La opcion comercial exige suscripcion de empresa para uso
+    comercial; confirmar condiciones vigentes antes de cotizarla.
+
+- id: traefik
+  nombre: Traefik
+  licencia: MIT
+  repo_url: https://github.com/traefik/traefik
+  version_fijada: null
+  rol: Terminacion TLS dentro de la propiedad.
+  obligacion_licencia: aviso
+  sustituible_por: [nginx]
+  paquetes: [M, L, XL]
+  notas: >-
+    Certificados internos. No se abre ningun puerto entrante en el router: el acceso remoto entra por
+    el tunel.
+
+- id: nginx
+  nombre: NGINX
+  licencia: BSD-2-Clause
+  repo_url: https://github.com/nginx/nginx
+  version_fijada: null
+  rol: Alternativa de proxy inverso y terminacion TLS.
+  obligacion_licencia: aviso
+  sustituible_por: [traefik]
+  paquetes: [M, L, XL]
+  notas: >-
+    Se elige uno de los dos por cliente, nunca ambos.
+
+- id: authelia
+  nombre: Authelia
+  licencia: Apache-2.0
+  repo_url: https://github.com/authelia/authelia
+  version_fijada: null
+  rol: Inicio de sesion unico y doble factor en instalaciones grandes.
+  obligacion_licencia: aviso
+  sustituible_por: [authentik]
+  paquetes: [L, XL]
+  notas: >-
+    Opcional. El doble factor sobre las cuentas administrativas es obligatorio con o sin este
+    componente (docs/SEGURIDAD.md).
+
+- id: authentik
+  nombre: Authentik
+  licencia: MIT
+  repo_url: https://github.com/goauthentik/authentik
+  version_fijada: null
+  rol: Alternativa de identidad e inicio de sesion unico.
+  obligacion_licencia: aviso
+  sustituible_por: [authelia]
+  paquetes: [L, XL]
+  notas: >-
+    Mas capaz y mas pesado que Authelia. Solo cuando el numero de usuarios o de servicios lo justifica.
+
+- id: vaultwarden
+  nombre: Vaultwarden
+  licencia: AGPL-3.0
+  repo_url: https://github.com/dani-garcia/vaultwarden
+  version_fijada: null
+  rol: Custodia de credenciales por cliente, entregada al cliente en el cierre del proyecto.
+  obligacion_licencia: fuente_si_modificado
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    AGPL-3.0: la obligacion de fuente correspondiente se activa incluso por uso en red si se modifica.
+    Politica: no se modifica. Pieza central de ADR-005: las credenciales reales viven aqui, no en el
+    repositorio, y la empresa no conserva copia tras la entrega.
+
+- id: influxdb
+  nombre: InfluxDB
+  licencia: MIT / Apache-2.0 segun version
+  repo_url: https://github.com/influxdata/influxdb
+  version_fijada: null
+  rol: Historico de largo plazo de energia y ambiente.
+  obligacion_licencia: aviso
+  sustituible_por: [victoriametrics]
+  paquetes: [M, L, XL]
+  notas: >-
+    Verificar la licencia de la version concreta que se despliegue: ha cambiado entre versiones
+    mayores.
+
+- id: victoriametrics
+  nombre: VictoriaMetrics
+  licencia: Apache-2.0
+  repo_url: https://github.com/VictoriaMetrics/VictoriaMetrics
+  version_fijada: null
+  rol: Alternativa de serie temporal, mas ligera en disco.
+  obligacion_licencia: aviso
+  sustituible_por: [influxdb]
+  paquetes: [M, L, XL]
+  notas: >-
+    Preferible cuando el almacenamiento del controlador esta ajustado.
+
+- id: grafana
+  nombre: Grafana
+  licencia: AGPL-3.0
+  repo_url: https://github.com/grafana/grafana
+  version_fijada: null
+  rol: Paneles de historico de energia y ambiente.
+  obligacion_licencia: fuente_si_modificado
+  sustituible_por: []
+  paquetes: [M, L, XL]
+  notas: >-
+    AGPL-3.0. No se modifica: los paneles se definen como configuracion, que no es obra derivada.
+
+- id: uptime-kuma
+  nombre: Uptime Kuma
+  licencia: MIT
+  repo_url: https://github.com/louislam/uptime-kuma
+  version_fijada: null
+  rol: Comprobaciones locales de salud y alertas de disponibilidad.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [M, L, XL]
+  notas: >-
+    Vigila camaras, servicios del controlador y el estado del enlace. Alerta al propietario; no es un
+    sistema de monitoreo de seguridad (ADR-004).
+
+- id: restic
+  nombre: Restic
+  licencia: BSD-2-Clause
+  repo_url: https://github.com/restic/restic
+  version_fijada: null
+  rol: Respaldo cifrado de configuracion, en sitio y opcionalmente fuera de sitio.
+  obligacion_licencia: aviso
+  sustituible_por: [borgbackup]
+  paquetes: [S, M, L, XL]
+  notas: >-
+    El video NO se respalda: se protege solo por redundancia de disco, y al cliente se le dice
+    explicitamente. Clave de cifrado en poder del cliente.
+
+- id: borgbackup
+  nombre: BorgBackup
+  licencia: BSD-3-Clause
+  repo_url: https://github.com/borgbackup/borg
+  version_fijada: null
+  rol: Alternativa de respaldo cifrado con deduplicacion.
+  obligacion_licencia: aviso
+  sustituible_por: [restic]
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Se elige uno de los dos por cliente y se documenta en el as-built, porque determina el
+    procedimiento de restauracion que el cliente puede ejecutar sin nosotros.
+
+- id: rclone
+  nombre: rclone
+  licencia: MIT
+  repo_url: https://github.com/rclone/rclone
+  version_fijada: null
+  rol: Transporte hacia el destino externo controlado por el cliente.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [M, L, XL]
+  notas: >-
+    La empresa NO aloja respaldos de cliente. El destino externo es la cuenta de almacenamiento del
+    propio cliente o un disco externo que el cliente rota.
+
+- id: nut
+  nombre: Network UPS Tools
+  licencia: GPL-2.0
+  repo_url: https://github.com/networkupstools/nut
+  version_fijada: null
+  rol: Estado del sistema de alimentacion ininterrumpida y apagado ordenado.
+  obligacion_licencia: fuente_si_modificado
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Da visibilidad de estado, aviso de bateria baja y apagado ordenado. Exige UPS con puerto de datos:
+    por eso es requisito del catalogo de hardware y no una opcion.
+
+- id: crowdsec
+  nombre: CrowdSec
+  licencia: MIT
+  repo_url: https://github.com/crowdsecurity/crowdsec
+  version_fijada: null
+  rol: Bloqueo por comportamiento en el perimetro.
+  obligacion_licencia: aviso
+  sustituible_por: []
+  paquetes: [L, XL]
+  notas: >-
+    Configurar en modo local. Sin puertos entrantes abiertos la superficie ya es pequena; esto cubre
+    el trafico que si entra por el tunel.
+
+- id: ansible
+  nombre: Ansible
+  licencia: GPL-3.0
+  repo_url: https://github.com/ansible/ansible
+  version_fijada: null
+  rol: Despliegue reproducible entre clientes. Herramienta interna de la empresa.
+  obligacion_licencia: fuente_si_modificado
+  sustituible_por: []
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Herramienta INTERNA: se ejecuta desde la estacion de trabajo de la empresa y no se entrega al
+    cliente, por lo que no hay distribucion. Los roles propios son obra nuestra y se quedan en este
+    repositorio privado.
+
+- id: linux-minimo-con-contenedores
+  nombre: Anfitrion Linux minimo con contenedores
+  licencia: GPL-2.0 y otras segun distribucion
+  repo_url: null
+  version_fijada: null
+  rol: Base alternativa a Home Assistant OS cuando el mismo equipo hace de controlador y de grabador.
+  obligacion_licencia: aviso
+  sustituible_por: [home-assistant-os]
+  paquetes: [M, L, XL]
+  notas: >-
+    Ruta preferida cuando Frigate y Home Assistant comparten anfitrion, porque da control directo
+    sobre el acceso a la grafica integrada y sobre el montaje de los discos de vigilancia. A cambio,
+    las actualizaciones del sistema base pasan a ser responsabilidad de los roles de ansible/.
+    La distribucion concreta se fija al estandarizar el banco de la empresa.
