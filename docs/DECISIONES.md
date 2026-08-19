@@ -839,3 +839,73 @@ una **medicion declarada** donde no aplica.
 - Esto no aplica solo a Home Assistant. Cualquier componente con estado migrado -base de datos de
   Zigbee, indice del grabador- se clasifica igual. La pregunta es la misma: **¿la version anterior
   puede leer lo que escribio la nueva?**
+
+---
+
+## Enmienda a ADR-009, 2026-08-19 (tercera): la regla tambien tiene que estar en la ruta correcta
+
+La enmienda anterior arreglo el destino: `controller_a_management` paso de nombrar un segmento
+inexistente a apuntar a `grupo_gestion` con direcciones concretas. **Seguia sin proteger el acceso a
+la administracion de la pasarela**, por dos motivos independientes, y los dos hacian falta.
+
+### Lo que se encontro, otra vez sobre la salida del demo
+
+`grupo_gestion` enumeraba cinco interfaces, **todas en la VLAN 10**. Pero la pasarela tiene una
+interfaz en **cada VLAN que sirve**: `10.99.10.1`, `.20.1`, `.30.1`, `.40.1` y `.60.1`. Todas son la
+misma administracion. Denegar `10.99.10.1` no impedia alcanzar `10.99.40.1`, **que desde el
+controlador es literalmente su propia puerta de enlace**.
+
+La regla cubria una direccion del router y dejaba las otras cuatro abiertas.
+
+### La capa que estaba debajo
+
+Aunque el grupo hubiera enumerado las cinco, seguiria sin bloquear nada.
+
+Las reglas entre VLAN se aplican en la **ruta de reenvio**: trafico que atraviesa la pasarela para ir
+de un segmento a otro. **El trafico dirigido a la pasarela misma no se reenvia**: termina en ella, y
+se filtra en una **ruta de entrada** distinta que esas reglas no tocan. UniFi, Omada y MikroTik se
+comportan asi.
+
+**Una regla de reenvio hacia la IP de la pasarela no bloquea nada.** Parece que protege el acceso
+administrativo y no lo toca.
+
+### Decision
+
+1. **`grupo_gestion` incluye la interfaz de la pasarela en todas las VLAN presentes.** Los miembros
+   se generan recorriendo las VLAN presentes y tomando su gateway, no a mano. Aplica a los cuatro
+   paquetes, con Management plegada o separada: tener un segmento de gestion propio no quita que el
+   router siga teniendo una pata en cada red que sirve.
+2. **La plantilla de cortafuegos tiene una seccion `reglas_entrada` separada y explicita**, con
+   politica por defecto de denegar, y documenta en el propio archivo que reenvio y entrada son rutas
+   distintas.
+3. **Punto 14 del checklist de endurecimiento**: desactivar el acceso de administracion por interfaz
+   en la pasarela, los switches y los puntos de acceso, en todas las interfaces salvo la prevista. Es
+   configuracion del equipo, no del cortafuegos, y es lo que cierra la puerta de verdad.
+4. **Prueba de aceptacion verificable en obra**, en el acta que el cliente firma: desde el anfitrion
+   del controlador, intentar abrir la administracion de la pasarela por **cada una** de sus
+   direcciones. Resultado esperado: **fallo en todas**, no solo en la primera.
+
+### La regla general, completa
+
+La enmienda anterior dejo esto a medias. La version entera es:
+
+> **Una regla protege cuando su destino resuelve a direcciones concretas Y esta en la ruta por la que
+> el trafico pasa de verdad.**
+>
+> Lo primero sin lo segundo vuelve a ser cobertura aparente, que es el mismo fallo con mejor aspecto.
+
+Y su corolario, que es el que se olvida al disenar: **un equipo de red no tiene una direccion, tiene
+una por cada red que sirve.** Protegerlo por direccion exige enumerarlas todas.
+
+### Consecuencias
+
+- Reenvio y entrada cubren conjuntos distintos y **complementarios** de `grupo_gestion`: el reenvio
+  llega al equipo gestionado -switch, puntos de acceso, interfaz fuera de banda-, y la entrada cubre
+  las interfaces del router. La prueba correspondiente comprueba la **union**, no la igualdad: lo que
+  no puede pasar es que un miembro del grupo se quede sin ninguna regla.
+- DNS y DHCP se declaran como regla de entrada **aparte**, permitida. Bloquearlos por error deja la
+  instalacion sin resolver nombres, y es un fallo facil de cometer al escribir la regla de
+  administracion.
+- Camera **no** aparece entre los origenes permitidos de DNS: su segmento no tiene salida y su hora
+  la sirve el servidor local del propio segmento. Si una camara pidiera DNS, algo esta mal
+  configurado.

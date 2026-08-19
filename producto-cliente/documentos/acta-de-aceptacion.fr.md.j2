@@ -1,3 +1,8 @@
+{% set VLANS = [
+     {'id': 10, 'nombre': 'Trusted'}, {'id': 20, 'nombre': 'IoT'}, {'id': 30, 'nombre': 'Camera'},
+     {'id': 40, 'nombre': 'Controller'}, {'id': 50, 'nombre': 'Management'}, {'id': 60, 'nombre': 'Guest'},
+   ] %}
+{% set vlans_presentes = VLANS | selectattr('id', 'in', paquete_def.vlans.presentes) | list %}
 # Proces-verbal de reception
 
 **{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
@@ -74,6 +79,17 @@ voir ce qui se passe en cas de panne, avant qu'elle ne survienne une nuit ou per
 | Resultat | ☐ Reussi ☐ Echec |
 | Notes | |
 
+## 6b. Le routeur n'est pas administrable depuis l'enregistreur
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Depuis la machine qui enregistre vos cameras, nous tentons d'ouvrir la page d'administration du routeur **a chacune de ses adresses**, une par segment reseau. |
+| **Ce que vous devriez voir** | **Toutes echouent.** Pas seulement la premiere : toutes. |
+| **Pourquoi c'est important** | Votre routeur possede une interface sur chaque reseau qu'il dessert, et ce sont toutes la meme page d'administration. Depuis l'enregistreur, l'une de ces adresses est sa propre passerelle. Si une seule etait bloquee, quiconque prendrait le controle de l'enregistreur pourrait reconfigurer le reseau cense le contenir : ouvrir un port, ou desactiver l'isolation du segment des cameras. |
+| Adresses testees | {% for v in vlans_presentes %}`10.{{ red.octeto }}.{{ v.id }}.1` {% endfor %} |
+| Resultat | ☐ Reussi ☐ Echec |
+| Notes | |
+
 ## 7. Le controle de soutien et son expiration
 
 | | |
@@ -121,6 +137,8 @@ La liste complete de durcissement a ete remplie et signee separement. Resume :
 - ☐ Tous les identifiants par defaut modifies et consignes dans votre coffre
 - ☐ Authentification a deux facteurs sur tous les comptes administratifs
 - ☐ UPnP desactive, aucune redirection de port, gestion a distance de la passerelle desactivee
+- ☐ Administration par interface desactivee sur le routeur, les commutateurs et les points d'acces,
+      sur toutes les interfaces sauf celle prevue
 - ☐ Cameras : compte par defaut supprime, fonctions infonuagiques et pair-a-pair desactivees, micrologiciel a jour
 - ☐ Sans fil : WPA3 ou WPA2-AES, sans WPS, cle unique par segment, gestion non exposee par radio
 - ☐ Reseau invite isole avec isolation des clients

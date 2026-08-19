@@ -175,6 +175,20 @@ class ControllerNuncaAlcanzaManagement(unittest.TestCase):
     Se comprueba en los CUATRO paquetes, este la VLAN plegada o separada.
     """
 
+    def _entrada_admin(self, id_paquete: str) -> dict:
+        env = Environment(
+            loader=FileSystemLoader(str(RAIZ / "producto-cliente")),
+            undefined=StrictUndefined,
+            keep_trailing_newline=True,
+        )
+        cliente = yaml.safe_load(DEMO.read_text(encoding="utf-8"))
+        cliente["paquete"] = id_paquete
+        ctx = dict(cliente)
+        ctx["paquete_def"] = validar.cargar_paquete(id_paquete)
+        ctx["generado_en"] = "prueba"
+        datos = yaml.safe_load(env.get_template("stack/red/firewall.yaml.j2").render(**ctx))
+        return {r["id"]: r for r in datos["reglas_entrada"]}["entrada_admin_pasarela"]
+
     def _reglas(self, id_paquete: str) -> dict:
         env = Environment(
             loader=FileSystemLoader(str(RAIZ / "producto-cliente")),
@@ -237,20 +251,33 @@ class ControllerNuncaAlcanzaManagement(unittest.TestCase):
                 self.assertEqual(grupo["vlan_receptora"], 10)
 
                 nombres = {m["nombre"] for m in grupo["miembros"]}
-                for esperado in ("pasarela", "switch_principal", "interfaz_fuera_de_banda"):
+                for esperado in ("switch_principal", "interfaz_fuera_de_banda"):
                     self.assertIn(esperado, nombres, f"{id_paquete}: falta {esperado} en el grupo")
                 self.assertTrue(
                     any(n.startswith("punto_acceso") for n in nombres),
                     f"{id_paquete}: el grupo no incluye ningun punto de acceso",
                 )
+                # La pasarela ya no es un miembro suelto: es uno por VLAN presente, porque tiene
+                # una interfaz en cada red que sirve y todas responden a la misma administracion.
+                self.assertTrue(
+                    any(n.startswith("pasarela_vlan_") for n in nombres),
+                    f"{id_paquete}: el grupo no incluye ninguna interfaz de la pasarela",
+                )
 
-                # Y las direcciones del grupo tienen que ser las mismas que usa la regla.
+                # ENTRE LAS DOS REGLAS tienen que cubrir el grupo entero.
+                #
+                # Ya no basta con comparar el grupo contra la regla de reenvio: las interfaces de la
+                # pasarela no se reenvian, terminan en el router, y las cubre la regla de entrada.
+                # Lo que sigue siendo cierto, y es lo que importa, es que nada del grupo puede
+                # quedarse sin regla. Si algo se cae de las dos listas, la regla protege un conjunto
+                # distinto del que el as-built documenta.
                 del_grupo = {m["ip"] for m in grupo["miembros"]}
-                de_la_regla = set(self._reglas(id_paquete)["controller_a_management"]["destino_direcciones"])
+                por_reenvio = set(self._reglas(id_paquete)["controller_a_management"]["destino_direcciones"])
+                por_entrada = set(self._entrada_admin(id_paquete)["destino_direcciones"])
                 self.assertEqual(
-                    del_grupo, de_la_regla,
-                    f"{id_paquete}: el grupo de vlans.yaml y el destino de la regla no coinciden. "
-                    f"Si divergen, la regla protege un conjunto distinto del que el as-built documenta.",
+                    del_grupo - (por_reenvio | por_entrada), set(),
+                    f"{id_paquete}: hay miembros de `grupo_gestion` que ninguna regla cubre, ni por "
+                    f"reenvio ni por entrada.",
                 )
 
     def test_una_excepcion_hacia_trusted_no_abre_alcance_a_gestion(self):
@@ -295,6 +322,136 @@ class ControllerNuncaAlcanzaManagement(unittest.TestCase):
                             regla["accion"], "denegar",
                             f"{id_paquete}: la regla '{regla['id']}' permite Controller -> Management",
                         )
+
+
+class LaPasarelaTieneUnaInterfazEnCadaVlan(unittest.TestCase):
+    """El caso que hacia aparente la proteccion del acceso administrativo.
+
+    `grupo_gestion` enumeraba cinco interfaces, todas en la VLAN receptora. Pero la pasarela tiene
+    una interfaz en CADA VLAN que sirve, y todas responden a la misma administracion. Denegar
+    `10.x.10.1` no impedia alcanzar `10.x.40.1`, que desde el controlador es literalmente su propia
+    puerta de enlace. La regla cubria una direccion del router y dejaba abiertas las demas.
+    """
+
+    def test_el_grupo_contiene_la_puerta_de_enlace_de_cada_vlan_presente(self):
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                datos = renderizar_vlans(id_paquete)
+                presentes = [v for v in datos["vlans"] if v.get("presente")]
+                del_grupo = {m["ip"] for m in datos["grupo_gestion"]["miembros"]}
+
+                faltan = [v["gateway"] for v in presentes if v["gateway"] not in del_grupo]
+                self.assertEqual(
+                    faltan, [],
+                    f"{id_paquete}: `grupo_gestion` no cubre estas interfaces de la pasarela: "
+                    f"{faltan}. Cada una es la misma administracion vista desde otra red.",
+                )
+
+    def test_cada_interfaz_de_pasarela_esta_marcada_con_su_rol(self):
+        """Sin el rol, nadie sabe por que hay cinco direcciones que terminan en .1."""
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                datos = renderizar_vlans(id_paquete)
+                presentes = {v["id"] for v in datos["vlans"] if v.get("presente")}
+                de_pasarela = {
+                    m["vlan"] for m in datos["grupo_gestion"]["miembros"]
+                    if m.get("rol") == "interfaz_de_pasarela"
+                }
+                self.assertEqual(
+                    de_pasarela, presentes,
+                    f"{id_paquete}: las interfaces de pasarela marcadas no coinciden con las VLAN "
+                    f"presentes",
+                )
+
+
+class ReglasDeEntradaDeLaPasarela(unittest.TestCase):
+    """Reenvio y entrada son rutas distintas. Una regla en la ruta equivocada no protege.
+
+    El trafico dirigido a la pasarela no se reenvia: termina en ella y se filtra en otra ruta, que
+    las reglas entre VLAN no tocan. UniFi, Omada y MikroTik se comportan asi. Una regla de reenvio
+    con destino la IP de la pasarela no bloquea nada.
+    """
+
+    def _entrada(self, id_paquete: str) -> dict:
+        env = Environment(
+            loader=FileSystemLoader(str(RAIZ / "producto-cliente")),
+            undefined=StrictUndefined,
+            keep_trailing_newline=True,
+        )
+        cliente = yaml.safe_load(DEMO.read_text(encoding="utf-8"))
+        cliente["paquete"] = id_paquete
+        ctx = dict(cliente)
+        ctx["paquete_def"] = validar.cargar_paquete(id_paquete)
+        ctx["generado_en"] = "prueba"
+        datos = yaml.safe_load(env.get_template("stack/red/firewall.yaml.j2").render(**ctx))
+        return datos
+
+    def test_existe_una_seccion_de_reglas_de_entrada_separada(self):
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                datos = self._entrada(id_paquete)
+                self.assertIn(
+                    "reglas_entrada", datos,
+                    f"{id_paquete}: no hay seccion de reglas de entrada. Las reglas entre VLAN no "
+                    f"cubren el trafico dirigido a la pasarela misma.",
+                )
+                self.assertEqual(datos.get("politica_entrada_por_defecto"), "denegar")
+
+    def test_se_deniega_la_administracion_desde_controller_iot_camera_y_guest(self):
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                datos = self._entrada(id_paquete)
+                reglas = {r["id"]: r for r in datos["reglas_entrada"]}
+                self.assertIn("entrada_admin_pasarela", reglas)
+
+                regla = reglas["entrada_admin_pasarela"]
+                self.assertEqual(regla["accion"], "denegar")
+                self.assertEqual(regla["ruta"], "entrada")
+
+                denegados = set(regla["origenes_denegados"])
+                esperados = {"Controller", "IoT", "Camera"}
+                if 60 in validar.cargar_paquete(id_paquete)["vlans"]["presentes"]:
+                    esperados.add("Guest")
+                self.assertTrue(
+                    esperados <= denegados,
+                    f"{id_paquete}: faltan origenes denegados: {esperados - denegados}",
+                )
+
+    def test_la_regla_de_entrada_cubre_TODAS_las_interfaces_de_la_pasarela(self):
+        """Probar solo una direccion es exactamente el error que esto corrige."""
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                datos = self._entrada(id_paquete)
+                regla = {r["id"]: r for r in datos["reglas_entrada"]}["entrada_admin_pasarela"]
+                cubiertas = set(regla["destino_direcciones"])
+
+                vlans = renderizar_vlans(id_paquete)["vlans"]
+                gateways = {v["gateway"] for v in vlans if v.get("presente")}
+                self.assertEqual(
+                    gateways - cubiertas, set(),
+                    f"{id_paquete}: la regla de entrada deja fuera {gateways - cubiertas}",
+                )
+
+    def test_la_puerta_de_enlace_del_propio_controlador_esta_cubierta(self):
+        """El caso concreto: desde Controller, la administracion del router esta en su gateway."""
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                datos = self._entrada(id_paquete)
+                regla = {r["id"]: r for r in datos["reglas_entrada"]}["entrada_admin_pasarela"]
+                octeto = yaml.safe_load(DEMO.read_text(encoding="utf-8"))["red"]["octeto"]
+                self.assertIn(
+                    f"10.{octeto}.40.1", regla["destino_direcciones"],
+                    f"{id_paquete}: la puerta de enlace del propio controlador no esta cubierta",
+                )
+
+    def test_dns_y_dhcp_siguen_permitidos_y_declarados_aparte(self):
+        """Bloquearlos por error deja la instalacion sin resolver nombres."""
+        datos = self._entrada("M")
+        reglas = {r["id"]: r for r in datos["reglas_entrada"]}
+        self.assertIn("entrada_dns_dhcp", reglas)
+        self.assertEqual(reglas["entrada_dns_dhcp"]["accion"], "permitir")
+        # Camera no pide DNS: su segmento no tiene salida.
+        self.assertNotIn("Camera", reglas["entrada_dns_dhcp"]["origenes_permitidos"])
 
 
 class GuestSeDespliegaDeMEnAdelante(unittest.TestCase):
