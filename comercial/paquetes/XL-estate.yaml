@@ -78,8 +78,12 @@ internet_minimo:
     visores (32,0) mas apertura sobre flujo medio (+1,5) => 33,5 Mbps. Se publica 40. BAJA DESDE
     LOS 50 PUBLICADOS ANTES por el mismo motivo que L. Se mantiene la preferencia por enlace
     simetrico: a este numero de camaras, la cuadricula sola ya domina el enlace.
-  recalculado: 2026-08-19
-
+  recalculado: "2026-08-19"
+  provisional: true
+  nota_provisional: >-
+    PROVISIONAL hasta cerrar M-14. Sale de un perfil de camara calculado, no de camaras
+    medidas. Sirve para cotizar; no es promesa. El numero que decide un diseno concreto es
+    `red.subida_medida_mbps` de ese cliente, con su fecha y su metodo.
 esfuerzo:
   instalacion_dias_min: 12
   instalacion_dias_max: null

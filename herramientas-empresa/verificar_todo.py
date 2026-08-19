@@ -196,6 +196,64 @@ def documentos_bilingues() -> tuple[bool, str]:
     return True, f"{len(esperados)} documentos de cliente en ingles y frances"
 
 
+def esquemas_cierran_la_puerta() -> tuple[bool, str]:
+    """Todo esquema debe llevar `additionalProperties: false`, en la raiz y en cada subobjeto.
+
+    Por que existe este paso: `paquete.schema.json` era el unico de los seis que no la llevaba, y se
+    comprobo que aceptaba `subida_mbpz`, `vlanz` y `campo_totalmente_inventado` sin rechazarlos. Un
+    campo mal escrito en un paquete no da error de sintaxis: da un minimo de subida que nadie lee y
+    un cliente al que se le promete un enlace que no cubre su uso.
+
+    Peor todavia, ese hueco escondia una segunda cosa: `internet_minimo.recalculado` ni siquiera
+    estaba declarado, asi que YAML lo coaccionaba a `datetime.date` y nadie se enteraba.
+
+    A partir de aqui la regla se protege sola: anadir un esquema sin la clausula, o un subobjeto
+    nuevo sin ella, hace fallar este paso.
+    """
+    import json
+
+    esquemas = sorted((RAIZ / "datos-maestros" / "esquemas").glob("*.schema.json"))
+    if not esquemas:
+        return False, "no hay esquemas en datos-maestros/esquemas/"
+
+    fallos = []
+
+    def revisar(nodo, ruta: str, archivo: str) -> None:
+        """Todo subesquema que DEFINE la forma de un objeto necesita la clausula.
+
+        NO se desciende por `if`, `then`, `else` ni `not`. Esos fragmentos son restricciones
+        condicionales PARCIALES, no definiciones de objeto: un `then` que dice "si el estado es
+        instalado, `fecha_instalacion` tiene que ser cadena" nombra un solo campo. Ponerle
+        `additionalProperties: false` rechazaria todos los demas campos del objeto y romperia el
+        esquema. Aplicar la regla ahi seria un error de comprension de JSON Schema, no rigor.
+
+        Si algun dia hiciera falta definir un objeto entero dentro de un condicional, lo correcto es
+        sacarlo a `$defs` y referenciarlo, que ademas es mas legible.
+        """
+        if not isinstance(nodo, dict):
+            return
+        if "properties" in nodo and nodo.get("additionalProperties") is not False:
+            fallos.append(f"{archivo}: `{ruta}` no declara additionalProperties: false")
+        for clave, valor in nodo.items():
+            if clave in {"properties", "$defs", "definitions"} and isinstance(valor, dict):
+                for nombre, sub in valor.items():
+                    revisar(sub, f"{ruta}.{nombre}" if ruta != "(raiz)" else nombre, archivo)
+            elif clave == "items":
+                revisar(valor, f"{ruta}.items", archivo)
+
+    for ruta_esquema in esquemas:
+        try:
+            esquema = json.loads(ruta_esquema.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            fallos.append(f"{ruta_esquema.name}: JSON invalido: {exc}")
+            continue
+        revisar(esquema, "(raiz)", ruta_esquema.name)
+
+    if fallos:
+        return False, "esquemas con la puerta abierta: " + "; ".join(fallos)
+    return True, f"{len(esquemas)} esquemas cierran la puerta en raiz y subobjetos"
+
+
 def dispositivos_instalados_validos() -> tuple[bool, str]:
     """El registro que el generador emite tiene que cumplir su propio esquema.
 
@@ -260,8 +318,9 @@ def main() -> int:
         ("7. Sin secretos (ADR-005)", sin_secretos),
         ("8. Regla del fuego (ADR-004)", regla_del_fuego),
         ("9. Documentos de cliente bilingues", documentos_bilingues),
-        ("10. Registro de dispositivo instalado", dispositivos_instalados_validos),
-        ("11. Trazabilidad de datos sin verificar (ADR-001)", trazabilidad),
+        ("10. Los esquemas cierran la puerta", esquemas_cierran_la_puerta),
+        ("11. Registro de dispositivo instalado", dispositivos_instalados_validos),
+        ("12. Trazabilidad de datos sin verificar (ADR-001)", trazabilidad),
     ]
 
     resultados = [paso(titulo, fn) for titulo, fn in pasos]

@@ -180,7 +180,28 @@ de camara, cambios de estado, historico y cualquier ajuste hecho en la ventana. 
 revertir es restaurar, la reversion cuesta datos, y eso hace que nadie quiera revertir. Entonces se
 quedan con la version mala y "ya lo miraremos".
 
-**Procedimiento**
+**PASO PREVIO OBLIGATORIO (ADR-013)**
+
+Antes de nada, **leer las notas de version y determinar si la actualizacion migra el esquema de la
+base de datos del `recorder`**. La migracion es unidireccional: al arrancar la version nueva la base
+se transforma, y la anterior ya no la puede leer. De esa respuesta salen dos rutas con criterios
+distintos, y no se empieza hasta saber cual es.
+
+| | **RUTA A — sin migracion** | **RUTA B — con migracion** |
+|---|---|---|
+| Reversion | Existe | **No existe** |
+| Mecanismo | Volver al binario o imagen anterior | Restaurar respaldo |
+| Criterio de datos | **Cero perdidos** | **Perdida declarada**, no cero |
+| Que se mide | Tiempo de reversion | Tiempo de restauracion **y volumen de historial perdido** |
+| Rodaje en banco | Opcional | **Obligatorio** |
+| Ventana con el cliente | Recomendada | **Obligatoria, acordada por adelantado** |
+
+Se aplica igual a cualquier componente con estado migrado: base de Zigbee, indice del grabador. La
+pregunta es siempre la misma: **¿la version anterior puede leer lo que escribio la nueva?**
+
+---
+
+**Procedimiento, RUTA A**
 
 1. Estado de partida: banco estable, con la version fijada de la flota y datos reales de al menos una
    semana de funcionamiento.
@@ -202,11 +223,39 @@ quedan con la version mala y "ya lo miraremos".
 | Bateria de aceptacion tras revertir | pasa entera | | |
 | Reversion posible sin acceso fisico | si | | Una reversion que exige ir a casa del cliente no sirve de noche |
 
-**Regla:** si un componente **no se puede revertir** sin restaurar respaldo, se anota como tal en su
-fila de la seccion 3.1 y **su procedimiento de actualizacion cambia**: pasa a exigir ventana acordada
-con el cliente y aviso previo, porque el coste de equivocarse es mucho mayor.
+**Procedimiento, RUTA B**
 
-Frecuencia: en **cada** conjunto de versiones que se fije, antes de tocar a un cliente.
+La reversion no existe. Lo que se ensaya es la **restauracion con perdida declarada**, y lo que se
+mide es cuanto cuesta y cuanto se pierde.
+
+1. Estado de partida igual que en ruta A, con al menos una semana de datos reales.
+2. **Instantanea previa** y respaldo verificado, con la hora exacta anotada.
+3. Aplicar la actualizacion candidata.
+4. Dejarla correr **al menos una hora**, generando datos posteriores.
+5. Restaurar el respaldo del paso 2.
+6. Bateria de aceptacion de la seccion 3.4.
+7. **Medir el hueco**: cuanto historial hay entre la hora del respaldo y la de la restauracion. Ese
+   es el volumen que un cliente perderia en el peor caso.
+
+| Medida | Objetivo | Medido | Notas |
+|---|---|---|---|
+| Tiempo de restauracion | **< 2 h** | | Es restauracion, no reversion: cuesta mas por definicion |
+| Volumen de historial perdido | **declarado** | | En horas o dias. **No se pretende que sea cero** |
+| Bateria de aceptacion tras restaurar | pasa entera | | |
+| Frecuencia de respaldo suficiente | si/no | | Si el hueco es inaceptable, la respuesta es respaldar mas a menudo antes de la ventana, no aplicar la actualizacion igual |
+
+**En ruta B, el volumen de historial que se va a perder se calcula y se dice al cliente ANTES de
+aplicar.** Es la diferencia entre una decision informada y una disculpa.
+
+---
+
+**Regla:** si un componente **no se puede revertir** sin restaurar respaldo -es decir, si cae en ruta
+B-, se anota como tal en su fila de la seccion 3.1 y **su procedimiento de actualizacion cambia**:
+pasa a exigir ventana acordada con el cliente y aviso previo, porque el coste de equivocarse es mucho
+mayor.
+
+Frecuencia: en **cada** conjunto de versiones que se fije, antes de tocar a un cliente. **Ruta B
+exige rodaje en banco**; ruta A lo tiene como opcional.
 
 ### 3.3 Validacion de cada actualizacion antes de tocar a un cliente
 

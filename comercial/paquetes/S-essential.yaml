@@ -70,8 +70,12 @@ internet_minimo:
     Modelo de tres flujos (ADR-012). Escenario vinculante: cuadricula de 3 camaras a 0,5 Mbps con
     un visor, mas apertura de una camara sobre flujo medio, mas 2 Mbps de margen del hogar => 4,2
     Mbps. Se publica 5. Abrir sobre principal pediria 7,0 y va lento: es excepcion bajo demanda.
-  recalculado: 2026-08-19
-
+  recalculado: "2026-08-19"
+  provisional: true
+  nota_provisional: >-
+    PROVISIONAL hasta cerrar M-14. Sale de un perfil de camara calculado, no de camaras
+    medidas. Sirve para cotizar; no es promesa. El numero que decide un diseno concreto es
+    `red.subida_medida_mbps` de ese cliente, con su fecha y su metodo.
 esfuerzo:
   instalacion_dias_min: 2
   instalacion_dias_max: 3

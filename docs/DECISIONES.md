@@ -710,3 +710,132 @@ seria un ADR nuevo con su propia medicion, no una excepcion a este.
 El caso de M es el importante: el minimo publicado estaba **por debajo** de lo que el uso normal
 exige, y llevaba ahi desde el plan de negocio original. El de L y XL es el contrario, y es la ventaja
 de haber medido: se pueden publicar minimos mas bajos y ganar clientes que antes quedaban fuera.
+
+---
+
+## Enmienda a ADR-009, 2026-08-19 (segunda): plegar una VLAN obliga a materializar el grupo
+
+La enmienda anterior movio el pliegue de Management a Trusted, y escribio la regla
+`controller_a_management` como regla que no depende del nivel. **La regla estaba, y en S y M no
+protegia nada.**
+
+### Lo que se encontro
+
+En la salida del cliente de demostracion, paquete M:
+
+- La VLAN 50 sale con `presente: false` y `plegada_en: 10`.
+- La VLAN 10 **no declaraba hosts ni grupo de direcciones** para pasarela, switches y puntos de
+  acceso.
+- La regla decia `destino: Management`, que en ese nivel **no resuelve a nada**.
+
+Lo que de hecho impedia a Controller alcanzar las interfaces de gestion era `controller_a_trusted:
+denegar`, que es una regla distinta, escrita por otro motivo. La regla de gestion daba **cobertura
+aparente**: parecia proteger y no protegia.
+
+Es un modo de fallo peor que no tener la regla. Con la regla ahi, nadie vuelve a mirar. Y el dia que
+alguien anadiera una excepcion legitima de Controller hacia Trusted -un servicio nuevo, una
+integracion- abriria de paso el alcance a la pasarela y a los switches **sin tocar ninguna regla que
+mencione Management**.
+
+Las dos pruebas que ya existian pasaban con ese destino inexistente: comprobaban que la regla existe
+y que nada la contradice, no que su destino signifique algo.
+
+### Decision
+
+**Plegar una VLAN obliga a materializar sus hosts como grupo de direcciones en la VLAN receptora.**
+
+`plantillas de red` renderiza siempre `grupo_gestion`:
+
+| Management | `grupo_gestion` |
+|---|---|
+| Separada (L, XL) | `tipo: subred`, la subred `10.<octeto>.50.0/24` entera |
+| Plegada (S, M) | `tipo: direcciones`, con pasarela, switch, interfaz fuera de banda y puntos de acceso enumerados uno por uno, con direccion **fija** en la parte baja del rango de Trusted, fuera del rango DHCP |
+
+Y `controller_a_management` apunta a la VLAN cuando esta presente, y al grupo cuando esta plegada.
+
+### Por que direcciones fijas y no una etiqueta
+
+Porque un grupo que dependiera de una concesion DHCP dejaria de proteger el dia que la pasarela
+cambiara de direccion, y nadie se enteraria: la regla seguiria ahi, con buen aspecto. Es el mismo
+error que esta enmienda corrige, un nivel mas abajo.
+
+### Regla general que se extrae
+
+> **Una regla de cortafuegos cuyo destino no resuelve a direcciones concretas no es una regla: es un
+> comentario.**
+
+Vale para cualquier segmento que se pliegue en el futuro, no solo para Management.
+
+### Pruebas anadidas
+
+- El destino de `controller_a_management` **resuelve a al menos una direccion o subred** en los
+  cuatro paquetes.
+- Al plegar, los hosts de gestion **estan enumerados** en `grupo_gestion`, y sus direcciones
+  **coinciden** con las del destino de la regla. Si divergen, la regla protege un conjunto distinto
+  del que el as-built documenta.
+- Anadir una excepcion `Controller -> Trusted` **no abre alcance** a los hosts de gestion.
+
+Las tres fallan contra el modelo anterior. Comprobado degradando la plantilla a proposito: seis
+fallos en los cuatro paquetes.
+
+---
+
+## ADR-013 - La reversion depende de si la actualizacion migra el esquema del recorder
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `docs/BANCO.md` seccion 3.2.1, `herramientas-empresa/runbooks/aplicar-actualizacion.md`
+
+### Contexto
+
+El ensayo de reversion de ADR anteriores fija un criterio de **cero datos perdidos**. Ese criterio no
+se puede cumplir siempre, y darlo por universal es peor que no tenerlo.
+
+Home Assistant migra periodicamente el esquema de la base de datos del `recorder`. **La migracion es
+unidireccional**: al arrancar la version nueva, la base se transforma, y la version anterior ya no la
+puede leer. Revertir el binario deja al sistema con una base ilegible.
+
+En ese caso la reversion, tal como se definio, **no existe**. La unica via es restaurar respaldo, y
+eso pierde todo el historial desde el punto de respaldo: eventos de camara, estados, energia.
+
+Hoy eso se descubre **despues** de actualizar, que es exactamente cuando ya no sirve saberlo.
+
+### Decision
+
+**Paso previo obligatorio en toda actualizacion**, antes de tocar nada:
+
+> Leer las notas de version y **determinar si la actualizacion migra el esquema del recorder**.
+
+De ahi salen dos rutas con criterios distintos:
+
+| | **RUTA A — sin migracion** | **RUTA B — con migracion** |
+|---|---|---|
+| Reversion | Existe | **No existe** |
+| Mecanismo | Volver al binario o imagen anterior | Restaurar respaldo |
+| Criterio de datos | **Cero perdidos** | **Perdida declarada**, no cero |
+| Que se mide | Tiempo de reversion < 30 min | Tiempo de restauracion **y volumen de historial perdido** |
+| Rodaje en banco | Opcional | **Obligatorio** |
+| Ventana con el cliente | Recomendada | **Obligatoria, acordada por adelantado** |
+
+**En ruta B, el volumen de historial que se va a perder se calcula y se dice al cliente ANTES de
+aplicar**, no despues. Es la diferencia entre una decision informada y una disculpa.
+
+### Motivo
+
+Un criterio que no se puede cumplir se incumple en silencio. Si el runbook dice "cero datos
+perdidos" y la realidad de una migracion es que se pierden dos semanas de historial, lo que pasa es
+que nadie apunta la perdida y el criterio deja de significar nada, tambien para los casos donde si
+era alcanzable.
+
+Separar las dos rutas conserva el criterio duro donde aplica, y sustituye la promesa imposible por
+una **medicion declarada** donde no aplica.
+
+### Consecuencias
+
+- El paso previo es **el primero** del runbook de actualizacion, antes incluso de la instantanea.
+- Ruta B exige rodaje en banco: no se aplica a un cliente una migracion que no se ha visto correr.
+- El registro de servicio del cliente anota la ruta usada. A los dos anos, "por que falta el
+  historico de marzo" tiene respuesta.
+- Esto no aplica solo a Home Assistant. Cualquier componente con estado migrado -base de datos de
+  Zigbee, indice del grabador- se clasifica igual. La pregunta es la misma: **¿la version anterior
+  puede leer lo que escribio la nueva?**

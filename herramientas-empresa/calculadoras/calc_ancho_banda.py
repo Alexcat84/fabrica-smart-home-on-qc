@@ -331,10 +331,12 @@ def desde_cliente(cliente: dict, catalogo_dispositivos: list[dict] | None = None
     ]
 
     red = cliente.get("red", {})
+    # `subida_medida_mbps` y no `subida_mbps`: el numero tiene que venir de una medicion con fecha y
+    # metodo, no del folleto del proveedor. El validador rechaza el campo antiguo.
     return calcular(
         camaras,
         visores_concurrentes=cliente.get("visores_concurrentes", 1),
-        subida_disponible_mbps=red.get("subida_mbps", 0),
+        subida_disponible_mbps=red.get("subida_medida_mbps", red.get("subida_mbps", 0)),
         margen_hogar_mbps=red.get("margen_hogar_mbps", MARGEN_HOGAR_MBPS),
     )
 
