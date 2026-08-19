@@ -151,6 +151,37 @@ class ADR002_CertificacionCanadiense(unittest.TestCase):
         self.assertTrue(hay_error_con(inf, "EJEMPLO-NO-REAL"))
 
 
+class ADR011_UnSoloTemaParaLaFlota(unittest.TestCase):
+    """Un tema por cliente son quince temas que mantener a los quince clientes."""
+
+    def test_un_cliente_con_tema_propio_se_rechaza(self):
+        d = cliente_base()
+        d["tema"] = {"primario": "#123456"}
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "ADR-011"))
+
+    def test_tambien_se_rechaza_dentro_de_interfaz(self):
+        d = cliente_base()
+        d["interfaz"] = {"paleta": {"acento": "#abcdef"}}
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "ADR-011"))
+
+    def test_se_rechazan_las_variantes_habituales(self):
+        for clave in ("theme", "paleta", "marca", "colores", "tipografia"):
+            with self.subTest(clave=clave):
+                d = cliente_base()
+                d[clave] = {"lo": "que sea"}
+                inf = validar_dict(d)
+                self.assertTrue(hay_error_con(inf, "ADR-011"), f"`{clave}` deberia rechazarse")
+
+    def test_la_distribucion_de_zonas_si_es_del_cliente(self):
+        """El limite de la regla: las areas son del cliente, el tema no."""
+        d = cliente_base()
+        d["areas"]["desvan"] = {"en": "Attic", "fr": "Grenier"}
+        inf = validar_dict(d)
+        self.assertFalse(hay_error_con(inf, "ADR-011"))
+
+
 class ADR004_SinSeguridadDeVida(unittest.TestCase):
     def test_sensor_llamado_detector_de_humo(self):
         d = cliente_base()

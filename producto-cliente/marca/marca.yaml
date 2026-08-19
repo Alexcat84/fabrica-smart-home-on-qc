@@ -1,0 +1,65 @@
+# Marca del producto
+#
+# UNA SOLA para toda la flota (ADR-011). Lo especifico de un cliente es la distribucion de zonas y
+# la nomenclatura, nunca el tema.
+#
+# Esta capa esta separada y parametrizada a proposito: ninguna plantilla de `producto-cliente/stack/`
+# contiene color, tipografia ni texto de marca. Los toma de aqui. Por eso una migracion futura a
+# otra capa de presentacion seria cambio de envase y no rehacer el producto.
+#
+# `validar.py` rechaza un archivo de cliente que defina tema propio.
+---
+
+identidad:
+  nombre_producto: null          # nombre comercial del producto. Pendiente de decision comercial
+  nombre_empresa: null
+  # ADR-011 y docs/LICENCIAS.md: los nombres de los proyectos de software libre se usan de forma
+  # descriptiva, nunca de un modo que sugiera respaldo o asociacion comercial. "Construido sobre
+  # Home Assistant" es correcto; "Home Assistant Pro" no lo es.
+  descriptor_plataforma: "Construido sobre Home Assistant"
+
+paleta:
+  # Valores en null hasta que haya decision de diseno. El tema se genera desde aqui; poner colores
+  # inventados ahora solo garantiza tener que cambiarlos en dos sitios despues.
+  primario: null
+  primario_texto: null
+  acento: null
+  fondo_claro: null
+  fondo_oscuro: null
+  superficie_clara: null
+  superficie_oscura: null
+  texto_principal: null
+  texto_secundario: null
+
+  # Estos tres NO son decision estetica: son semantica de estado y se leen de un vistazo desde el
+  # otro lado de la habitacion. Se fijan al disenar, no se dejan al gusto.
+  estado_correcto: null          # verde: el sistema esta bien
+  estado_atencion: null          # ambar: algo pide revision, nada urgente
+  estado_problema: null          # rojo: hay un fallo. NUNCA se usa para eventos de seguridad,
+                                 # que no son fallos del sistema (ADR-004)
+
+tipografia:
+  familia_interfaz: null
+  familia_monoespaciada: null
+  escala_base_px: 16
+  # Minimo legible en un panel de pared a un metro. No se baja por estetica.
+  minimo_px: 14
+
+logo:
+  svg_claro: null                # ruta relativa a este directorio
+  svg_oscuro: null
+  favicon: null
+  # El logo va en el panel del cliente y en la cabecera de los documentos generados. En ningun caso
+  # sustituye ni tapa la identidad de la plataforma subyacente.
+
+modo_kiosco:
+  # Panel de pared: sin barra lateral, sin menu de configuracion, sin cerrar sesion.
+  habilitado_por_defecto: false
+  ocultar_barra_lateral: true
+  ocultar_encabezado: false
+  tiempo_vuelta_a_inicio_s: 120
+
+accesibilidad:
+  contraste_minimo: "4.5:1"      # texto normal, WCAG AA
+  contraste_minimo_grande: "3:1"
+  # Un panel de pared se mira de lejos y con luz variable. El contraste no es un adorno.

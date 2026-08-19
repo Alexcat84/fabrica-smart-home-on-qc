@@ -1,0 +1,34 @@
+# Tema de Home Assistant
+# GENERADO desde producto-cliente/marca/marca.yaml. No editar a mano (ADR-006).
+#
+# UN SOLO TEMA PARA TODA LA FLOTA (ADR-011). Si este archivo empieza a tener condicionales por
+# cliente, la regla se ha roto y hay que volver a leer el ADR antes de continuar.
+
+{{ marca.identidad.nombre_producto | default('producto') }}:
+  # ---- Colores de marca ----
+  primary-color: "{{ marca.paleta.primario | default('#03a9f4') }}"
+  accent-color: "{{ marca.paleta.acento | default('#ff9800') }}"
+  text-primary-color: "{{ marca.paleta.texto_principal | default('#212121') }}"
+  secondary-text-color: "{{ marca.paleta.texto_secundario | default('#727272') }}"
+
+  # ---- Superficies ----
+  primary-background-color: "{{ marca.paleta.fondo_claro | default('#fafafa') }}"
+  card-background-color: "{{ marca.paleta.superficie_clara | default('#ffffff') }}"
+
+  # ---- Estado. NO es decision estetica: es semantica que se lee de lejos ----
+  state-icon-active-color: "{{ marca.paleta.estado_correcto | default('#4caf50') }}"
+  warning-color: "{{ marca.paleta.estado_atencion | default('#ff9800') }}"
+  error-color: "{{ marca.paleta.estado_problema | default('#f44336') }}"
+  # El rojo es para FALLOS DEL SISTEMA. Un evento de seguridad no es un fallo y no se pinta de rojo:
+  # ADR-004, el sistema no es una alarma y su interfaz no debe parecerlo.
+
+  # ---- Tipografia ----
+  primary-font-family: "{{ marca.tipografia.familia_interfaz | default('Roboto, sans-serif') }}"
+  code-font-family: "{{ marca.tipografia.familia_monoespaciada | default('monospace') }}"
+
+  # ---- Modo oscuro ----
+  modes:
+    dark:
+      primary-background-color: "{{ marca.paleta.fondo_oscuro | default('#111111') }}"
+      card-background-color: "{{ marca.paleta.superficie_oscura | default('#1c1c1c') }}"
+      text-primary-color: "{{ marca.paleta.texto_secundario | default('#e1e1e1') }}"

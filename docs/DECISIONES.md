@@ -503,3 +503,87 @@ por lo que Vaultwarden y Grafana estan en el lado del cliente con `fuente_si_mod
   la politica de no forkear.
 - Si un componente cruza la linea -por ejemplo, si algun dia se instalara un agente propio en el
   equipo del cliente-, se mueve de archivo y **en ese momento**, no antes, adquiere su obligacion.
+
+---
+
+## ADR-011 - La interfaz se entrega sobre Home Assistant, no como aplicacion propia
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `producto-cliente/marca/`, `producto-cliente/interfaz/`, `producto-cliente/app/`
+
+### Decision
+
+**La interfaz se entrega como tema, paneles y modo kiosco sobre Home Assistant y su aplicacion
+Companion. No se desarrolla aplicacion propia.**
+
+### Motivos, en orden de peso
+
+**1. La marca de Home Assistant refuerza la propuesta de valor ante este cliente, en lugar de
+restarle.**
+
+El perfil objetivo es tecnicamente alfabetizado, averso a la suscripcion y sensible a la privacidad.
+Para ese cliente, ver una plataforma abierta reconocible es una **confirmacion** de que lo que se le
+vendio es cierto, no una carencia de acabado.
+
+Una aplicacion propia sustituiria esa plataforma reconocible por una **dependencia de un proveedor
+pequeno**, y contradiria directamente la prueba de cancelacion que es el eje del argumento comercial:
+"si dejas de pagarnos, el sistema sigue funcionando exactamente igual que el dia anterior". Con app
+propia, esa frase deja de ser cierta el dia que la empresa cierra o retira la aplicacion de la
+tienda. El argumento entero se cae.
+
+**2. Una app propia obliga a publicar y mantener en dos tiendas de forma permanente, y a rebasar
+sobre el proyecto original en cada cambio aguas arriba.**
+
+Eso es carga recurrente, no coste de desarrollo: revisiones de tienda, cambios de politica, versiones
+minimas de sistema operativo, y un rebase por cada version de Home Assistant. **Inasumible antes de
+tener parque instalado**, y el momento de decidirlo es antes de escribir la primera linea, no
+despues.
+
+**3. La personalizacion disponible sin bifurcar cubre la totalidad de la experiencia de uso.**
+
+Tema, colores, tipografia, iconos, disposicion de paneles, vistas por usuario, modo kiosco, textos.
+**Lo unico no personalizable es el nombre y el icono en la tienda de aplicaciones.**
+
+### Limites que se declaran al cliente en la fase de diseno
+
+No al final, ni cuando pregunte. En el diseno, por escrito:
+
+1. **El modelo de permisos por usuario es de grano grueso.** Sirve para separar a los miembros de un
+   hogar. **No es apto como barrera dura en escenarios de alquiler o multiinquilino**, donde la
+   separacion tiene que ser de verdad. Para esos casos la separacion es de red y de sistema, no de
+   interfaz.
+2. **La visualizacion simultanea de varias camaras de alta resolucion en la app es inferior a un
+   visor NVR dedicado.** Se explica junto al calculo de ancho de banda, porque la causa es la misma
+   y el cliente que lo pregunta suele estar pensando en las dos cosas a la vez.
+
+### Regla operativa
+
+**Un solo tema de producto y una sola biblioteca de paneles para toda la flota.**
+
+Lo especifico de un cliente es **la distribucion de zonas y la nomenclatura**, nunca el tema. Un tema
+por cliente son quince temas que mantener a los quince clientes, y una correccion visual que hay que
+aplicar quince veces.
+
+`validar.py` **rechaza** un archivo de cliente que defina tema propio.
+
+### Disparadores para reabrir
+
+Esta decision se revisa, no se hereda, si ocurre cualquiera de estas tres:
+
+- **Mas de 150 instalaciones activas.** A esa escala la carga de mantener una app se reparte entre
+  suficientes clientes.
+- **Contrato comercial que exija marca propia.** Un cliente de tamano suficiente puede pagar la
+  diferencia.
+- **Cambio aguas arriba que rompa el uso profesional**, por ejemplo que la aplicacion Companion deje
+  de permitir el modo kiosco o el tema personalizado.
+
+### Consecuencias
+
+- `producto-cliente/marca/` e `interfaz/` son **capa separada y parametrizada**. Ninguna plantilla
+  del stack contiene color, tipografia ni texto de marca: los toma de ahi.
+- Por eso una migracion futura seria **cambio de envase, no rehacer el producto**. Si algun dia se
+  cruza un disparador, lo que hay que reescribir es la capa de presentacion, no la logica ni los
+  datos.
+- `producto-cliente/app/` documenta el flujo de alta de un miembro del hogar de principio a fin, que
+  es la parte de la experiencia que mas se improvisa y peor se recuerda.

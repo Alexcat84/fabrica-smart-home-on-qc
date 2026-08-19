@@ -482,6 +482,37 @@ def validar_ancho_banda(cliente: dict, catalogo: dict, inf: Informe) -> dict:
 # Red y paquete
 # =================================================================================================
 
+# Claves de presentacion que pertenecen al producto, no al cliente (ADR-011).
+CLAVES_DE_MARCA_PROHIBIDAS = ("tema", "theme", "paleta", "marca", "colores", "tipografia")
+
+
+def validar_tema_unico(cliente: dict, inf: Informe) -> None:
+    """ADR-011: un solo tema de producto y una sola biblioteca de paneles para toda la flota.
+
+    Lo especifico del cliente es la distribucion de zonas y la nomenclatura, nunca el tema. Un tema
+    por cliente son quince temas que mantener a los quince clientes, y una correccion visual que hay
+    que aplicar quince veces.
+    """
+    for clave in CLAVES_DE_MARCA_PROHIBIDAS:
+        if clave in cliente:
+            inf.error(
+                f"ADR-011: el archivo de cliente define `{clave}`. La capa de marca es del producto "
+                f"y es una sola para toda la flota: vive en producto-cliente/marca/marca.yaml. "
+                f"Lo especifico de este cliente es la distribucion de zonas y la nomenclatura. Si "
+                f"hace falta una variante visual, la decision es de producto y va al ADR, no a un "
+                f"archivo de cliente."
+            )
+
+    interfaz = cliente.get("interfaz")
+    if isinstance(interfaz, dict):
+        for clave in CLAVES_DE_MARCA_PROHIBIDAS:
+            if clave in interfaz:
+                inf.error(
+                    f"ADR-011: el archivo de cliente define `interfaz.{clave}`. Mismo motivo: el "
+                    f"tema es del producto, no del cliente."
+                )
+
+
 def validar_octeto(cliente: dict, inf: Informe) -> None:
     octeto = (cliente.get("red") or {}).get("octeto")
     if octeto is None:
@@ -679,6 +710,7 @@ def validar_cliente(ruta: Path) -> tuple[Informe, dict]:
     validar_nomenclatura(cliente, inf)
     validar_dispositivos_contra_catalogo(cliente, catalogo, inf)
     validar_software(cliente, catalogo, inf)
+    validar_tema_unico(cliente, inf)
     validar_octeto(cliente, inf)
     paquete = validar_paquete(cliente, inf)
     calculos.update(validar_almacenamiento(cliente, inf))
