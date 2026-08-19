@@ -96,6 +96,12 @@ vlans:
       la pasarela ni sobre los switches. El acceso administrativo sale del equipo autorizado
       declarado en Trusted, o de una sesion de soporte: la restriccion la aplica el cortafuegos, no
       la existencia de una VLAN separada.
+    grupo_de_direcciones: grupo_gestion
+    nota_grupo: >-
+      Plegar la VLAN NO puede dejar la regla sin destino. Los hosts de gestion se materializan en
+      `grupo_gestion`, mas abajo, dentro de la VLAN receptora. Sin ese grupo, la regla
+      `controller_a_management` apuntaria a un segmento que no existe y daria cobertura aparente:
+      parece que protege y no protege nada.
 {% endif %}
 
   - id: 60
@@ -135,3 +141,47 @@ reservas_camaras:
 ntp_camaras:
   servidor: "10.{{ red.octeto }}.30.2"
   fuente_ascendente: controlador
+
+# -------------------------------------------------------------------------------------------------
+# Grupo de direcciones de gestion
+# -------------------------------------------------------------------------------------------------
+# Existe SIEMPRE, este Management separada o plegada, para que las reglas del cortafuegos tengan un
+# destino concreto en los dos casos. Cuando la VLAN esta separada, coincide con su subred; cuando
+# esta plegada, son direcciones sueltas dentro de la VLAN receptora.
+grupo_gestion:
+{% if 50 in paquete_def.vlans.presentes %}
+  tipo: subred
+  subred: "10.{{ red.octeto }}.50.0/24"
+  nota: >-
+    Management es VLAN propia en este nivel: el grupo es la subred entera.
+  miembros:
+    - nombre: pasarela
+      ip: "10.{{ red.octeto }}.50.1"
+    - nombre: switch_principal
+      ip: "10.{{ red.octeto }}.50.2"
+{# `default(x, true)`: XL declara `puntos_acceso: null` y el default normal no sustituye None. #}
+{% set n_ap = paquete_def.red.puntos_acceso_min | default(0, true) or paquete_def.red.puntos_acceso | default(0, true) or 4 %}
+{% for i in range(n_ap) %}
+    - nombre: punto_acceso_{{ i + 1 }}
+      ip: "10.{{ red.octeto }}.50.{{ 10 + i }}"
+{% endfor %}
+{% else %}
+  tipo: direcciones
+  vlan_receptora: 10
+  nota: >-
+    Management plegada en Trusted. Estas son las interfaces de gestion que la regla
+    `controller_a_management` tiene que poder nombrar. Se les reserva direccion FIJA en la parte
+    baja del rango de Trusted, fuera del rango DHCP, para que el grupo no dependa de una concesion.
+  miembros:
+    - nombre: pasarela
+      ip: "10.{{ red.octeto }}.10.1"
+    - nombre: switch_principal
+      ip: "10.{{ red.octeto }}.10.2"
+{% set n_ap = paquete_def.red.puntos_acceso | default(0, true) or paquete_def.red.puntos_acceso_min | default(0, true) or 1 %}
+{% for i in range(n_ap) %}
+    - nombre: punto_acceso_{{ i + 1 }}
+      ip: "10.{{ red.octeto }}.10.{{ 10 + i }}"
+{% endfor %}
+    - nombre: interfaz_fuera_de_banda
+      ip: "10.{{ red.octeto }}.10.3"
+{% endif %}

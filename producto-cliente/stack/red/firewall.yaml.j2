@@ -27,8 +27,16 @@
 # administrativo declarado. Plegar la VLAN reduce el numero de segmentos que mantener en una
 # instalacion pequena; no relaja la politica.
 #
-# REGLA QUE NO DEPENDE DEL NIVEL: **Controller nunca alcanza Management.** Ni plegada ni separada,
-# ni en S ni en XL. Es la regla `controller_a_management` de mas abajo y tiene prueba propia.
+# REGLA QUE NO DEPENDE DEL NIVEL: **Controller nunca alcanza las interfaces de gestion.** Ni
+# plegada ni separada, ni en S ni en XL. Es la regla `controller_a_management` de mas abajo y tiene
+# prueba propia.
+#
+# CONSECUENCIA DE PLEGAR, y es la parte que se olvida: cuando Management no es VLAN propia, el
+# destino de esa regla NO PUEDE SER EL NOMBRE DEL SEGMENTO, porque el segmento no existe. Apuntaria
+# a nada y la regla daria cobertura aparente: parece que protege y no protege. Por eso vlans.yaml
+# materializa `grupo_gestion` con las interfaces de gestion una por una, y esta regla apunta ahi.
+# Lo que de hecho protegia antes en S y M era `controller_a_trusted: denegar`, que es una regla
+# distinta y que alguien podria relajar sin darse cuenta de lo que se lleva por delante.
 #
 # Matriz de origen a destino (cap. 7.4.1):
 #
@@ -179,14 +187,30 @@ reglas:
 
   - id: controller_a_management
     descripcion: >-
-      REGLA QUE NO DEPENDE DEL NIVEL. El controlador NUNCA alcanza Management, este la VLAN separada
-      o plegada, y sea cual sea el paquete. El anfitrion del controlador es el objetivo de mayor
-      valor de la instalacion porque contiene las camaras y su grabacion: darle alcance
-      administrativo sobre la pasarela y los switches convertiria un compromiso del grabador en un
-      compromiso de la red entera. La gestion se hace desde el equipo administrativo declarado o
-      desde una sesion de soporte, nunca desde el propio controlador.
+      REGLA QUE NO DEPENDE DEL NIVEL. El controlador NUNCA alcanza las interfaces de gestion, este
+      Management como VLAN separada o plegada, y sea cual sea el paquete. El anfitrion del
+      controlador es el objetivo de mayor valor de la instalacion porque contiene las camaras y su
+      grabacion: darle alcance administrativo sobre la pasarela y los switches convertiria un
+      compromiso del grabador en un compromiso de la red entera. La gestion se hace desde el equipo
+      administrativo declarado o desde una sesion de soporte, nunca desde el propio controlador.
     origen: Controller
+{% if 50 in paquete_def.vlans.presentes %}
     destino: Management
+    destino_subred: "10.{{ red.octeto }}.50.0/24"
+{% else %}
+    # Management esta plegada en Trusted. El destino NO puede ser el nombre de un segmento que no
+    # existe: apuntaria a nada y la regla daria cobertura aparente. Se apunta al grupo de
+    # direcciones materializado en vlans.yaml, que enumera las interfaces de gestion una por una.
+    destino: grupo_gestion
+    destino_direcciones:
+      - "10.{{ red.octeto }}.10.1"    # pasarela
+      - "10.{{ red.octeto }}.10.2"    # switch principal
+      - "10.{{ red.octeto }}.10.3"    # interfaz fuera de banda
+{% set n_ap = paquete_def.red.puntos_acceso | default(0, true) or paquete_def.red.puntos_acceso_min | default(0, true) or 1 %}
+{% for i in range(n_ap) %}
+      - "10.{{ red.octeto }}.10.{{ 10 + i }}"   # punto de acceso {{ i + 1 }}
+{% endfor %}
+{% endif %}
     accion: denegar
 
   - id: controller_a_internet

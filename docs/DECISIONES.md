@@ -710,3 +710,70 @@ seria un ADR nuevo con su propia medicion, no una excepcion a este.
 El caso de M es el importante: el minimo publicado estaba **por debajo** de lo que el uso normal
 exige, y llevaba ahi desde el plan de negocio original. El de L y XL es el contrario, y es la ventaja
 de haber medido: se pueden publicar minimos mas bajos y ganar clientes que antes quedaban fuera.
+
+---
+
+## Enmienda a ADR-009, 2026-08-19 (segunda): plegar una VLAN obliga a materializar el grupo
+
+La enmienda anterior movio el pliegue de Management a Trusted, y escribio la regla
+`controller_a_management` como regla que no depende del nivel. **La regla estaba, y en S y M no
+protegia nada.**
+
+### Lo que se encontro
+
+En la salida del cliente de demostracion, paquete M:
+
+- La VLAN 50 sale con `presente: false` y `plegada_en: 10`.
+- La VLAN 10 **no declaraba hosts ni grupo de direcciones** para pasarela, switches y puntos de
+  acceso.
+- La regla decia `destino: Management`, que en ese nivel **no resuelve a nada**.
+
+Lo que de hecho impedia a Controller alcanzar las interfaces de gestion era `controller_a_trusted:
+denegar`, que es una regla distinta, escrita por otro motivo. La regla de gestion daba **cobertura
+aparente**: parecia proteger y no protegia.
+
+Es un modo de fallo peor que no tener la regla. Con la regla ahi, nadie vuelve a mirar. Y el dia que
+alguien anadiera una excepcion legitima de Controller hacia Trusted -un servicio nuevo, una
+integracion- abriria de paso el alcance a la pasarela y a los switches **sin tocar ninguna regla que
+mencione Management**.
+
+Las dos pruebas que ya existian pasaban con ese destino inexistente: comprobaban que la regla existe
+y que nada la contradice, no que su destino signifique algo.
+
+### Decision
+
+**Plegar una VLAN obliga a materializar sus hosts como grupo de direcciones en la VLAN receptora.**
+
+`plantillas de red` renderiza siempre `grupo_gestion`:
+
+| Management | `grupo_gestion` |
+|---|---|
+| Separada (L, XL) | `tipo: subred`, la subred `10.<octeto>.50.0/24` entera |
+| Plegada (S, M) | `tipo: direcciones`, con pasarela, switch, interfaz fuera de banda y puntos de acceso enumerados uno por uno, con direccion **fija** en la parte baja del rango de Trusted, fuera del rango DHCP |
+
+Y `controller_a_management` apunta a la VLAN cuando esta presente, y al grupo cuando esta plegada.
+
+### Por que direcciones fijas y no una etiqueta
+
+Porque un grupo que dependiera de una concesion DHCP dejaria de proteger el dia que la pasarela
+cambiara de direccion, y nadie se enteraria: la regla seguiria ahi, con buen aspecto. Es el mismo
+error que esta enmienda corrige, un nivel mas abajo.
+
+### Regla general que se extrae
+
+> **Una regla de cortafuegos cuyo destino no resuelve a direcciones concretas no es una regla: es un
+> comentario.**
+
+Vale para cualquier segmento que se pliegue en el futuro, no solo para Management.
+
+### Pruebas anadidas
+
+- El destino de `controller_a_management` **resuelve a al menos una direccion o subred** en los
+  cuatro paquetes.
+- Al plegar, los hosts de gestion **estan enumerados** en `grupo_gestion`, y sus direcciones
+  **coinciden** con las del destino de la regla. Si divergen, la regla protege un conjunto distinto
+  del que el as-built documenta.
+- Anadir una excepcion `Controller -> Trusted` **no abre alcance** a los hosts de gestion.
+
+Las tres fallan contra el modelo anterior. Comprobado degradando la plantilla a proposito: seis
+fallos en los cuatro paquetes.

@@ -75,6 +75,8 @@ Une regle formulee simplement comme « bloquer le VLAN des cameras » n'est *pas
 briserait l'enregistrement ou laisserait une voie de retour ouverte. Si un futur technicien remplace
 cette politique par un blocage simple, l'enregistrement s'arrete ou la securite est perdue.
 
+**Adresses de gestion.** {% if 50 in paquete_def.vlans.presentes %}La gestion du reseau dispose de son propre VLAN.{% else %}Votre forfait replie la gestion du reseau dans le segment Trusted plutot que de lui donner son propre VLAN. La passerelle, les commutateurs et les points d'acces portent donc des **adresses fixes** dans la partie basse de cette plage, enumerees sous `grupo_gestion` dans le fichier reseau. Ce sont ces adresses que nomme la regle de pare-feu : **ne les deplacez pas dans la plage DHCP**, la regle continuerait de paraitre correcte et cesserait de proteger quoi que ce soit.{% endif %}
+
 Consequences que vous connaissez deja, redites ici pour la personne qui prendra la releve :
 
 - Les cameras n'ont **aucun acces Internet**; un serveur de temps fonctionne donc a l'interieur du

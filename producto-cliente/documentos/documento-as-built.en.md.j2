@@ -72,6 +72,8 @@ A rule written simply as "block the camera VLAN" is *not* equivalent — it woul
 recording or leave a return path open. If a future technician replaces this policy with a simple
 block, recording stops or security is lost.
 
+**Management addresses.** {% if 50 in paquete_def.vlans.presentes %}Network management lives on its own VLAN.{% else %}Your package folds network management into the Trusted segment rather than giving it its own VLAN. The gateway, switches and access points therefore hold **fixed addresses** in the low part of that range, listed as `grupo_gestion` in the network file. Those addresses are what the firewall rule names, so **do not move them into the DHCP range**: the rule would keep looking correct and stop protecting anything.{% endif %}
+
 Consequences you already know about, restated here for whoever comes next:
 
 - Cameras have **no internet access**, so a time server runs inside the camera segment. Without it,
