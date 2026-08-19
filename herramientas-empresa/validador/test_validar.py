@@ -12,6 +12,7 @@ defecto. Asi el fallo que se observa es atribuible a ese defecto y no a otra cos
 
 import sys
 import tempfile
+from datetime import date, timedelta
 import unittest
 from pathlib import Path
 
@@ -261,7 +262,7 @@ class Dimensionado(unittest.TestCase):
         paquete solo cubre mirar, no cubre mirar de cerca.
         """
         d = cliente_base()
-        d["red"]["subida_mbps"] = 11.0     # la cuadricula pide 10; la apertura, 13,5
+        d["red"]["subida_medida_mbps"] = 11.0   # la cuadricula pide 10; la apertura, 13,5
         inf = validar_dict(d)
         self.assertFalse(hay_error_con(inf, "ESCENARIO 1"), "la cuadricula si cabe en 11 Mbps")
         self.assertTrue(hay_error_con(inf, "ESCENARIO 2"))
@@ -294,9 +295,73 @@ class Dimensionado(unittest.TestCase):
 
     def test_subida_por_debajo_del_minimo_del_paquete(self):
         d = cliente_base()
-        d["red"]["subida_mbps"] = 6.0
+        d["red"]["subida_medida_mbps"] = 6.0
         inf = validar_dict(d)
         self.assertTrue(hay_error_con(inf, "por debajo del minimo del paquete"))
+
+
+class SubidaMedidaNoAnunciada(unittest.TestCase):
+    """El validador comparaba contra un campo sin procedencia. Un comentario no rechaza nada."""
+
+    def test_el_campo_antiguo_sin_procedencia_se_rechaza(self):
+        d = cliente_base()
+        red = d["red"]
+        for k in ("subida_medida_mbps", "fecha_medicion", "metodo_medicion"):
+            red.pop(k, None)
+        red["subida_mbps"] = 15.0
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "sin procedencia"))
+
+    def test_sin_fecha_de_medicion_se_rechaza(self):
+        d = cliente_base()
+        d["red"].pop("fecha_medicion")
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "fecha_medicion"))
+
+    def test_medicion_de_mas_de_90_dias_se_rechaza(self):
+        d = cliente_base()
+        d["red"]["fecha_medicion"] = str(date.today() - timedelta(days=120))
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "caduca"))
+
+    def test_medicion_reciente_pasa(self):
+        d = cliente_base()
+        d["red"]["fecha_medicion"] = str(date.today() - timedelta(days=10))
+        inf = validar_dict(d)
+        self.assertFalse(hay_error_con(inf, "caduca"))
+
+    def test_medicion_a_punto_de_caducar_avisa_sin_rechazar(self):
+        d = cliente_base()
+        d["red"]["fecha_medicion"] = str(date.today() - timedelta(days=85))
+        inf = validar_dict(d)
+        self.assertFalse(hay_error_con(inf, "caduca"))
+        self.assertTrue(any("caduca" in a for a in inf.avisos))
+
+    def test_la_velocidad_anunciada_no_cuenta_como_medicion(self):
+        """El caso entero: `anunciada_por_proveedor` existe para poder rechazarlo."""
+        d = cliente_base()
+        d["red"]["metodo_medicion"] = "anunciada_por_proveedor"
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "es el folleto"))
+
+    def test_fecha_en_el_futuro_se_rechaza(self):
+        d = cliente_base()
+        d["red"]["fecha_medicion"] = str(date.today() + timedelta(days=5))
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "en el futuro"))
+
+    def test_una_medida_muy_por_debajo_de_la_anunciada_avisa(self):
+        """Suele ser el mejor argumento de por que hace falta otro nivel de servicio."""
+        d = cliente_base()
+        d["red"]["subida_anunciada_mbps"] = 50.0
+        inf = validar_dict(d)
+        self.assertTrue(any("por debajo de la anunciada" in a for a in inf.avisos))
+
+    def test_metodo_desconocido_se_rechaza_por_esquema(self):
+        d = cliente_base()
+        d["red"]["metodo_medicion"] = "me_lo_dijo_el_vecino"
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "cliente-red.schema.json"))
 
 
 class Red(unittest.TestCase):

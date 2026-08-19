@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bloque de red de un archivo de cliente",
+  "description": "Valida `red` de clientes/<cliente>/cliente.yaml. Existe por una razon concreta: el validador comparaba los tres escenarios de ancho de banda contra `subida_mbps`, y nada impedia que ahi se escribiera la velocidad ANUNCIADA del plan en lugar de la medida en el relevamiento. Solo lo decia un comentario, y un comentario no rechaza nada. Un enlace de cable vendido como 15 Mbps entrega a menudo bastante menos en subida, que es justo la direccion que importa. Ahora la medicion lleva fecha y metodo, y sin procedencia el cliente no valida.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "octeto", "dominio_local", "zona_horaria", "bajada_mbps",
+    "subida_medida_mbps", "fecha_medicion", "metodo_medicion"
+  ],
+  "properties": {
+    "octeto": {
+      "description": "Segundo octeto, asignado desde el registro de la empresa.",
+      "type": "integer", "minimum": 1, "maximum": 254
+    },
+    "dominio_local": {"type": "string", "minLength": 1},
+    "zona_horaria": {"type": "string", "minLength": 1},
+
+    "bajada_mbps": {"type": "number", "minimum": 0},
+
+    "subida_medida_mbps": {
+      "description": "SUBIDA MEDIDA EN EL SITIO, no la anunciada por el proveedor. Es contra este numero contra el que se comprueban los tres escenarios de ADR-012.",
+      "type": "number", "minimum": 0
+    },
+    "fecha_medicion": {
+      "description": "Cuando se midio. El validador rechaza una medicion de mas de 90 dias: el cliente puede haber cambiado de plan, y el proveedor de politica de subida.",
+      "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "metodo_medicion": {
+      "description": "Como se midio. `anunciada_por_proveedor` existe a proposito y el validador la RECHAZA: es lo que hay que poder distinguir, no lo que hay que prohibir escribir.",
+      "enum": [
+        "prueba_en_sitio_cableado",
+        "prueba_en_sitio_wifi",
+        "medicion_sostenida_desde_controlador",
+        "informe_del_proveedor",
+        "anunciada_por_proveedor"
+      ]
+    },
+    "subida_anunciada_mbps": {
+      "description": "Opcional. La velocidad que el proveedor vende. Se guarda para poder ensenarle al cliente la diferencia con lo medido, que suele ser el mejor argumento de por que hace falta otro nivel de servicio.",
+      "type": ["number", "null"], "minimum": 0
+    },
+
+    "margen_hogar_mbps": {"type": "number", "minimum": 0},
+    "cgnat": {"type": ["boolean", "null"]},
+    "failover_celular": {"type": "boolean"},
+    "equipo_administrativo": {"type": ["string", "null"]},
+    "puertos_trusted_a_iot": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 65535}},
+    "ssid_familia": {"type": ["string", "null"]},
+    "ssid_iot": {"type": ["string", "null"]},
+    "ssid_invitados": {"type": ["string", "null"]},
+    "seguridad_wifi": {"enum": ["WPA3", "WPA2-AES"]},
+    "seguridad_wifi_iot": {"enum": ["WPA3", "WPA2-AES"]}
+  }
+}

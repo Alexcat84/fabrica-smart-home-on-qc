@@ -75,6 +75,11 @@ internet_minimo:
     pediria 17,5 y es excepcion bajo demanda. Con camaras de DOS flujos el vinculante sube, porque
     la apertura sirve el principal.
   recalculado: "2026-08-19"
+  provisional: true
+  nota_provisional: >-
+    PROVISIONAL hasta cerrar M-14. Sale de un perfil de camara calculado, no de camaras
+    medidas. Sirve para cotizar; no es promesa. El numero que decide un diseno concreto es
+    `red.subida_medida_mbps` de ese cliente, con su fecha y su metodo.
 esfuerzo:
   instalacion_dias_min: 4
   instalacion_dias_max: 6

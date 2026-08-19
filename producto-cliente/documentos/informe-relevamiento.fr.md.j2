@@ -103,8 +103,19 @@ La traduction d'adresses de niveau operateur empeche l'etablissement d'un tunnel
 connexion relayee, ce qui ajoute de la latence. Il faut la reperer maintenant : au niveau L et
 au-dela, elle peut exiger une adresse statique ou un autre palier de service.
 
-Minimum pour le forfait propose **{{ paquete }}** : {{ paquete_def.internet_minimo.bajada_mbps }} Mbit/s
-en telechargement, **{{ paquete_def.internet_minimo.subida_mbps }} Mbit/s en televersement**.
+### Ce que la mesure decide
+
+Le chiffre de televersement consigne ci-dessus **n'est pas une propriete du forfait choisi**. C'est
+une propriete de **cette adresse**, et c'est ce chiffre qui sert a verifier la conception.
+
+Le minimum publie pour le forfait **{{ paquete }}** est de {{ paquete_def.internet_minimo.bajada_mbps }} Mbit/s
+en telechargement et {{ paquete_def.internet_minimo.subida_mbps }} Mbit/s en televersement. Ce chiffre
+est un **point de depart pour la soumission**, pas une promesse : si la mesure a cette adresse est
+inferieure, la conception change — moins de visionneurs simultanes, debits reduits, ou un autre palier
+de service — et nous vous le dirons avant toute signature.
+
+Les mesures expirent apres **90 jours**. Si la conception a lieu plus tard, la mesure est refaite :
+en trois mois, un forfait peut changer, et la politique de televersement du fournisseur aussi.
 
 ---
 

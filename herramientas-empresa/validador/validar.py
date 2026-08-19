@@ -32,6 +32,7 @@ import argparse
 import json
 import sys
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
 import jsonschema
@@ -66,6 +67,14 @@ EXCEPCIONES_VETO = {
 }
 
 OCTETO_MIN, OCTETO_MAX = 1, 254
+
+DIAS_VALIDEZ_MEDICION = 90
+"""Cuanto vale una medicion de subida antes de repetirla.
+
+No es arbitrario: en tres meses el cliente puede haber cambiado de plan y el proveedor su politica de
+subida. Un diseno apoyado en una medicion vieja promete un visionado remoto que puede haber dejado de
+caber, y nadie se entera hasta que el cliente esta fuera de casa mirando el telefono.
+"""
 
 MARCA_EJEMPLO = "EJEMPLO-NO-REAL"
 """Marcador de verificacion ficticia.
@@ -528,6 +537,90 @@ def validar_tema_unico(cliente: dict, inf: Informe) -> None:
                 )
 
 
+def validar_medicion_de_subida(cliente: dict, inf: Informe) -> None:
+    """La subida se MIDE en el relevamiento; no se copia del folleto del proveedor.
+
+    Antes, el validador comparaba los tres escenarios contra `subida_mbps` y nada impedia que ahi se
+    escribiera la velocidad anunciada del plan. Solo lo decia un comentario, y un comentario no
+    rechaza nada. Un enlace de cable vendido como 15 Mbps entrega a menudo bastante menos en subida,
+    que es justo la direccion que importa.
+    """
+    red = cliente.get("red") or {}
+
+    if "subida_mbps" in red and "subida_medida_mbps" not in red:
+        inf.error(
+            "El archivo de cliente usa `subida_mbps` sin procedencia. Sustituir por "
+            "`subida_medida_mbps`, `fecha_medicion` y `metodo_medicion`: el diseno se apoya en ese "
+            "numero y tiene que constar de donde sale."
+        )
+        return
+
+    medida = red.get("subida_medida_mbps")
+    if medida is None:
+        inf.error(
+            "No se declara `red.subida_medida_mbps`. Es la subida MEDIDA en el sitio, contra la que "
+            "se comprueban los tres escenarios de ancho de banda (ADR-012)."
+        )
+        return
+
+    metodo = red.get("metodo_medicion")
+    if not metodo:
+        inf.error(
+            "No se declara `red.metodo_medicion`. Sin saber como se midio, el numero no vale para "
+            "sostener una promesa de visionado remoto."
+        )
+    elif metodo == "anunciada_por_proveedor":
+        inf.error(
+            "`metodo_medicion: anunciada_por_proveedor` NO es una medicion: es el folleto. La subida "
+            "se mide en el relevamiento, con el enlace del sitio. El valor anunciado se puede "
+            "guardar aparte en `subida_anunciada_mbps`, que sirve para ensenarle al cliente la "
+            "diferencia, pero el diseno no se apoya en el."
+        )
+    elif metodo == "informe_del_proveedor":
+        inf.aviso(
+            "La subida viene de un informe del proveedor, no de una prueba en el sitio. Sirve para "
+            "cotizar, pero conviene confirmarla en el relevamiento antes de comprometer visionado "
+            "remoto concurrente."
+        )
+
+    fecha = red.get("fecha_medicion")
+    if not fecha:
+        inf.error(
+            "No se declara `red.fecha_medicion`. Una medicion sin fecha no se puede caducar, y una "
+            "medicion vieja promete un enlace que quiza ya no existe."
+        )
+        return
+
+    try:
+        medido_el = date.fromisoformat(str(fecha))
+    except ValueError:
+        inf.error(f"`red.fecha_medicion` = '{fecha}' no es una fecha ISO valida (AAAA-MM-DD).")
+        return
+
+    dias = (date.today() - medido_el).days
+    if dias < 0:
+        inf.error(f"`red.fecha_medicion` = {fecha} esta en el futuro.")
+    elif dias > DIAS_VALIDEZ_MEDICION:
+        inf.error(
+            f"La medicion de subida tiene {dias} dias y caduca a los {DIAS_VALIDEZ_MEDICION}. "
+            f"Repetirla antes de disenar: en tres meses el cliente puede haber cambiado de plan y el "
+            f"proveedor su politica de subida."
+        )
+    elif dias > DIAS_VALIDEZ_MEDICION - 15:
+        inf.aviso(
+            f"La medicion de subida tiene {dias} dias y caduca a los {DIAS_VALIDEZ_MEDICION}. "
+            f"Conviene repetirla antes de cerrar el diseno."
+        )
+
+    anunciada = red.get("subida_anunciada_mbps")
+    if anunciada and medida < anunciada * 0.7:
+        inf.aviso(
+            f"La subida medida ({medida} Mbps) esta un {100 - medida / anunciada * 100:.0f} % por "
+            f"debajo de la anunciada ({anunciada} Mbps). Merece la pena ensenarselo al cliente: suele "
+            f"ser el mejor argumento de por que hace falta otro nivel de servicio."
+        )
+
+
 def validar_octeto(cliente: dict, inf: Informe) -> None:
     octeto = (cliente.get("red") or {}).get("octeto")
     if octeto is None:
@@ -579,7 +672,7 @@ def validar_paquete(cliente: dict, inf: Informe) -> dict | None:
         )
 
     minimos = paquete.get("internet_minimo", {})
-    subida = (cliente.get("red") or {}).get("subida_mbps") or 0
+    subida = (cliente.get("red") or {}).get("subida_medida_mbps") or 0
     if minimos.get("subida_mbps") and subida < minimos["subida_mbps"]:
         inf.error(
             f"La subida medida ({subida} Mbps) esta por debajo del minimo del paquete "
@@ -663,6 +756,19 @@ def validar_esquemas_de_paquetes(inf: Informe) -> None:
 # Catalogo: coherencia interna
 # =================================================================================================
 
+def validar_esquema_de_red(cliente: dict, inf: Informe) -> None:
+    """Aplica cliente-red.schema.json al bloque `red` del archivo de cliente."""
+    try:
+        esquema = cargar_esquema("cliente-red.schema.json")
+    except FileNotFoundError:
+        inf.error("Falta el esquema datos-maestros/esquemas/cliente-red.schema.json.")
+        return
+    validador = jsonschema.Draft202012Validator(esquema)
+    for fallo in sorted(validador.iter_errors(cliente.get("red") or {}), key=lambda e: list(e.path)):
+        campo = ".".join(str(x) for x in fallo.path) or "(raiz)"
+        inf.error(f"Esquema cliente-red.schema.json: campo `red.{campo}`: {fallo.message}")
+
+
 def validar_catalogo(inf: Informe) -> None:
     catalogo = cargar_catalogo()
 
@@ -722,10 +828,12 @@ def validar_cliente(ruta: Path) -> tuple[Informe, dict]:
     calculos: dict = {}
 
     validar_secretos_en_cliente(cliente, ruta, inf)
+    validar_esquema_de_red(cliente, inf)
     validar_nomenclatura(cliente, inf)
     validar_dispositivos_contra_catalogo(cliente, catalogo, inf)
     validar_software(cliente, catalogo, inf)
     validar_tema_unico(cliente, inf)
+    validar_medicion_de_subida(cliente, inf)
     validar_octeto(cliente, inf)
     paquete = validar_paquete(cliente, inf)
     calculos.update(validar_almacenamiento(cliente, inf))

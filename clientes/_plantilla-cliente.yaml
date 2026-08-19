@@ -41,8 +41,17 @@ red:
   zona_horaria: America/Toronto      # America/Toronto (ON) | America/Montreal (QC)
 
   # MEDIDAS EN EL RELEVAMIENTO, no la velocidad anunciada del plan. La subida es la restriccion.
+  #
+  # Esto ya no es solo un comentario: `validar.py` rechaza el cliente si falta la fecha, si la
+  # medicion tiene mas de 90 dias, o si el metodo es `anunciada_por_proveedor`. Un comentario no
+  # rechaza nada, y un enlace de cable vendido como 15 Mbps entrega a menudo bastante menos en
+  # subida, que es justo la direccion que importa.
   bajada_mbps: null
-  subida_mbps: null
+  subida_medida_mbps: null
+  fecha_medicion: null           # AAAA-MM-DD, entre comillas. Caduca a los 90 dias
+  metodo_medicion: null          # prueba_en_sitio_cableado | prueba_en_sitio_wifi |
+                                 # medicion_sostenida_desde_controlador | informe_del_proveedor
+  subida_anunciada_mbps: null    # opcional: lo que vende el proveedor, para ensenar la diferencia
   margen_hogar_mbps: 5.0
   cgnat: null                  # true si el proveedor usa traduccion de nivel de operador: impide
                                # tunel directo y fuerza relevo, con latencia adicional

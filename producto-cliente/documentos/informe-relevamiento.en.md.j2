@@ -101,8 +101,19 @@ Carrier-grade address translation prevents direct tunnel establishment and force
 connection, which adds latency. Identify it now: at tier L and above it may require a static address
 or a different service tier.
 
-Minimum for the proposed package **{{ paquete }}**: {{ paquete_def.internet_minimo.bajada_mbps }} Mbps
-down, **{{ paquete_def.internet_minimo.subida_mbps }} Mbps up**.
+### What the measurement decides
+
+The upload figure recorded above is **not a property of the package you chose**. It is a property of
+**this address**, and it is what the design is checked against.
+
+The published minimum for package **{{ paquete }}** is {{ paquete_def.internet_minimo.bajada_mbps }} Mbps
+down and {{ paquete_def.internet_minimo.subida_mbps }} Mbps up. That figure is a **starting point for
+quoting**, not a promise: if the measurement at this address comes in below it, the design changes —
+fewer concurrent viewers, lower stream bitrates, or a different service tier — and we will tell you
+which before you sign anything.
+
+Measurements expire after **90 days**. If the design work happens later than that, the measurement is
+repeated: in three months a plan can change and so can the provider's upload policy.
 
 ---
 

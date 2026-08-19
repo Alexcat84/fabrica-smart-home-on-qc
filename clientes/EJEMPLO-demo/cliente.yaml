@@ -48,7 +48,12 @@ red:
   # A 15 Mbps los escenarios 1 y 2 caben con holgura. El escenario 3 -abrir sobre principal, que
   # pide 17,5- no cabe y genera AVISO, no rechazo: es una excepcion bajo demanda que se explica al
   # cliente en el diseno.
-  subida_mbps: 15.0
+  # La subida se MIDE en el relevamiento. `subida_mbps` a secas dejo de aceptarse: el diseno se
+  # apoya en este numero y tiene que constar de donde sale, cuando y como.
+  subida_medida_mbps: 15.0
+  fecha_medicion: "2026-08-19"
+  metodo_medicion: prueba_en_sitio_cableado
+  subida_anunciada_mbps: 20.0    # lo que vende el proveedor; se guarda para poder ensenar la diferencia
   margen_hogar_mbps: 5.0
   cgnat: false
   failover_celular: false

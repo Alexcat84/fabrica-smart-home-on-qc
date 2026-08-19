@@ -109,6 +109,19 @@ The management network has **no SSID**. It is reached by cable from an authorise
 an authorised support session. Exposing management over wireless would defeat the point of separating
 it.
 
+### Internet
+
+| | |
+|---|---|
+| Upload, **measured at this address** | {{ red.subida_medida_mbps }} Mbps |
+| Measured on | {{ red.fecha_medicion }} |
+| Method | {{ red.metodo_medicion }} |
+{% if red.subida_anunciada_mbps %}| Advertised by the provider | {{ red.subida_anunciada_mbps }} Mbps |
+{% endif %}
+
+The design was checked against the **measured** figure, not the advertised one. If you change plan
+or provider, tell us: the number of cameras you can watch at once from outside depends on it.
+
 ### Zigbee mesh
 
 - Channel **{{ zigbee.canal }}**, chosen after surveying the 2.4 GHz band at your property so it does

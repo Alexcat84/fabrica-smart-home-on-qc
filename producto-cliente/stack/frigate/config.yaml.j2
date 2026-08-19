@@ -152,7 +152,7 @@ cameras:
 # Presupuesto PoE segun herramientas/calc_poe.py:
 #   peor caso {{ calculos.poe_peor_caso_w }} W, requerido con 40 % de holgura
 #   {{ calculos.poe_requerido_w }} W (switch: {{ poe.presupuesto_switch_w }} W)
-# Ancho de banda de subida (contratado: {{ red.subida_mbps }} Mbps), tres escenarios de ADR-012:
+# Ancho de banda de subida (subida MEDIDA el {{ red.fecha_medicion }}: {{ red.subida_medida_mbps }} Mbps), tres escenarios de ADR-012:
 #   1. cuadricula remota, {{ visores_concurrentes }} visor(es) sobre sub => {{ calculos.subida_requerida_mbps }} Mbps   VINCULANTE
 #   2. apertura de una camara{{ ' sobre PRINCIPAL (camara de dos flujos)' if calculos.subida_apertura_usa_principal else ' sobre flujo medio' }} => {{ calculos.subida_requerida_apertura_mbps }} Mbps   VINCULANTE
 #   3. apertura sobre principal, excepcion bajo demanda => {{ calculos.subida_requerida_principal_mbps }} Mbps   solo aviso

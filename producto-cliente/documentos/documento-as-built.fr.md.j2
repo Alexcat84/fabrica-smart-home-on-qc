@@ -111,6 +111,20 @@ Champs de vision :
 Le reseau de gestion n'a **aucun SSID**. On l'atteint par cable depuis une machine autorisee, ou par
 une seance de soutien autorisee. L'exposer par radio annulerait l'interet de l'avoir separe.
 
+### Internet
+
+| | |
+|---|---|
+| Televersement, **mesure a cette adresse** | {{ red.subida_medida_mbps }} Mbit/s |
+| Mesure le | {{ red.fecha_medicion }} |
+| Methode | {{ red.metodo_medicion }} |
+{% if red.subida_anunciada_mbps %}| Annonce par le fournisseur | {{ red.subida_anunciada_mbps }} Mbit/s |
+{% endif %}
+
+La conception a ete verifiee avec le chiffre **mesure**, non celui annonce. Si vous changez de
+forfait ou de fournisseur, dites-le-nous : le nombre de cameras que vous pouvez regarder a la fois
+depuis l'exterieur en depend.
+
 ### Maillage Zigbee
 
 - Canal **{{ zigbee.canal }}**, choisi apres un releve de la bande de 2,4 GHz chez vous afin de ne pas
