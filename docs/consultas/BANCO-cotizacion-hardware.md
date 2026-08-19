@@ -7,7 +7,7 @@ Especificacion completa en [../BANCO.md](../BANCO.md). Esto es la lista de la co
 
 ## Por que se cotiza ahora y no despues
 
-Ocho de los diez roles de `ansible/roles/` estan vacios a proposito. **No se escriben hasta que
+Ocho de los diez roles de `herramientas-empresa/ansible/roles/` estan vacios a proposito. **No se escriben hasta que
 exista el banco**, porque un rol sin ejecutar es una suposicion con sintaxis YAML. El banco es, por
 tanto, el camino critico de todo el trabajo tecnico que queda.
 

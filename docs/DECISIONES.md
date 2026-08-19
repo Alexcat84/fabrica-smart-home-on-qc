@@ -6,7 +6,7 @@ y se escribe una nueva.
 
 Las cinco primeras entradas son las **reglas inviolables** del repositorio. No son preferencias de estilo:
 cada una existe porque su incumplimiento produce un dano concreto, medible y caro. Estan implementadas
-como comprobaciones ejecutables en `generador/validar.py` y en `herramientas/detectar_secretos.py`.
+como comprobaciones ejecutables en `herramientas-empresa/validador/validar.py` y en `herramientas-empresa/detectar_secretos.py`.
 
 ---
 
@@ -14,7 +14,7 @@ como comprobaciones ejecutables en `generador/validar.py` y en `herramientas/det
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `catalogo/`, `paquetes/`, listas de materiales generadas
+- **Ambito:** `datos-maestros/`, `comercial/paquetes/`, listas de materiales generadas
 
 ### Contexto
 
@@ -38,7 +38,7 @@ confirmacion contra la fuente primaria. El catalogo hereda esa condicion.
 ### Decision
 
 Cada entrada del catalogo lleva `certificacion`, `fuente_url` y `verificado: false`. Todo dato que no se
-conozca con certeza se escribe `null` y genera una fila en `docs/POR-VERIFICAR.md`. `generador/validar.py`
+conozca con certeza se escribe `null` y genera una fila en `docs/POR-VERIFICAR.md`. `herramientas-empresa/validador/validar.py`
 rechaza cualquier archivo de cliente que dependa de un dato inventado.
 
 ### Motivo
@@ -58,7 +58,7 @@ una cotizacion que no se puede sostener o en una reclamacion de seguro denegada.
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `catalogo/dispositivos.yaml`, `catalogo/excluidos.yaml`, validacion de cliente
+- **Ambito:** `datos-maestros/dispositivos/`, `datos-maestros/excluidos.yaml`, validacion de cliente
 
 ### Contexto
 
@@ -78,8 +78,8 @@ certificacion distinta bajo el mismo nombre de modelo segun el mercado de destin
 ### Decision
 
 Ningun dispositivo entra al catalogo como `instalable_en_caja: true` sin `certificacion` en
-{cULus, cETL, CSA}. Los dispositivos con marcado europeo unicamente van a `catalogo/excluidos.yaml`
-con su motivo. `generador/validar.py` rechaza el archivo de cliente si un dispositivo marcado
+{cULus, cETL, CSA}. Los dispositivos con marcado europeo unicamente van a `datos-maestros/excluidos.yaml`
+con su motivo. `herramientas-empresa/validador/validar.py` rechaza el archivo de cliente si un dispositivo marcado
 `instalable_en_caja` no tiene certificacion.
 
 ### Motivo
@@ -101,7 +101,7 @@ categoria donde la decision correcta cuesta dinero y hay que preciarla.
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `catalogo/dispositivos.yaml`, `catalogo/software.yaml`, `plantillas/`
+- **Ambito:** `datos-maestros/dispositivos/`, `datos-maestros/software-cliente.yaml`, `producto-cliente/stack/`
 
 ### Contexto
 
@@ -118,7 +118,7 @@ exija cuenta de fabricante para operar destruye esa afirmacion y la convierte en
 ### Decision
 
 Ningun componente del stack ni del catalogo puede requerir una cuenta en la nube de un fabricante para
-funcionar. Si la requiere, va a `catalogo/excluidos.yaml` con el motivo. El campo
+funcionar. Si la requiere, va a `datos-maestros/excluidos.yaml` con el motivo. El campo
 `control_local_sin_nube: true` es obligatorio en todo dispositivo del catalogo.
 
 ### Motivo
@@ -194,7 +194,7 @@ Consecuencias concretas ya implementadas:
   temporal-tres, reservado a la senalizacion de evacuacion.
 - No se instala rele, atenuador ni modulo alguno en un circuito compartido con detectores interconectados.
 - No se automatizan enclavamientos de ventilacion exigidos por codigo.
-- `docs/NOMENCLATURA.md` mantiene la lista de terminos vetados y `generador/validar.py` la verifica.
+- `docs/NOMENCLATURA.md` mantiene la lista de terminos vetados y `herramientas-empresa/validador/validar.py` la verifica.
 
 ### Motivo
 
@@ -229,7 +229,7 @@ que afecta a una casa concreta y que git conserva para siempre aunque el archivo
 ### Decision
 
 Contrasenas, claves y tokens van cifrados con `ansible-vault` o quedan como marcadores de posicion
-explicitos. `herramientas/detectar_secretos.py` corre como hook de pre-commit y bloquea el commit al
+explicitos. `herramientas-empresa/detectar_secretos.py` corre como hook de pre-commit y bloquea el commit al
 detectar material sensible. Las credenciales reales viven en el baul de credenciales del cliente
 (Vaultwarden), que se entrega al cliente en el cierre del proyecto; la empresa no conserva copia.
 
@@ -251,7 +251,7 @@ contradice ese modelo y convierte al repositorio en el punto unico de compromiso
 
 - **Fecha:** 2026-08-18
 - **Estado:** vigente
-- **Ambito:** `plantillas/`, `generador/`, `clientes/`, `ansible/`
+- **Ambito:** `producto-cliente/stack/`, `generador/`, `clientes/`, `herramientas-empresa/ansible/`
 
 ### Contexto
 
@@ -266,8 +266,8 @@ seguridad hay que aplicarla quince veces a mano.
 
 ### Decision
 
-Todo lo especifico de un cliente vive en su archivo de variables. Todo lo demas vive en `plantillas/`.
-`generador/generar.py` produce el paquete completo en `salida/<cliente>/`, que es un artefacto derivado
+Todo lo especifico de un cliente vive en su archivo de variables. Todo lo demas vive en `producto-cliente/stack/`.
+`herramientas-empresa/generador/generar.py` produce el paquete completo en `salida/<cliente>/`, que es un artefacto derivado
 y no se commitea. Nada se construye a mano en casa del cliente. No hay copos de nieve.
 
 ### Motivo
@@ -311,7 +311,7 @@ Trazabilidad del dato hasta su origen, que es precisamente lo que ADR-001 exige 
 
 - **Fecha:** 2026-08-19
 - **Estado:** vigente
-- **Ambito:** `catalogo/dispositivos.yaml`, relevamiento, diseno de iluminacion
+- **Ambito:** `datos-maestros/dispositivos/`, relevamiento, diseno de iluminacion
 
 ### Contexto
 
@@ -362,7 +362,7 @@ dentro de un grupo multivia, en ninguna de las tres ramas.
 
 Las tres ramas son soluciones legitimas para situaciones distintas. Nombrar una como *la* solucion
 esconde que las otras dos existen, y empuja a comprar el producto equivocado para el caso que se
-tiene delante. El relevamiento (`plantillas-cliente/informe-relevamiento.*`) ya recoge las tres
+tiene delante. El relevamiento (`producto-cliente/documentos/informe-relevamiento.*`) ya recoge las tres
 preguntas que este arbol necesita: neutro presente, profundidad de caja y multivia.
 
 ### Consecuencias
@@ -382,7 +382,7 @@ preguntas que este arbol necesita: neutro presente, profundidad de caja y multiv
 
 - **Fecha:** 2026-08-19
 - **Estado:** vigente. Resuelve la discrepancia registrada como M-08.
-- **Ambito:** `paquetes/`, `plantillas/red/`, `docs/ARQUITECTURA.md`, `docs/SEGURIDAD.md`
+- **Ambito:** `comercial/paquetes/`, `producto-cliente/stack/red/`, `docs/ARQUITECTURA.md`, `docs/SEGURIDAD.md`
 
 ### Contexto
 
@@ -425,8 +425,8 @@ agujero: por eso aparece antes.
 
 - **Plegar Management NO relaja la politica de cortafuegos.** Las reglas que la nombran se aplican
   igualmente sobre las interfaces de gestion, que en S y M viven dentro del segmento Controller. Esta
-  advertencia esta escrita en `plantillas/red/firewall.yaml.j2` para que nadie la deduzca al reves.
+  advertencia esta escrita en `producto-cliente/stack/red/firewall.yaml.j2` para que nadie la deduzca al reves.
 - El acceso administrativo sigue restringido a un equipo autorizado declarado o a una sesion de
   soporte autorizada, en los cuatro niveles.
-- `generador/test_vlans.py` comprueba el recuento por paquete. La contradiccion no puede volver a
+- `herramientas-empresa/validador/test_vlans.py` comprueba el recuento por paquete. La contradiccion no puede volver a
   entrar sin que una prueba falle.

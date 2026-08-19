@@ -1,0 +1,142 @@
+# Categoria: red
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: unifi-gateway
+  categoria: red
+  fabricante: Ubiquiti
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [ubiquiti-revendedores-ca, canada-computers, memory-express]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Enrutador y cortafuegos con soporte de VLAN e inspeccion con estado entre segmentos, que es lo que
+    exige la matriz de plantillas/red. Gestion local obligatoria, sin depender de cuenta en la nube.
+  fuente_url: null
+  verificado: false
+
+- id: omada-gateway
+  categoria: red
+  fabricante: TP-Link (Omada)
+  pais_fabricante: China
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M]
+  notas: >-
+    Alternativa a UniFi para construcciones sensibles al coste. Controlador autoalojado, nunca la
+    variante gestionada desde la nube. No ofrecer al segmento sensible a linaje sin divulgarlo.
+  fuente_url: null
+  verificado: false
+
+- id: switch-poe-plus-8
+  categoria: red
+  fabricante: Ubiquiti
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: poe
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [ubiquiti-revendedores-ca, canada-computers]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S]
+  notas: >-
+    Switch gestionado de 8 puertos con PoE+. El presupuesto PoE se dimensiona con
+    herramientas/calc_poe.py y exige 40 % de holgura sobre el peor caso.
+  fuente_url: null
+  verificado: false
+
+- id: switch-poe-plus-16
+  categoria: red
+  fabricante: Ubiquiti
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: poe
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [ubiquiti-revendedores-ca, canada-computers]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M]
+  notas: >-
+    Switch gestionado de 16 puertos con PoE+, etiquetado 802.1Q y presupuesto PoE dimensionado con
+    holgura. Puertos sin uso deshabilitados administrativamente (docs/SEGURIDAD.md).
+  fuente_url: null
+  verificado: false
+
+- id: switch-poe-plus-24
+  categoria: red
+  fabricante: Ubiquiti
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: poe
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [ubiquiti-revendedores-ca, canada-computers]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Switch gestionado de 24 puertos con PoE+ para niveles L y XL. En XL se emplean varios switches con
+    enlaces de fibra entre edificios.
+  fuente_url: null
+  verificado: false
+
+- id: punto-acceso-wifi
+  categoria: red
+  fabricante: Ubiquiti
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: poe
+  tension: poe
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [ubiquiti-revendedores-ca, canada-computers, memory-express]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Multiples SSID mapeados a VLAN separadas, WPA3 donde se soporte, sin WPS. La red de gestion nunca
+    se expone por radio. Consumo tipico de 10 a 20 W, clase PoE+: entra en el calculo de presupuesto.
+  fuente_url: null
+  verificado: false

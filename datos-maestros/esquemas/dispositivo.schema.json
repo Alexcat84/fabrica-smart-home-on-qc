@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dispositivo del catalogo",
+  "description": "Un registro de datos-maestros/dispositivos/*.yaml. additionalProperties es false a proposito: un campo mal escrito se rechaza en lugar de ignorarse en silencio, que es el modo de fallo que hace parecer certificado a un dispositivo que no lo esta.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "categoria", "fabricante", "pais_fabricante", "modelo", "protocolo", "tension",
+    "instalable_en_caja", "certificacion", "ised", "control_local_sin_nube",
+    "disponibilidad_canada", "proveedores", "precio_lista_cad", "precio_distribuidor_cad",
+    "paquetes", "notas", "fuente_url", "verificado"
+  ],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "categoria": {
+      "enum": ["iluminacion", "interruptor", "rele", "toma", "ventilador", "termostato",
+               "sensor", "camara", "sirena", "red", "computo", "almacenamiento", "energia",
+               "coordinador", "cableado"]
+    },
+    "fabricante": {"type": ["string", "null"]},
+    "pais_fabricante": {"type": ["string", "null"]},
+    "modelo": {"type": ["string", "null"]},
+    "protocolo": {
+      "enum": ["zigbee", "zwave", "wifi", "matter", "poe", "cableado", "ninguno"]
+    },
+    "tension": {"enum": ["linea", "baja", "bateria", "poe", "ninguno"]},
+    "instalable_en_caja": {"type": "boolean"},
+    "certificacion": {
+      "description": "ADR-002. Solo marcas canadienses. null mientras no se verifique sobre la unidad fisica en recepcion.",
+      "enum": ["cULus", "cETL", "CSA", null]
+    },
+    "ised": {"type": ["string", "null"]},
+    "control_local_sin_nube": {
+      "description": "ADR-003. Debe ser true en todo dispositivo aprobado. Lo que no cumpla vive en excluidos.yaml.",
+      "const": true
+    },
+    "disponibilidad_canada": {
+      "enum": ["distribucion_seguridad", "distribucion_electrica", "distribuidor_electrico",
+               "fabricante_directo", "retail_ti", "reacondicionador", null]
+    },
+    "proveedores": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+    "precio_lista_cad": {"type": ["number", "null"], "minimum": 0},
+    "precio_distribuidor_cad": {"type": ["number", "null"], "minimum": 0},
+    "paquetes": {"type": "array", "items": {"enum": ["S", "M", "L", "XL"]}},
+    "notas": {"type": "string"},
+    "fuente_url": {"type": ["string", "null"]},
+    "verificado": {"type": "boolean"},
+
+    "estado": {
+      "description": "Solo para entradas que no son ruta por defecto. Ver ADR-003 y ADR-008.",
+      "enum": ["excepcion_documentada"]
+    },
+
+    "substream_bitrate_mbps": {
+      "description": "Solo categoria camara. Medido en banco por modelo y firmware. Fila M-13.",
+      "type": ["number", "null"], "minimum": 0
+    },
+    "substream_resolucion": {
+      "description": "Solo categoria camara. Del tipo 640x480@5.",
+      "type": ["string", "null"]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"categoria": {"const": "camara"}}, "required": ["categoria"]},
+      "then": {"required": ["substream_bitrate_mbps", "substream_resolucion"]},
+      "else": {
+        "not": {
+          "anyOf": [
+            {"required": ["substream_bitrate_mbps"]},
+            {"required": ["substream_resolucion"]}
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+# Categoria: rele
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: modulo-canopy-certificado
+  categoria: rele
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: null
+  proveedores: []
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    TERCERA RAMA del arbol de ADR-008: "sin neutro y sin espacio en la caja". Entrada abierta a
+    proposito: hace falta identificar un modulo de montaje en dosel certificado para Canada. Requiere
+    acceso al luminario y mando inalambrico de pared. Sin esta rama resuelta, el caso no tiene
+    solucion aprobada y hay que decirlo en el relevamiento en lugar de improvisar en obra. Fila A-02
+    de docs/POR-VERIFICAR.md, que absorbio la antigua A-03.
+  fuente_url: null
+  verificado: false
+
+- id: shelly-modulo-na
+  categoria: rele
+  fabricante: Shelly (Allterco)
+  pais_fabricante: Bulgaria
+  modelo: null
+  protocolo: wifi
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null            # SOLO se acepta el SKU norteamericano con marca UL o ETL visible
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [aartech-canada, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    UNICAMENTE el SKU norteamericano con marca UL o ETL visible en la unidad. El SKU europeo del mismo
+    nombre comercial esta excluido (ver catalogo/excluidos.yaml). Rechazar existencias sin marca en
+    recepcion. Va en el segmento IoT aislado, nunca en Trusted. Firmware local sin nube obligatorio.
+  fuente_url: null
+  verificado: false
+
+- id: inovelli-micromodulo
+  categoria: rele
+  fabricante: Inovelli
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: fabricante_directo
+  proveedores: [aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Preserva las placas y el circuito fisico existentes, lo que importa por estetica y por la regla de
+    respaldo mecanico. Verificar espacio en caja antes de especificar.
+  fuente_url: null
+  verificado: false
+
+- id: rele-din-certificado
+  categoria: rele
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [nedco, westburne, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Rele de carril DIN certificado para Canada, para tablero secundario o gabinete de automatizacion.
+    Fijar fabricante y modelo al abrir cuenta de distribucion electrica.
+  fuente_url: null
+  verificado: false

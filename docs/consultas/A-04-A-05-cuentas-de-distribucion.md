@@ -88,13 +88,13 @@ Adaptar el idioma: **frances** para Franklin Empire, Lumen y Guillevin; ingles p
 
 ## Que se registra al recibir respuesta
 
-En `catalogo/proveedores.yaml`, por proveedor:
+En `datos-maestros/proveedores.yaml`, por proveedor:
 
 - `requiere_cuenta_corporativa`, `requiere_licencia` — dejan de ser `null`
 - `contacto_url` — cierra parte de B-03
 - `cuenta_abierta` — a `true` solo cuando este operativa, no al solicitarla
 
-En `catalogo/dispositivos.yaml`, segun lo que llegue:
+En `datos-maestros/dispositivos/`, segun lo que llegue:
 
 - `certificacion` y `fuente_url` por SKU — avanza **A-01**
 - `precio_distribuidor_cad` — avanza **A-05**

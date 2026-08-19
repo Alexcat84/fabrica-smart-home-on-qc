@@ -65,7 +65,7 @@ archivada.
 |---|---|---|---|---|---|---|
 | R-09 | ¿Hacen falta permiso de comerciante itinerante y deposito de garantia para contratos firmados en el domicilio del cliente? | Office de la protection du consommateur | `abierta` | — | ☐ No | **La forma de cerrar una venta en Quebec.** Si hace falta, cambia donde se firma el contrato, no solo el papeleo |
 | R-10 | Requisitos de contenido del acuerdo directo y restricciones vigentes de venta a domicilio | Ontario Ministry of Public and Business Service Delivery | `abierta` | — | ☐ No | Plantilla de contrato en Ontario |
-| R-12 | Obligaciones linguisticas segun numero de empleados, y regla del contrato de adhesion | Office quebecois de la langue francaise | `abierta` | — | ☐ No | Los documentos de cliente ya se generan en frances (`plantillas-cliente/*.fr.md.j2`). Esta fila confirma si eso basta y desde que plantilla de empleados hay obligaciones adicionales |
+| R-12 | Obligaciones linguisticas segun numero de empleados, y regla del contrato de adhesion | Office quebecois de la langue francaise | `abierta` | — | ☐ No | Los documentos de cliente ya se generan en frances (`producto-cliente/documentos/*.fr.md.j2`). Esta fila confirma si eso basta y desde que plantilla de empleados hay obligaciones adicionales |
 
 ---
 
@@ -73,7 +73,7 @@ archivada.
 
 | # | Pregunta | Organismo | Estado | Fecha de consulta | Respuesta escrita | Que bloquea |
 |---|---|---|---|---|---|---|
-| R-11 | Obligaciones de la Ley 25 para una empresa de este tamano, requisitos del registro de incidentes y umbrales de notificacion | Commission d'acces a l'information du Quebec | `abierta` | — | ☐ No | El procedimiento de `runbooks/responder-incidente-seguridad.md` y la seccion 9 de `docs/SEGURIDAD.md` estan escritos con umbrales sin confirmar. Tambien la politica de privacidad publicada |
+| R-11 | Obligaciones de la Ley 25 para una empresa de este tamano, requisitos del registro de incidentes y umbrales de notificacion | Commission d'acces a l'information du Quebec | `abierta` | — | ☐ No | El procedimiento de `herramientas-empresa/runbooks/responder-incidente-seguridad.md` y la seccion 9 de `docs/SEGURIDAD.md` estan escritos con umbrales sin confirmar. Tambien la politica de privacidad publicada |
 
 ---
 

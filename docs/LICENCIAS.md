@@ -17,7 +17,7 @@ legal de estas licencias. El momento de resolverlo es ahora, no cuando alguien p
 > respuesta de dos lineas.
 
 `referencia/` existe solo para consultar codigo upstream. Esta en `.gitignore`, nunca se commitea y
-nunca se modifica. Todo lo nuestro vive en `plantillas/` como configuracion generada.
+nunca se modifica. Todo lo nuestro vive en `producto-cliente/stack/` como configuracion generada.
 
 ## Que obligacion tiene cada familia de licencia
 
@@ -47,7 +47,7 @@ Todo paquete generado incluye un apendice de licencias con, por cada componente 
 4. Si esta modificado, la URL del repositorio publico con el parche. En condiciones normales esta
    columna esta vacia en toda la tabla, que es exactamente el objetivo.
 
-El apendice se genera desde `catalogo/software.yaml` filtrando los componentes que corresponden al
+El apendice se genera desde `datos-maestros/software-cliente.yaml` filtrando los componentes que corresponden al
 paquete del cliente. No se mantiene a mano.
 
 ## Disciplina de marca
@@ -66,13 +66,13 @@ Todas estas licencias renuncian a cualquier garantia. El contrato debe decirlo c
 > distribuido sin garantia de ningun tipo.
 
 Esta frase, o su equivalente en frances, aparece en la declaracion de alcance de todo cliente
-(`plantillas-cliente/declaracion-de-alcance.*`).
+(`producto-cliente/documentos/declaracion-de-alcance.*`).
 
 ## Si alguna vez hay que parchear
 
 1. Se documenta el motivo como ADR en `docs/DECISIONES.md`: por que ningun mecanismo soportado sirve.
 2. Se publica el parche en un repositorio publico de la empresa.
-3. Se referencia esa URL en `catalogo/software.yaml`, en el campo `notas` del componente.
+3. Se referencia esa URL en `datos-maestros/software-cliente.yaml`, en el campo `notas` del componente.
 4. El apendice de licencias del cliente incluye la URL automaticamente.
 5. Se revisa en cada actualizacion upstream si el parche sigue siendo necesario. Un parche que nadie
    revisa se convierte en un fork de facto, que es justo lo que esta politica evita.

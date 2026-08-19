@@ -5,15 +5,16 @@
 Una **fabrica de despliegues**. No un almacen de configuraciones de cliente.
 
 ```
-  catalogo/  +  paquetes/  +  plantillas/        clientes/<cliente>/cliente.yaml
+  datos-maestros/ + comercial/paquetes/         clientes/<cliente>/cliente.yaml
+  + producto-cliente/
         (lo que es igual en todas las casas)     (lo unico que es de esta casa)
                         \                       /
                          \                     /
                           v                   v
-                        generador/validar.py   -->  rechaza antes de comprar nada
+                        herramientas-empresa/validador/validar.py   -->  rechaza antes de comprar nada
                           |
                           v
-                        generador/generar.py
+                        herramientas-empresa/generador/generar.py
                           |
                           v
                         salida/<cliente>/
@@ -21,7 +22,7 @@ Una **fabrica de despliegues**. No un almacen de configuraciones de cliente.
                           + calculos justificados + documentos EN/FR
                           |
                           v
-                        ansible/  -->  aprovisiona el anfitrion desde cero
+            herramientas-empresa/ansible/  -->  aprovisiona el anfitrion desde cero
 ```
 
 Cuando llega un cliente nuevo el trabajo es: rellenar su archivo de variables, ejecutar el generador,
@@ -101,7 +102,7 @@ carga de soporte sin anadir capacidad.
    Ansible: herramienta INTERNA de la empresa. Aprovisiona todo lo anterior. No se entrega.
 ```
 
-El detalle por componente, con licencia y obligacion practica, esta en `catalogo/software.yaml`.
+El detalle por componente, con licencia y obligacion practica, esta en `datos-maestros/software-cliente.yaml`.
 La politica de licencias esta en `docs/LICENCIAS.md`. Resumen: **no forkeamos**.
 
 ---
@@ -148,7 +149,7 @@ las interfaces de gestion, que en S y M viven dentro del segmento Controller.
    10.<octeto>.60.0/24   Guest        visitas, aisladas
 ```
 
-La matriz completa esta en `plantillas/red/firewall.yaml.j2` y explicada en `docs/SEGURIDAD.md`.
+La matriz completa esta en `producto-cliente/stack/red/firewall.yaml.j2` y explicada en `docs/SEGURIDAD.md`.
 
 ---
 
@@ -158,13 +159,13 @@ Los competidores citan periodos de retencion sin hacer el calculo. Nosotros lo a
 
 | Calculo | Formula | Herramienta |
 |---|---|---|
-| Almacenamiento | `TB = (Mbps / 8) x 86400 x camaras x dias / 1e6` | `herramientas/calc_almacenamiento.py` |
-| Presupuesto PoE | Suma del peor caso, con infrarrojo nocturno y calefactor, mas **40 % de holgura** | `herramientas/calc_poe.py` |
-| Ancho de banda de subida | Dos escenarios: (1) sub-stream x visores + margen; (2) lo anterior mas el salto de una camara a stream principal | `herramientas/calc_ancho_banda.py` |
+| Almacenamiento | `TB = (Mbps / 8) x 86400 x camaras x dias / 1e6` | `herramientas-empresa/calculadoras/calc_almacenamiento.py` |
+| Presupuesto PoE | Suma del peor caso, con infrarrojo nocturno y calefactor, mas **40 % de holgura** | `herramientas-empresa/calculadoras/calc_poe.py` |
+| Ancho de banda de subida | Dos escenarios: (1) sub-stream x visores + margen; (2) lo anterior mas el salto de una camara a stream principal | `herramientas-empresa/calculadoras/calc_ancho_banda.py` |
 
 Regla practica de referencia: una camara a 8 Mbps consume unos 86 GB al dia.
 
-`generador/validar.py` rechaza el archivo de cliente si cualquiera de los tres no cuadra. Un
+`herramientas-empresa/validador/validar.py` rechaza el archivo de cliente si cualquiera de los tres no cuadra. Un
 presupuesto PoE ajustado produce caidas intermitentes de camara de noche, y son extremadamente
 dificiles de diagnosticar despues porque solo aparecen con frio y oscuridad.
 
@@ -172,7 +173,7 @@ dificiles de diagnosticar despues porque solo aparecen con frio y oscuridad.
 
 ## 8. Que se decide por cliente y que no
 
-| Vive en el archivo de cliente | Vive en las plantillas |
+| Vive en el archivo de cliente | Vive en `producto-cliente/` |
 |---|---|
 | Identidad, provincia, idioma, paquete | Estructura de configuracion de todos los componentes |
 | Segundo octeto de red | Plan de direccionamiento y matriz de cortafuegos |

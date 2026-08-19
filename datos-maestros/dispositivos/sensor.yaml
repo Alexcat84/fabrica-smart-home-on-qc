@@ -1,0 +1,192 @@
+# Categoria: sensor
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: sinope-sensor-fuga-agua
+  categoria: sensor
+  fabricante: Sinope Technologies
+  pais_fabricante: Canada (Quebec)
+  modelo: null
+  protocolo: zigbee
+  tension: bateria
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [sinope, franklin-empire, lumen, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    El sensor de mayor valor percibido del mercado canadiense: el credito de seguro por deteccion de
+    fuga se consigue sin monitoreo. Se vende siempre emparejado con la valvula de corte.
+  fuente_url: null
+  verificado: false
+
+- id: sinope-valvula-corte-agua
+  categoria: sensor
+  fabricante: Sinope Technologies
+  pais_fabricante: Canada (Quebec)
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [sinope, franklin-empire, lumen, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Valvula motorizada de corte de entrada de agua. Deteccion mas respuesta automatica, todo local y
+    fabricado en Quebec. Requiere trabajo de plomeria; se cotiza aparte.
+  fuente_url: null
+  verificado: false
+
+- id: contacto-puerta-ventana-cableado
+  categoria: sensor
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: cableado
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada, aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Preferido siempre que la pared este abierta: maxima fiabilidad, sin bateria y sin radio. Alerta al
+    propietario, nunca alarma monitoreada (ADR-004).
+  fuente_url: null
+  verificado: false
+
+- id: contacto-puerta-ventana-zigbee
+  categoria: sensor
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: bateria
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada, aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Version de bateria para reforma sin obra. Verificar numero ISED: los sensores de bateria llevan
+    radio aunque queden fuera del regimen de certificacion electrica. Nunca se usa bateria donde un
+    contacto cableado es practicable: cambiar pilas en sesenta sensores es una carga de soporte que
+    el cliente acaba resintiendo.
+  fuente_url: null
+  verificado: false
+
+- id: sensor-movimiento-pir
+  categoria: sensor
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: bateria
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada, aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Infrarrojo pasivo por fiabilidad. Automatizacion de iluminacion y aviso de intrusion al
+    propietario.
+  fuente_url: null
+  verificado: false
+
+- id: sensor-presencia-mmwave
+  categoria: sensor
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [aartech-canada, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Presencia por onda milimetrica para habitaciones donde la gente permanece quieta (despacho, sala
+    de lectura). Mayor coste y mucho mayor esfuerzo de configuracion que el PIR: se especifica solo
+    donde el PIR ya fallo.
+  fuente_url: null
+  verificado: false
+
+- id: sensor-temperatura-humedad
+  categoria: sensor
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: bateria
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [aartech-canada, canada-computers]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Confort, control del extractor de bano y aviso de congelacion. El aviso de congelacion en segunda
+    residencia es un producto autonomo fuerte en el mercado canadiense.
+  fuente_url: null
+  verificado: false
+
+- id: sensor-calidad-aire
+  categoria: sensor
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [aartech-canada, canada-computers]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    ADR-004, NEGACION EXPLICITA: este dispositivo mide dioxido de carbono y particulas para confort y
+    control de ventilacion. NO es un detector de gas, NO es un detector de monoxido de carbono y NO
+    tiene funcion de seguridad de vida. Debe etiquetarse asi en el panel, en la automatizacion y en
+    la documentacion del cliente. Los detectores de humo y de monoxido exigidos por codigo quedan
+    intactos, en sus circuitos originales y fuera de este sistema.
+  fuente_url: null
+  verificado: false

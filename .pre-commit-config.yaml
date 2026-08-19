@@ -8,23 +8,23 @@ repos:
     hooks:
       - id: detectar-secretos
         name: Detectar secretos (ADR-005)
-        entry: python herramientas/detectar_secretos.py
+        entry: python herramientas-empresa/detectar_secretos.py
         language: system
         pass_filenames: true
         exclude: ^(referencia/|salida/|docs/fuente/)
 
       - id: validar-catalogo
         name: Validar esquema del catalogo
-        entry: python generador/validar.py --catalogo
+        entry: python herramientas-empresa/validador/validar.py --catalogo
         language: system
         pass_filenames: false
-        files: ^catalogo/.*\.yaml$
+        files: ^datos-maestros/.*\.yaml$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: check-yaml
-        exclude: ^(plantillas/|.*\.j2$)
+        exclude: ^(producto-cliente/|.*\.j2$)
       - id: check-merge-conflict
       - id: end-of-file-fixer
         exclude: ^docs/fuente/

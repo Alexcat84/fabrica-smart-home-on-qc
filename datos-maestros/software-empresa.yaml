@@ -1,0 +1,8 @@
+# Componentes de software INTERNOS de la empresa
+#
+# Se rellena en el commit siguiente, cuando se aplique el criterio de la linea divisoria.
+# El criterio, adelantado: el disparador de la obligacion de licencia es la ENTREGA en hardware del
+# cliente, no el uso. Lo que corre en la estacion de trabajo de la empresa y nunca se entrega no
+# genera obligacion de distribucion, por permisiva o copyleft que sea su licencia.
+---
+[]

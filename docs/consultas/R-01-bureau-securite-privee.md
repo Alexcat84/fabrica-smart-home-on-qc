@@ -72,6 +72,6 @@ cuenta en obra. Preguntar las dos de una vez cuesta lo mismo.
 | Respuesta | Consecuencia inmediata |
 |---|---|
 | **No hace falta licencia en ninguno de los dos casos** | Se archiva la respuesta y se cita en la declaracion de alcance. Se puede vender en Quebec. La respuesta escrita es la defensa si alguien lo cuestiona despues |
-| **No hace falta sin panel, si con panel** | Se archiva, y el panel de intrusion queda **fuera del alcance** de forma explicita en `catalogo/excluidos.yaml` y en la declaracion de alcance |
+| **No hace falta sin panel, si con panel** | Se archiva, y el panel de intrusion queda **fuera del alcance** de forma explicita en `datos-maestros/excluidos.yaml` y en la declaracion de alcance |
 | **Hace falta en ambos casos** | **Se detiene la venta en Quebec.** Se abre R-02 (permiso de agente: coste, antecedentes, plazos) y se recalcula el plan financiero con ese coste y ese calendario |
 | **Respuesta ambigua** | La fila sigue abierta. Se repregunta con el caso concreto por escrito. **No se interpreta a favor** |

@@ -1,0 +1,122 @@
+# Categoria: computo
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: dell-optiplex-micro-reacondicionado
+  categoria: computo
+  fabricante: Dell
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: reacondicionador
+  proveedores: [reacondicionadores-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L]
+  notas: >-
+    Micro escritorio de clase empresarial reacondicionado, procesador Intel moderno con graficos
+    integrados, 16 a 32 GB de RAM. Los graficos integrados aportan decodificacion por hardware e
+    inferencia de deteccion sin acelerador adicional. Verificar generacion de procesador: determina
+    el soporte de OpenVINO y de decodificacion.
+  fuente_url: null
+  verificado: false
+
+- id: lenovo-thinkcentre-tiny-reacondicionado
+  categoria: computo
+  fabricante: Lenovo
+  pais_fabricante: China
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: reacondicionador
+  proveedores: [reacondicionadores-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L]
+  notas: >-
+    Equivalente al OptiPlex Micro. Mantener tres familias intercambiables evita depender de la
+    disponibilidad de un solo reacondicionador.
+  fuente_url: null
+  verificado: false
+
+- id: hp-elitedesk-mini-reacondicionado
+  categoria: computo
+  fabricante: HP
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: reacondicionador
+  proveedores: [reacondicionadores-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L]
+  notas: >-
+    Tercera familia intercambiable de micro escritorio empresarial. Ciclo de vida de tres a cinco
+    anos, silencioso y de bajo consumo.
+  fuente_url: null
+  verificado: false
+
+- id: servidor-rack-xl
+  categoria: computo
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: reacondicionador
+  proveedores: [reacondicionadores-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [XL]
+  notas: >-
+    Servidor de rack, o separacion del controlador y el grabador en dos anfitriones, para el nivel XL.
+    Se dimensiona por calculo, no por catalogo.
+  fuente_url: null
+  verificado: false
+
+- id: acelerador-inferencia-discreto
+  categoria: computo
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: cableado
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [XL]
+  notas: >-
+    Opcional y solo en el nivel mayor. La ruta por defecto es la grafica Intel integrada, porque el
+    suministro de aceleradores discretos ha sido poco fiable.
+  fuente_url: null
+  verificado: false

@@ -1,0 +1,101 @@
+# Categoria: almacenamiento
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: wd-purple-vigilancia
+  categoria: almacenamiento
+  fabricante: Western Digital
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: cableado
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Disco mecanico de vigilancia, disenado para escritura continua. La capacidad se determina con
+    herramientas/calc_almacenamiento.py, nunca a ojo.
+  fuente_url: null
+  verificado: false
+
+- id: seagate-skyhawk-vigilancia
+  categoria: almacenamiento
+  fabricante: Seagate
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: cableado
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Segunda fuente de disco de vigilancia. En configuracion espejada conviene mezclar fabricante o
+    lote para no compartir modo de falla.
+  fuente_url: null
+  verificado: false
+
+- id: nvme-sistema
+  categoria: almacenamiento
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: cableado
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    250 a 500 GB para sistema operativo, base de datos y configuracion UNICAMENTE. Los SSD de consumo
+    para grabacion continua de video estan excluidos por agotamiento de escritura: ver
+    catalogo/excluidos.yaml.
+  fuente_url: null
+  verificado: false
+
+- id: nas-synology
+  categoria: almacenamiento
+  fabricante: Synology
+  pais_fabricante: Taiwan
+  modelo: null
+  protocolo: cableado
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [XL]
+  notas: >-
+    Almacenamiento de gran volumen con redundancia para el nivel XL. La redundancia protege frente a
+    fallo de disco; NO es respaldo. Las instantaneas del sistema de archivos mitigan borrado y
+    corrupcion. Configurar sin cuenta de fabricante (ADR-003) y con doble factor en la cuenta
+    administrativa.
+  fuente_url: null
+  verificado: false

@@ -11,7 +11,7 @@ PYTHON=python
 command -v python >/dev/null 2>&1 || PYTHON=python3
 
 echo "[pre-commit] Buscando secretos en los archivos preparados..."
-if ! "$PYTHON" herramientas/detectar_secretos.py --preparados; then
+if ! "$PYTHON" herramientas-empresa/detectar_secretos.py --preparados; then
     exit 1
 fi
 
@@ -20,7 +20,7 @@ ARCHIVOS_YAML=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ya?
 if [ -n "$ARCHIVOS_YAML" ]; then
     for archivo in $ARCHIVOS_YAML; do
         case "$archivo" in
-            *.j2|plantillas/*) continue ;;
+            *.j2|producto-cliente/*) continue ;;
         esac
         if ! "$PYTHON" -c "import sys,yaml; yaml.safe_load(open(sys.argv[1],encoding='utf-8'))" "$archivo"; then
             echo "[pre-commit] YAML invalido: $archivo"

@@ -18,14 +18,14 @@ mkdir clientes/APELLIDO-ciudad
 cp clientes/_plantilla-cliente.yaml clientes/APELLIDO-ciudad/cliente.yaml
 
 # 2. Validar ANTES de comprar nada
-python generador/validar.py clientes/APELLIDO-ciudad/cliente.yaml
+python herramientas-empresa/validador/validar.py clientes/APELLIDO-ciudad/cliente.yaml
 
 # 3. Generar el paquete completo
-python generador/generar.py clientes/APELLIDO-ciudad/cliente.yaml
+python herramientas-empresa/generador/generar.py clientes/APELLIDO-ciudad/cliente.yaml
 
 # 4. Aprovisionar el anfitrion
-ansible-playbook -i ansible/inventario/APELLIDO-ciudad.yml \
-    ansible/playbooks/aprovisionar-controlador.yml
+ansible-playbook -i herramientas-empresa/ansible/inventario/APELLIDO-ciudad.yml \
+    herramientas-empresa/ansible/playbooks/aprovisionar-controlador.yml
 ```
 
 El paso 3 escribe `salida/APELLIDO-ciudad/` con las configuraciones de todos los componentes, el
@@ -42,7 +42,7 @@ de seguridad de vida.
 ## Probar el repositorio
 
 ```bash
-python herramientas/verificar_todo.py
+python herramientas-empresa/verificar_todo.py
 ```
 
 Ejecuta las 68 pruebas, valida el catalogo, genera el cliente de demostracion y comprueba las reglas
@@ -52,24 +52,25 @@ inviolables sobre el resultado.
 
 | Directorio | Contenido |
 |---|---|
-| `catalogo/` | Dispositivos aprobados, excluidos, proveedores y componentes de software |
-| `paquetes/` | Definicion de los paquetes S, M, L y XL |
-| `plantillas/` | Plantillas Jinja del stack: Home Assistant, Frigate, Mosquitto, Zigbee2MQTT, red, respaldo |
+| `datos-maestros/` | **Unica fuente de verdad**: dispositivos por categoria, proveedores, exclusiones, software, y JSON Schema por tipo de registro |
+| `producto-cliente/` | Todo lo que acaba en casa del cliente: `stack/`, `marca/`, `interfaz/`, `app/`, `documentos/` |
+| `herramientas-empresa/` | Lo que **nunca** se entrega: `generador/`, `validador/`, `calculadoras/`, `ansible/`, `runbooks/` |
+| `comercial/` | Paquetes S/M/L/XL y listas de materiales |
+| `gestion/` | Vacio a proposito. Su alcance futuro esta fijado en `gestion/README.md` |
 | `clientes/` | Un archivo de variables por cliente. Nunca configuraciones completas |
-| `generador/` | `validar.py` y `generar.py`, con sus pruebas de regresion |
-| `herramientas/` | Calculadoras de almacenamiento, PoE y ancho de banda, y el detector de secretos |
-| `ansible/` | Roles y playbooks idempotentes para aprovisionar el controlador desde cero |
-| `runbooks/` | Procedimientos operativos, en espanol |
-| `plantillas-cliente/` | Los cuatro documentos entregables, en ingles y frances |
-| `docs/` | Arquitectura, seguridad, decisiones, nomenclatura, licencias y cola de verificacion |
+| `docs/` | Arquitectura, seguridad, decisiones, nomenclatura, licencias, banco y las dos colas de verificacion |
 | `salida/` | Paquetes generados. Artefacto derivado, **no versionado** |
 | `referencia/` | Clones upstream solo para consulta. No versionado, nunca modificado |
+
+La division no es organizativa: **`producto-cliente/` se entrega y `herramientas-empresa/` no**, y esa
+frontera es la que determina que licencias generan obligacion de distribucion. Ver el ADR de la linea
+divisoria en `docs/DECISIONES.md`.
 
 ## Primeros pasos en un clon nuevo
 
 ```bash
 git config core.hooksPath .githooks    # activa la deteccion de secretos antes de cada commit
-python herramientas/verificar_todo.py
+python herramientas-empresa/verificar_todo.py
 ```
 
 El hook es la implementacion de ADR-005 y no depende de instalar nada: solo git y python.
@@ -82,8 +83,8 @@ El hook es la implementacion de ADR-005 y no depende de instalar nada: solo git 
 4. **No hay fuego**: nada toca seguridad de vida.
 5. **Ningun secreto** en el repositorio.
 
-Cada una esta razonada en `docs/DECISIONES.md` y verificada mecanicamente por `generador/validar.py`.
-Las pruebas de `generador/test_validar.py` comprueban que siguen teniendo dientes.
+Cada una esta razonada en `docs/DECISIONES.md` y verificada mecanicamente por `herramientas-empresa/validador/validar.py`.
+Las pruebas de `herramientas-empresa/validador/test_validar.py` comprueban que siguen teniendo dientes.
 
 ## Documentacion
 
@@ -97,7 +98,7 @@ Las pruebas de `generador/test_validar.py` comprueban que siguen teniendo diente
 | `docs/POR-VERIFICAR.md` | **Cola de trabajo tecnica y comercial**, ordenada por lo que desbloquea |
 | `docs/POR-VERIFICAR-REGULATORIO.md` | Consultas a reguladores, aseguradoras y aduanas. Documento controlado |
 | `docs/BANCO.md` | El banco de la empresa: que hardware, que se prueba y como se fijan las versiones |
-| `runbooks/` | Como se hace cada tarea recurrente |
+| `herramientas-empresa/runbooks/` | Como se hace cada tarea recurrente |
 
 ## Estado
 

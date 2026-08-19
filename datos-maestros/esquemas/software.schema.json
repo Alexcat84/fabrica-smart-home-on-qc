@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Componente de software",
+  "description": "Aplica a software-cliente.yaml y a software-empresa.yaml. La diferencia entre los dos no es tecnica sino de entrega: ver el ADR de la linea divisoria en docs/DECISIONES.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "nombre", "licencia", "repo_url", "version_fijada", "rol",
+               "obligacion_licencia", "sustituible_por", "paquetes", "notas"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "nombre": {"type": "string", "minLength": 1},
+    "licencia": {"type": "string", "minLength": 1},
+    "repo_url": {"type": ["string", "null"]},
+    "version_fijada": {"type": ["string", "null"]},
+    "rol": {"type": "string", "minLength": 1},
+    "obligacion_licencia": {"enum": ["aviso", "fuente_si_modificado", "ninguna"]},
+    "sustituible_por": {"type": "array", "items": {"type": "string"}},
+    "paquetes": {"type": "array", "items": {"enum": ["S", "M", "L", "XL"]}},
+    "notas": {"type": "string"},
+    "se_entrega_al_cliente": {"type": "boolean"},
+    "modificado_por_nosotros": {"type": "boolean"},
+    "url_parche_publicado": {"type": ["string", "null"]}
+  }
+}

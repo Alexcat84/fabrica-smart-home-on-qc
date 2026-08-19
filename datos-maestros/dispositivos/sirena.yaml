@@ -1,0 +1,60 @@
+# Categoria: sirena
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: sirena-interior-zigbee
+  categoria: sirena
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada, aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    ADR-004: se documenta como dispositivo disuasorio, NO como sistema de alarma. Gobernada por el
+    sistema de automatizacion, no por un panel de alarma certificado. PROHIBIDO el patron temporal-tres,
+    reservado a la senalizacion de evacuacion. Debe distinguirse visual y audiblemente de cualquier
+    senalizador de evacuacion del edificio. Corte automatico dentro del limite del reglamento
+    municipal de ruido. Cada circuito de sirena lleva desconexion manual accesible y documentada.
+    Ubicacion tipica: pasillo central de la planta superior.
+  fuente_url: null
+  verificado: false
+
+- id: sirena-estrobo-exterior
+  categoria: sirena
+  fabricante: null
+  pais_fabricante: null
+  modelo: null
+  protocolo: cableado
+  tension: baja
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada, aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Envolvente con clasificacion de intemperie, contacto antisabotaje, temporizador de corte
+    obligatorio. Instalacion en fachada frontal fuera de alcance. Mismas prohibiciones de patron y de
+    etiquetado que la sirena interior. Confirmar el limite de duracion del reglamento de ruido del
+    municipio antes de la puesta en servicio.
+  fuente_url: null
+  verificado: false

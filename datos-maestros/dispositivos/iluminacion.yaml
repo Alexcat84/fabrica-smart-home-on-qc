@@ -1,0 +1,202 @@
+# Categoria: iluminacion
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: lutron-caseta-dimmer-sin-neutro
+  categoria: iluminacion
+  fabricante: Lutron Electronics
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: wifi                # radio propietario Clear Connect a traves de puente; ver notas
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [lutron-canal-distribuidores, nedco, westburne, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  estado: excepcion_documentada
+  notas: >-
+    EXCEPCION DOCUMENTADA, no solucion de referencia (ADR-003, enmienda de 2026-08-19). Introduce un
+    puente propietario adicional con registro en la nube del fabricante, lo que choca con la regla de
+    control local sin cuenta y con la de red unica de radio. Se especifica solo cuando el arbol de
+    ADR-008 llega a la rama "sin neutro, con espacio" y ninguna alternativa certificada de un solo
+    ecosistema sirve para ese circuito; se registra el motivo en el archivo de cliente y se declara
+    al cliente por escrito en el as-built. Condicionada a la fila A-02 de docs/POR-VERIFICAR.md: si
+    se resuelve en contra, pasa al registro de exclusion. Verificar ademas la compatibilidad de la
+    lampara LED concreta contra la lista publicada del atenuador antes de cotizar. Sembrado del
+    cap. 6.3.4 del plan de negocio.
+  fuente_url: null
+  verificado: false
+
+- id: lutron-caseta-companion-multivia
+  categoria: iluminacion
+  fabricante: Lutron Electronics
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: wifi
+  tension: bateria
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [lutron-canal-distribuidores, nedco, westburne, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  estado: excepcion_documentada
+  notas: >-
+    Mando complementario para circuitos de tres y cuatro vias. Hereda el estado de excepcion
+    documentada de lutron-caseta-dimmer-sin-neutro: solo se especifica dentro de un grupo multivia
+    que ya use esa familia. Nunca se mezclan fabricantes dentro de un mismo grupo multivia.
+  fuente_url: null
+  verificado: false
+
+- id: leviton-decora-smart-atenuador
+  categoria: iluminacion
+  fabricante: Leviton
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [nedco, westburne, guillevin, franklin-empire, lumen]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Requiere neutro. Respetar la regla de reduccion de carga cuando se agrupan varios atenuadores en
+    una misma caja. Fijar minimo y maximo de atenuacion por circuito en el comisionamiento.
+  fuente_url: null
+  verificado: false
+
+- id: inovelli-blue-2-1
+  categoria: iluminacion
+  fabricante: Inovelli
+  pais_fabricante: Estados Unidos
+  modelo: Blue Series 2-1
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null            # el plan indica listado cETL; confirmar sobre la unidad fisica
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: fabricante_directo
+  proveedores: [aartech-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [M, L, XL]
+  notas: >-
+    Conmutacion o atenuacion configurable, control de escenas y barra LED de estado. Muy bien
+    soportado por controladores de codigo abierto. Actua como router de la malla Zigbee y no anade
+    ningun puente: un solo ecosistema de radio. Es la rama por defecto del arbol de ADR-008 cuando
+    hay neutro, y la CANDIDATA PRINCIPAL para la rama sin neutro. Fila A-08 de docs/POR-VERIFICAR.md:
+    confirmar operacion sin neutro, certificacion cETL sobre la unidad fisica y si la carga exige
+    modulo de bypass. Si A-08 se resuelve a favor, la rama sin neutro se cubre sin puente propietario
+    y la excepcion de Lutron deja de ser necesaria.
+  fuente_url: null
+  verificado: false
+
+- id: sinope-interruptor-atenuador
+  categoria: iluminacion
+  fabricante: Sinope Technologies
+  pais_fabricante: Canada (Quebec)
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: true
+  certificacion: null            # el plan indica CSA; confirmar por SKU
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribuidor_electrico
+  proveedores: [sinope, franklin-empire, lumen, guillevin]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Fabricado en Quebec, distribucion electrica local y soporte en frances. Argumento de compra local
+    fuerte en el mercado de Quebec.
+  fuente_url: null
+  verificado: false
+
+- id: lampara-philips-hue
+  categoria: iluminacion
+  fabricante: Signify (Philips Hue)
+  pais_fabricante: Paises Bajos
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Solo para luz de acento y efecto. Las lamparas inteligentes incumplen la regla de respaldo
+    mecanico: si alguien apaga la pared, la lampara queda inalcanzable. El control del circuito en el
+    interruptor es siempre la opcion por defecto.
+  fuente_url: null
+  verificado: false
+
+- id: lampara-sengled
+  categoria: iluminacion
+  fabricante: Sengled
+  pais_fabricante: China
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, memory-express, newegg-ca]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M]
+  notas: >-
+    Alternativa economica para acento. Las lamparas Sengled no actuan como router de la malla Zigbee,
+    lo que evita un tipo de inestabilidad de malla pero no ayuda a la cobertura.
+  fuente_url: null
+  verificado: false
+
+- id: lampara-ikea
+  categoria: iluminacion
+  fabricante: IKEA
+  pais_fabricante: Suecia
+  modelo: null
+  protocolo: zigbee
+  tension: linea
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [ikea-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M]
+  notas: >-
+    Verificar que el SKU adquirido en Canada lleva marca norteamericana y no es importacion europea
+    (ADR-002). Solo acento.
+  fuente_url: null
+  verificado: false

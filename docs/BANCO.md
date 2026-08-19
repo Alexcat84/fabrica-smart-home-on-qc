@@ -16,9 +16,9 @@ Cuatro preguntas, y ninguna se puede responder sin el:
 
 1. **¿Este rol es idempotente?** Ejecutarlo dos veces seguidas no debe cambiar nada la segunda vez.
 2. **¿Se reconstruye en menos de cuatro horas?** Es el objetivo declarado en el contrato del cliente,
-   en `runbooks/restaurar-controlador.md` y en el as-built. Sin cronometrarlo, es una frase.
+   en `herramientas-empresa/runbooks/restaurar-controlador.md` y en el as-built. Sin cronometrarlo, es una frase.
 3. **¿Esta actualizacion rompe algo?** Antes de tocar a un cliente, se aplica aqui.
-4. **¿Que version fijamos?** Las 27 `version_fijada` de `catalogo/software.yaml` salen de lo que
+4. **¿Que version fijamos?** Las 27 `version_fijada` de `datos-maestros/software-cliente.yaml` salen de lo que
    quede corriendo aqui, no de la ultima etiqueta publicada upstream.
 
 ---
@@ -46,7 +46,7 @@ hasta terminar.
 
 | Elemento | Minimo | Por que |
 |---|---|---|
-| Pasarela | La misma familia que se instala, con VLAN y cortafuegos con estado | La matriz direccional de `plantillas/red/firewall.yaml.j2` hay que aplicarla de verdad, no leerla |
+| Pasarela | La misma familia que se instala, con VLAN y cortafuegos con estado | La matriz direccional de `producto-cliente/stack/red/firewall.yaml.j2` hay que aplicarla de verdad, no leerla |
 | Switch PoE+ | 8 puertos, presupuesto PoE conocido | Permite comprobar el calculo de `calc_poe.py` contra consumo medido |
 | Punto de acceso | Uno, con multiples SSID mapeados a VLAN | Comprobar que la gestion no queda expuesta por radio |
 | Octeto reservado | `10.98.x.0/24` | El 99 es del cliente de demostracion. El banco necesita el suyo para que la superposicion de soporte no colisione |
@@ -75,16 +75,16 @@ hasta terminar.
 
 ### 3.1 Idempotencia de cada rol
 
-Requisito de aceptacion de **todo** rol de `ansible/roles/`, sin excepcion:
+Requisito de aceptacion de **todo** rol de `herramientas-empresa/ansible/roles/`, sin excepcion:
 
 ```bash
 # Primera pasada: sobre un sistema recien instalado.
-ansible-playbook -i ansible/inventario/banco.yml \
-    ansible/playbooks/aprovisionar-controlador.yml --tags <rol>
+ansible-playbook -i herramientas-empresa/ansible/inventario/banco.yml \
+    herramientas-empresa/ansible/playbooks/aprovisionar-controlador.yml --tags <rol>
 
 # Segunda pasada, inmediatamente despues.
-ansible-playbook -i ansible/inventario/banco.yml \
-    ansible/playbooks/aprovisionar-controlador.yml --tags <rol>
+ansible-playbook -i herramientas-empresa/ansible/inventario/banco.yml \
+    herramientas-empresa/ansible/playbooks/aprovisionar-controlador.yml --tags <rol>
 ```
 
 **Criterio de aceptacion: `changed=0` en la segunda pasada.** Un solo `changed` es un defecto del rol,
@@ -109,7 +109,7 @@ Se registra por rol:
 
 ### 3.2 Restauracion completa cronometrada
 
-Se ejecuta `runbooks/restaurar-controlador.md` **entero**, con cronometro, contra el objetivo de
+Se ejecuta `herramientas-empresa/runbooks/restaurar-controlador.md` **entero**, con cronometro, contra el objetivo de
 cuatro horas. No es una lectura del runbook: es borrar el disco del controlador de banco y
 reconstruirlo.
 
@@ -143,7 +143,7 @@ Ningun cliente recibe una version que no haya corrido aqui primero. Secuencia:
 5. Dejarla corriendo **al menos una semana**. Los fallos de integracion Zigbee y las fugas de memoria
    no aparecen en diez minutos.
 6. Si pasa: se actualiza `version_fijada`, se anota la fecha, y entra en la ventana de
-   `runbooks/aplicar-actualizacion.md` para la flota.
+   `herramientas-empresa/runbooks/aplicar-actualizacion.md` para la flota.
 7. Si no pasa: se registra **que** fallo y **por que**. Esa nota vale mas que la actualizacion, porque
    evita repetir el intento en seis meses.
 
@@ -160,13 +160,13 @@ La misma que el cliente firma en el acta, mas lo que el cliente no ve:
 - [ ] El interruptor de soporte expira solo, y **tambien al reiniciar**
 - [ ] Respaldo, verificacion de integridad y restauracion de un archivo
 - [ ] Deteccion de persona en cada camara, con la notificacion de contenido minimo
-- [ ] `python herramientas/verificar_todo.py` en verde contra el estado del banco
+- [ ] `python herramientas-empresa/verificar_todo.py` en verde contra el estado del banco
 
 ---
 
 ## 4. Procedimiento para fijar las 27 versiones
 
-`catalogo/software.yaml` tiene 27 componentes con `version_fijada: null` (fila B-04). Se fijan **a
+`datos-maestros/software-cliente.yaml` tiene 27 componentes con `version_fijada: null` (fila B-04). Se fijan **a
 partir de lo que quede corriendo en el banco**, no de la ultima etiqueta publicada upstream.
 
 ### 4.1 Por que no se fija la ultima version
@@ -192,7 +192,7 @@ mas util que la de estar al dia.
 4. **Ejecutar la bateria de aceptacion** de la seccion 3.4.
 5. **Ejecutar la restauracion cronometrada** de la seccion 3.2 sobre ese conjunto. Un conjunto que no
    se puede reconstruir en cuatro horas no se fija, por bien que funcione.
-6. **Escribir las 27 versiones** en `catalogo/software.yaml`, y con ellas:
+6. **Escribir las 27 versiones** en `datos-maestros/software-cliente.yaml`, y con ellas:
    - `version_fijada`, con el digest cuando aplique,
    - la fecha de fijacion en `notas`,
    - cerrar la fila B-04 y anotarla en el registro de `POR-VERIFICAR.md`.
@@ -211,7 +211,7 @@ mas util que la de estar al dia.
 - **Revision mensual** de notas de version, sin aplicar nada.
 - **Fijacion trimestral** de un conjunto nuevo, salvo que un problema de seguridad obligue antes.
 - **Un cliente sin plan de cuidado se queda en el conjunto que tenia** al no renovar. Ver
-  `runbooks/congelar-version-cliente.md`.
+  `herramientas-empresa/runbooks/congelar-version-cliente.md`.
 
 ---
 

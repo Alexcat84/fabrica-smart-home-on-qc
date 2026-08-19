@@ -26,7 +26,7 @@ esta sesion.
 # COMPROBACION DE ARRANQUE
 
 ```bash
-python herramientas/verificar_todo.py
+python herramientas-empresa/verificar_todo.py
 ```
 
 Los diez pasos deben pasar antes de tocar nada. Si alguno falla, arreglar eso es el primer trabajo.
@@ -55,7 +55,7 @@ anotada pero sin fila para no simular cobertura. Abrela cuando haya personal con
 
 `docs/BANCO.md` especifica hardware minimo, que se prueba y como se fijan las 27 versiones.
 
-Ocho roles de `ansible/roles/` siguen siendo esqueletos a proposito: `docker`, `homeassistant`,
+Ocho roles de `herramientas-empresa/ansible/roles/` siguen siendo esqueletos a proposito: `docker`, `homeassistant`,
 `frigate`, `mosquitto`, `zigbee2mqtt`, `red`, `backup`, `monitorizacion`. `base` y `soporte_remoto`
 si estan implementados.
 

@@ -1,0 +1,108 @@
+# Categoria: camara
+#
+# Un archivo por categoria. El esquema comun del registro esta en `_ESQUEMA.md` y su
+# version ejecutable en `../esquemas/dispositivo.schema.json`, que el validador aplica:
+# un campo mal escrito se rechaza, no se ignora.
+#
+# Reglas que gobiernan este archivo: ADR-001 (no se inventan datos), ADR-002
+# (certificacion canadiense para instalacion fija), ADR-003 (control local sin nube),
+# ADR-004 (nada de seguridad de vida). Ver docs/DECISIONES.md.
+---
+
+- id: ubiquiti-unifi-protect-camara
+  categoria: camara
+  fabricante: Ubiquiti
+  pais_fabricante: Estados Unidos
+  modelo: null
+  protocolo: poe
+  tension: poe
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [ubiquiti-revendedores-ca, canada-computers, memory-express]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L, XL]
+  notas: >-
+    Grabacion enteramente local sobre hardware propiedad del cliente. Ecosistema cerrado pero
+    genuinamente local: adecuado para el cliente que valora la fiabilidad por encima de la apertura.
+    Verificar por modelo el rango de temperatura de operacion para invierno canadiense.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  fuente_url: null
+  verificado: false
+
+- id: reolink-poe-camara
+  categoria: camara
+  fabricante: Reolink
+  pais_fabricante: China
+  modelo: null
+  protocolo: poe
+  tension: poe
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: retail_ti
+  proveedores: [canada-computers, newegg-ca, memory-express]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [S, M, L]
+  notas: >-
+    Buena relacion precio-imagen. El soporte de RTSP y ONVIF varia por modelo y por version de
+    firmware: verificar modelo por modelo antes de comprometer un lote de compra. No ofrecer al
+    segmento sensible a linaje de cadena de suministro sin divulgarlo por escrito.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  fuente_url: null
+  verificado: false
+
+- id: axis-camara
+  categoria: camara
+  fabricante: Axis Communications
+  pais_fabricante: Suecia
+  modelo: null
+  protocolo: poe
+  tension: poe
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Respuesta correcta para el hogar con habilitacion de seguridad o vinculado a la industria de
+    defensa. Linaje de cadena de suministro claro. Coste mayor, justificado por el segmento.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  fuente_url: null
+  verificado: false
+
+- id: hanwha-camara
+  categoria: camara
+  fabricante: Hanwha Vision
+  pais_fabricante: Corea del Sur
+  modelo: null
+  protocolo: poe
+  tension: poe
+  instalable_en_caja: false
+  certificacion: null
+  ised: null
+  control_local_sin_nube: true
+  disponibilidad_canada: distribucion_seguridad
+  proveedores: [adi-global-canada]
+  precio_lista_cad: null
+  precio_distribuidor_cad: null
+  paquetes: [L, XL]
+  notas: >-
+    Segunda fuente premium por distribucion de seguridad canadiense. Mismo argumento de linaje que
+    Axis. Verificar rango de temperatura y calefactor por modelo.
+  substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
+  substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  fuente_url: null
+  verificado: false
