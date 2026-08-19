@@ -132,13 +132,18 @@ nunca colisionen cuando un tecnico esta conectado a ambos por la superposicion d
 
 | Paquete | VLAN | Presentes | Notas |
 |---|---|---|---|
-| S | 4 | Trusted, IoT, Camera, Controller | Management plegada en Controller; sin Guest |
-| M | 5 | + Guest | Management plegada en Controller |
+| S | 4 | Trusted, IoT, Camera, Controller | Management plegada en **Trusted**; sin Guest |
+| M | 5 | + Guest | Management plegada en **Trusted** |
 | L | 6 | + Management | Primer nivel con VLAN de gestion separada |
 | XL | 6 o mas | Las seis | Separacion adicional por inquilino donde aplique |
 
 Plegar Management **no relaja la politica**: las reglas que la nombran se aplican igualmente sobre
-las interfaces de gestion, que en S y M viven dentro del segmento Controller.
+las interfaces de gestion, que en S y M viven dentro del segmento Trusted.
+
+Se pliega en Trusted y **no en Controller** a proposito: el anfitrion del controlador contiene las
+camaras y su grabacion, es el objetivo de mayor valor de la instalacion, y no debe tener alcance
+administrativo sobre la pasarela ni los switches. **Controller nunca alcanza Management**, en ningun
+nivel, plegada o separada.
 
 ```
    10.<octeto>.10.0/24   Trusted      familia

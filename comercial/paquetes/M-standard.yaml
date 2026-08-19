@@ -58,10 +58,12 @@ vlans:
   ausentes: [50]
   resuelto_por: ADR-009
   notas: >-
-    Management (50) se despliega a partir del nivel L. En S y en M se pliega dentro de Controller
-    (40). El acceso administrativo sigue restringido a un equipo autorizado o a una sesion de
-    soporte, aunque comparta segmento: la restriccion la aplica el cortafuegos, no la existencia de
-    una VLAN separada. Ver ADR-009 en docs/DECISIONES.md.
+    Management (50) se despliega a partir del nivel L. En S y en M se pliega dentro de TRUSTED (10),
+    no de Controller: el anfitrion del controlador es el objetivo de mayor valor de la instalacion,
+    porque contiene las camaras, y no debe tener alcance administrativo sobre la pasarela ni los
+    switches. El acceso administrativo sigue restringido al equipo autorizado declarado o a una
+    sesion de soporte: la restriccion la aplica el cortafuegos, no la existencia de una VLAN
+    separada. Ver ADR-009 y su enmienda de 2026-08-19 en docs/DECISIONES.md.
 
 internet_minimo:
   bajada_mbps: 50

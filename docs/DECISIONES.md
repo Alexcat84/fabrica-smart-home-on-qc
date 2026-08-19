@@ -431,6 +431,38 @@ agujero: por eso aparece antes.
 - `herramientas-empresa/validador/test_vlans.py` comprueba el recuento por paquete. La contradiccion no puede volver a
   entrar sin que una prueba falle.
 
+### Enmienda 2026-08-19: en S y M, Management se pliega en TRUSTED, no en Controller
+
+Los recuentos no cambian: siguen siendo **4 / 5 / 6 / 6**. Lo que cambia es **donde** se pliega la
+VLAN de gestion cuando no esta separada.
+
+**Motivo.** El anfitrion del controlador es **el objetivo de mayor valor de toda la instalacion**,
+porque contiene las camaras y su grabacion. Es lo que un atacante quiere y es lo que un intruso
+querria apagar. Plegar la gestion de red dentro de su segmento le daba alcance administrativo sobre
+la pasarela, los switches y los puntos de acceso.
+
+Eso convertia un compromiso del grabador en un compromiso de **la infraestructura de red entera**:
+quien controle el equipo que graba podria reescribir las reglas del cortafuegos que lo contienen,
+abrir un puerto o desactivar el aislamiento del segmento de camaras. La segmentacion existe
+precisamente para que eso no sea posible, y la version anterior de esta ADR abria el camino en los
+dos niveles mas vendidos.
+
+Trusted no tiene ese problema. Contiene equipos personales, que son un objetivo de menor valor y que
+ya tienen prohibido alcanzar Camera. El acceso administrativo sale del **equipo autorizado
+declarado** en `red.equipo_administrativo`, no de cualquier telefono de la casa.
+
+**Regla nueva, que no depende del nivel:**
+
+> **Controller NUNCA alcanza Management.** Ni plegada ni separada, ni en S ni en XL.
+
+Esta escrita como regla `controller_a_management` en `producto-cliente/stack/red/firewall.yaml.j2` y
+tiene prueba propia en `test_vlans.py`, que la comprueba en los cuatro paquetes. No es una
+consecuencia del pliegue: es una regla por si misma, y por eso se prueba por separado.
+
+**Que no cambia:** el acceso administrativo sigue restringido al equipo autorizado o a una sesion de
+soporte, y plegar la VLAN sigue sin relajar la politica. Solo reduce el numero de segmentos que hay
+que mantener en una instalacion pequena.
+
 ---
 
 ## ADR-010 - La linea divisoria de licencias es la entrega, no el uso

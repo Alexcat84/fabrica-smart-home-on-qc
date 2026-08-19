@@ -135,7 +135,7 @@ la vez mas segura y mas barata que cablear en paralelo.
 | IoT | Reles Wi-Fi, termostatos, enchufes, paneles tactiles | Restringido: hora y puntos de actualizacion concretos | Sin ruta hacia Trusted |
 | Camera | Camaras IP unicamente | Ninguno | Las camaras aceptan conexiones del grabador y **no originan ninguna** |
 | Controller | Home Assistant y anfitrion de grabacion | Restringido: actualizaciones y repositorios | Alcanza IoT y Camera; alcanzable desde Trusted y desde el tunel |
-| Management | Pasarela, switches, puntos de acceso, interfaces fuera de banda | Ninguno, salvo descarga deliberada de firmware | Accesible solo desde equipo administrativo o sesion de soporte autorizada. **VLAN separada de L en adelante**; en S y M se pliega en Controller (ADR-009) sin que las reglas dejen de aplicarse |
+| Management | Pasarela, switches, puntos de acceso, interfaces fuera de banda | Ninguno, salvo descarga deliberada de firmware | Accesible solo desde equipo administrativo o sesion de soporte autorizada. **VLAN separada de L en adelante**; en S y M se pliega en **Trusted** (ADR-009 y su enmienda) sin que las reglas dejen de aplicarse. **Controller nunca la alcanza**, en ningun nivel |
 | Guest | Visitas | Completo, aislado de todo lo demas | Aislamiento entre clientes activado |
 
 La matriz direccional completa esta en `producto-cliente/stack/red/firewall.yaml.j2`.

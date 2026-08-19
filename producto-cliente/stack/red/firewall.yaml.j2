@@ -14,11 +14,21 @@
 #
 # Politica base: denegar. Lo que no esta permitido explicitamente, no pasa.
 #
-# NOTA SOBRE MANAGEMENT (ADR-009): en los niveles S y M la VLAN 50 esta plegada dentro de
-# Controller (40). Las reglas que nombran Management SIGUEN APLICANDOSE: se aplican sobre las
-# interfaces de gestion de la pasarela, los switches y los puntos de acceso, que en esos niveles
-# viven en el segmento Controller. Plegar la VLAN no relaja la politica, solo reduce el numero de
-# segmentos que hay que mantener en una instalacion pequena.
+# NOTA SOBRE MANAGEMENT (ADR-009, enmienda de 2026-08-19): en los niveles S y M la VLAN 50 esta
+# plegada dentro de TRUSTED (10), no dentro de Controller.
+#
+# Por que Trusted y no Controller: el anfitrion del controlador es el objetivo de mayor valor de la
+# instalacion, porque contiene las camaras y su grabacion. Plegar la gestion de red dentro de su
+# segmento le daba alcance administrativo sobre la pasarela, los switches y los puntos de acceso.
+# Comprometer el grabador pasaba a significar comprometer la infraestructura de red entera.
+#
+# Las reglas que nombran Management SIGUEN APLICANDOSE: se aplican sobre las interfaces de gestion,
+# que en esos niveles viven en el segmento Trusted y solo son alcanzables desde el equipo
+# administrativo declarado. Plegar la VLAN reduce el numero de segmentos que mantener en una
+# instalacion pequena; no relaja la politica.
+#
+# REGLA QUE NO DEPENDE DEL NIVEL: **Controller nunca alcanza Management.** Ni plegada ni separada,
+# ni en S ni en XL. Es la regla `controller_a_management` de mas abajo y tiene prueba propia.
 #
 # Matriz de origen a destino (cap. 7.4.1):
 #
@@ -168,6 +178,13 @@ reglas:
     accion: denegar
 
   - id: controller_a_management
+    descripcion: >-
+      REGLA QUE NO DEPENDE DEL NIVEL. El controlador NUNCA alcanza Management, este la VLAN separada
+      o plegada, y sea cual sea el paquete. El anfitrion del controlador es el objetivo de mayor
+      valor de la instalacion porque contiene las camaras y su grabacion: darle alcance
+      administrativo sobre la pasarela y los switches convertiria un compromiso del grabador en un
+      compromiso de la red entera. La gestion se hace desde el equipo administrativo declarado o
+      desde una sesion de soporte, nunca desde el propio controlador.
     origen: Controller
     destino: Management
     accion: denegar

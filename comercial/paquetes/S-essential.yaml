@@ -58,8 +58,10 @@ vlans:
   ausentes: [50, 60]
   resuelto_por: ADR-009
   notas: >-
-    Management (50) se pliega dentro de Controller (40) en este nivel, igual que en M: la VLAN de
-    gestion separada aparece a partir de L. Guest (60) no se despliega.
+    Management (50) se pliega dentro de TRUSTED (10) en este nivel, igual que en M: la VLAN de
+    gestion separada aparece a partir de L. No se pliega en Controller a proposito (enmienda de
+    ADR-009): el controlador contiene las camaras y no debe alcanzar la infraestructura de red.
+    Guest (60) no se despliega.
 
 internet_minimo:
   bajada_mbps: 25

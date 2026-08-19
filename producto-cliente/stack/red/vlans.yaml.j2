@@ -88,11 +88,14 @@ vlans:
       red gestionados justifica el segmento propio.
 {% else %}
     presente: false
-    plegada_en: 40
+    plegada_en: 10
     nota: >-
-      En este nivel (S y M) Management se pliega dentro de Controller (ADR-009). El acceso
-      administrativo sigue restringido a un equipo autorizado o a una sesion de soporte autorizada:
-      la restriccion la aplica el cortafuegos, no la existencia de una VLAN separada.
+      En este nivel (S y M) Management se pliega dentro de TRUSTED, no dentro de Controller
+      (ADR-009, enmienda de 2026-08-19). El anfitrion del controlador es el objetivo de mayor valor
+      de la instalacion, porque contiene las camaras, y no debe tener alcance administrativo sobre
+      la pasarela ni sobre los switches. El acceso administrativo sale del equipo autorizado
+      declarado en Trusted, o de una sesion de soporte: la restriccion la aplica el cortafuegos, no
+      la existencia de una VLAN separada.
 {% endif %}
 
   - id: 60

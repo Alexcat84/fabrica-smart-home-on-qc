@@ -111,8 +111,25 @@ class ManagementSeDespliegaDeLEnAdelante(unittest.TestCase):
                 mgmt = next(v for v in datos["vlans"] if v["id"] == 50)
                 self.assertFalse(mgmt["presente"])
                 self.assertEqual(
+                    mgmt["plegada_en"], 10,
+                    "Management se pliega en TRUSTED, no simplemente se omite (enmienda de ADR-009)",
+                )
+
+    def test_management_no_se_pliega_nunca_en_controller(self):
+        """Enmienda de ADR-009. El motivo esta en el ADR y merece prueba propia.
+
+        Plegar la gestion de red dentro del segmento del controlador le daba alcance administrativo
+        sobre la pasarela y los switches. Como el controlador es el equipo que contiene las camaras,
+        eso convertia un compromiso del grabador en un compromiso de la red entera.
+        """
+        for id_paquete in ("S", "M"):
+            with self.subTest(paquete=id_paquete):
+                datos = renderizar_vlans(id_paquete)
+                mgmt = next(v for v in datos["vlans"] if v["id"] == 50)
+                self.assertNotEqual(
                     mgmt["plegada_en"], 40,
-                    "Management debe declararse plegada en Controller, no simplemente omitida",
+                    "Management NO puede plegarse en Controller: el controlador contiene las "
+                    "camaras y no debe alcanzar la infraestructura de red",
                 )
 
     def test_management_presente_en_l_y_xl(self):
@@ -146,6 +163,59 @@ class ManagementSeDespliegaDeLEnAdelante(unittest.TestCase):
 
         trusted = next(r for r in datos["reglas"] if r["id"] == "trusted_a_management")
         self.assertEqual(trusted["accion"], "denegar")
+
+
+class ControllerNuncaAlcanzaManagement(unittest.TestCase):
+    """Regla que NO depende del nivel (enmienda de ADR-009).
+
+    El anfitrion del controlador es el objetivo de mayor valor de la instalacion porque contiene las
+    camaras y su grabacion. Darle alcance administrativo sobre la pasarela y los switches
+    convertiria un compromiso del grabador en un compromiso de la infraestructura entera.
+
+    Se comprueba en los CUATRO paquetes, este la VLAN plegada o separada.
+    """
+
+    def _reglas(self, id_paquete: str) -> dict:
+        env = Environment(
+            loader=FileSystemLoader(str(RAIZ / "producto-cliente")),
+            undefined=StrictUndefined,
+            keep_trailing_newline=True,
+        )
+        cliente = yaml.safe_load(DEMO.read_text(encoding="utf-8"))
+        cliente["paquete"] = id_paquete
+        ctx = dict(cliente)
+        ctx["paquete_def"] = validar.cargar_paquete(id_paquete)
+        ctx["generado_en"] = "prueba"
+        datos = yaml.safe_load(env.get_template("stack/red/firewall.yaml.j2").render(**ctx))
+        return {r["id"]: r for r in datos["reglas"]}
+
+    def test_controller_a_management_denegado_en_los_cuatro_paquetes(self):
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                reglas = self._reglas(id_paquete)
+                self.assertIn(
+                    "controller_a_management", reglas,
+                    f"{id_paquete}: la regla no puede desaparecer al plegar la VLAN",
+                )
+                self.assertEqual(
+                    reglas["controller_a_management"]["accion"], "denegar",
+                    f"{id_paquete}: Controller nunca alcanza Management",
+                )
+
+    def test_ninguna_regla_permite_controller_hacia_management(self):
+        """No basta con que exista la regla de denegacion: nada puede permitirlo por otra via."""
+        for id_paquete in ("S", "M", "L", "XL"):
+            with self.subTest(paquete=id_paquete):
+                for regla in self._reglas(id_paquete).values():
+                    if regla.get("origen") != "Controller":
+                        continue
+                    destino = regla.get("destino")
+                    destinos = destino if isinstance(destino, list) else [destino]
+                    if "Management" in destinos:
+                        self.assertEqual(
+                            regla["accion"], "denegar",
+                            f"{id_paquete}: la regla '{regla['id']}' permite Controller -> Management",
+                        )
 
 
 class GuestSeDespliegaDeMEnAdelante(unittest.TestCase):
