@@ -1,0 +1,134 @@
+# Enonce des travaux et exclusions
+
+**{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
+Forfait {{ paquete }} · Genere le {{ generado_en }}
+
+Le present enonce fait partie de votre proposition et de votre contrat signe. Veuillez le lire en
+entier. Il decrit ce que le systeme fait et, tout aussi important, ce qu'il ne fait pas.
+
+---
+
+## 1. Ce qui n'est pas inclus, sans exception
+
+**Le systeme fourni n'est pas un systeme de detection d'incendie, un systeme d'alarme incendie, un
+systeme de detection de fumee, un systeme de detection de monoxyde de carbone, un systeme de
+detection de gaz, ni un systeme d'alerte medicale.**
+
+**Le systeme fourni n'est pas un systeme d'alarme antivol surveille.** Aucun signal n'est transmis a
+une centrale de surveillance. Aucun service d'urgence n'est depeche par le systeme. Toutes les
+alertes vous sont transmises, a vous et aux personnes que vous designez.
+
+**Le systeme n'interagit pas avec les systemes de securite des personnes de votre propriete, ne les
+modifie pas, ne les commande pas et n'en depend pas.** Les avertisseurs de fumee et de monoxyde de
+carbone cables et interconnectes exiges par le code demeurent intacts et sur leurs circuits
+d'origine. Aucun relais, gradateur, module ni dispositif de commande n'est installe sur un circuit
+partage avec des detecteurs interconnectes.
+
+**Il vous incombe** de reagir aux alertes generees par le systeme et de communiquer avec les services
+d'urgence le cas echeant.
+
+Lorsque des sirenes sont fournies, il s'agit de **dispositifs de dissuasion**, et non d'appareils de
+signalisation d'alarme. Elles sont commandees par le systeme d'automatisation et non par un panneau
+d'alarme certifie. Elles s'arretent d'elles-memes dans le delai prevu par le reglement municipal sur
+le bruit, et n'utilisent jamais la sequence sonore reservee a la signalisation d'evacuation.
+
+Les capteurs de qualite de l'air mesurent le dioxyde de carbone et les particules a des fins de
+confort et de commande de ventilation. **Ce ne sont pas des detecteurs de gaz ni des detecteurs de
+monoxyde de carbone.**
+
+---
+
+## 2. Ce qui est inclus
+
+| Domaine | Inclus |
+|---|---|
+| Eclairage | Interrupteurs, gradateurs, relais, luminaires, lampes, scenes, horaires, commande par occupation |
+| Prises | Prises commandees, modules enfichables, mesure de consommation |
+| Ventilateurs | Ventilateurs de plafond sur commande homologuee moteur, ventilateurs de salle de bain, minuteries, commande par humidite |
+| Climat | Thermostats a tension de ligne et 24 V, horaires par zone, abaissement automatique, consigne a distance |
+| Cameras | Cameras IP, enregistrement local, detection d'objets locale, conservation locale, visionnement a distance |
+| Capteurs et alertes | Mouvement, contacts de porte et fenetre, fuite d'eau, temperature, humidite, qualite de l'air, sirenes locales, notification au proprietaire |
+| Reseau | Reseau segmente, PoE, VLAN, politique de pare-feu, acces a distance chiffre |
+
+Votre installation : **{{ dispositivos | length }} appareils automatises** et **{{ camaras | length }} cameras**.
+
+---
+
+## 3. Ce qui vous appartient, et ce qui sort de chez vous
+
+Vos cameras enregistrent sur un ordinateur situe dans votre maison. Personne d'autre ne peut les
+regarder. Ni nous, ni une centrale de surveillance, ni un fabricant.
+
+Vous commandez tout depuis votre telephone, de n'importe ou dans le monde, par un tunnel prive
+chiffre. Aucun port n'est ouvert sur votre routeur et aucune video ne transite par le serveur de
+qui que ce soit d'autre.
+
+Il n'y a aucuns frais mensuels obligatoires. Si vous cessez de nous payer, le systeme continue de
+fonctionner exactement comme la veille.
+
+Si le controleur tombe en panne, les lumieres fonctionnent toujours depuis l'interrupteur mural.
+L'automatisation s'ajoute a une maison qui fonctionne; elle ne la remplace pas.
+
+Nous ne pouvons pas acceder a votre systeme sans que vous activiez un controle qui nous y autorise,
+et ce controle se desactive de lui-meme apres {{ soporte.duracion_horas }} heures.
+
+### La seule note en bas de page, dite honnetement : les notifications mobiles
+
+{% if notificaciones.modo == 'push_mitigado' -%}
+Vous avez choisi les **notifications poussees a contenu minimal.**
+
+Les notifications poussees sur Android et sur iOS sont livrees par l'infrastructure du fabricant du
+systeme d'exploitation mobile. C'est une propriete architecturale des plateformes mobiles. Aucune
+application, d'aucun fournisseur, ne peut l'eviter sans que votre telephone maintienne une connexion
+permanente au premier plan, ce qui est impraticable sur iOS et couteux en autonomie sur Android.
+
+Tous nos concurrents dependent de la meme infrastructure. Nous vous le disons parce que vous devriez
+le savoir.
+
+Ce que nous faisons a ce sujet :
+
+1. Le contenu de la notification est reduit a une **categorie et une heure**. Aucune image, aucun nom
+   de camera, aucun detail de lieu. Ce qui transite par le service equivaut a « mouvement detecte ».
+2. L'image ou la sequence n'est recuperee **que lorsque vous ouvrez l'application**, et elle voyage
+   alors par le tunnel chiffre depuis votre propre serveur.
+3. Si vous preferez qu'aucun tiers ne soit implique, vous pouvez passer aux alertes uniquement
+   locales a tout moment. Demandez-le-nous et nous le modifierons.
+{%- else -%}
+Vous avez choisi les **alertes uniquement locales.** Aucun service de notification tiers n'est
+implique.
+
+Les alertes sont livrees par avertissement sonore et visuel a l'interieur de la propriete, et par un
+canal auto-heberge que votre telephone peut joindre lorsqu'il est sur votre reseau local ou sur le
+tunnel.
+
+Le compromis, dit clairement : vous ne recevrez pas de notification instantanee sur votre telephone
+lorsque vous etes absent et non connecte au tunnel. Vous l'avez choisi deliberement et vous pouvez le
+modifier a tout moment.
+{%- endif %}
+
+---
+
+## 4. Logiciel et garantie
+
+Le logiciel de votre systeme est un logiciel libre concede sous licence par des tiers et **distribue
+sans garantie d'aucune sorte**. Une annexe complete des licences est livree avec votre systeme.
+
+**L'entreprise garantit son propre travail d'installation et sa configuration. Elle ne garantit pas,
+et ne peut pas garantir, le logiciel sous-jacent.**
+
+---
+
+## 5. Votre reconnaissance
+
+En signant, vous confirmez avoir lu le present enonce, comprendre que le systeme n'est pas un systeme
+de securite des personnes ni une alarme surveillee, et qu'il vous incombe de reagir aux alertes
+qu'il genere.
+
+| | |
+|---|---|
+| Nom du client | |
+| Signature | |
+| Date | |
+| Representant de l'entreprise | |
+| Signature | |
+| Date | |

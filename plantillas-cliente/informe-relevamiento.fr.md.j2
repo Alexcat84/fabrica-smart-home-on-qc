@@ -1,0 +1,212 @@
+# Rapport de releve technique
+
+**{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
+Forfait propose : {{ paquete }} · Genere le {{ generado_en }}
+
+Le releve est un mandat facture et c'est la que le projet reussit ou echoue. Tout ce qui est trouve
+ici coute moins cher a resoudre maintenant que le jour de l'installation.
+
+Preposé au releve : ______________________  Date : ______________
+
+---
+
+## 1. Propriete
+
+| | |
+|---|---|
+| Type | ☐ Isolee ☐ Jumelee ☐ En rangee ☐ Condo ☐ Autre : ______ |
+| Age approximatif | ______ |
+| Etages, sous-sol compris | ______ |
+| Superficie approximative | ______ |
+| Construction | ☐ Ossature bois ☐ Montants metalliques ☐ Planchers de beton ☐ Pierre ☐ Isolant avec pare-vapeur metallise |
+| Batiments secondaires | ☐ Aucun ☐ Garage ☐ Remise ☐ Autre : ______ |
+
+Le beton, l'isolant metallise, le chauffage radiant au plancher, les montants metalliques et la
+pierre attenuent fortement les ondes radio. Lorsqu'ils sont presents, la solution est **plus
+d'appareils routeurs**, pas plus de puissance d'emission.
+
+---
+
+## 2. Electricite — le releve qui sauve le projet
+
+### Neutre dans les boites d'interrupteur
+
+L'obstacle technique le plus frequent en renovation en Ontario et au Quebec est l'absence de
+conducteur neutre dans la boite d'interrupteur. **Il faut le constater maintenant, pas le jour de
+l'installation.**
+
+| Piece | Interrupteur | Neutre present ? | Profondeur suffisante ? | Multi-voies ? | Notes |
+|---|---|---|---|---|---|
+| | | ☐ Oui ☐ Non | ☐ Oui ☐ Non | ☐ Oui ☐ Non | |
+| | | ☐ Oui ☐ Non | ☐ Oui ☐ Non | ☐ Oui ☐ Non | |
+| | | ☐ Oui ☐ Non | ☐ Oui ☐ Non | ☐ Oui ☐ Non | |
+
+Solutions par cas :
+
+| Situation | Approche |
+|---|---|
+| Neutre present, boite standard | Interrupteur ou gradateur intelligent standard, ou micromodule derriere l'interrupteur existant |
+| Sans neutre, boite standard | Gradateur sans neutre concu pour le marche nord-americain. **Verifier la compatibilite avec le luminaire DEL** |
+| Sans neutre, sans espace dans la boite | Module au pavillon du luminaire, ou commande au niveau de la lampe. Necessite l'acces au luminaire |
+| Multi-voies (3 et 4 voies) | Appareils compagnons de la **meme** famille. **Ne jamais melanger les fabricants dans un groupe multi-voies** |
+
+### Cablage de derivation en aluminium
+
+☐ Present ☐ Absent ☐ Non determine
+
+Frequent dans certaines habitations canadiennes des annees 1960 et 1970. S'il est present, il exige
+des queues de cochon avec connecteurs homologues, par un electricien licencie. C'est un enjeu
+d'assurance en soi, et une vente additionnelle legitime — mais il faut le chiffrer, pas le decouvrir.
+
+### Panneau
+
+| | |
+|---|---|
+| Emplacement du panneau | |
+| Positions de disjoncteur libres | |
+| Circuits a automatiser | |
+| **Circuits partages avec des avertisseurs de fumee ou de CO interconnectes** | **Les enumerer — rien n'y est installe** |
+
+### Emplacement de la baie
+
+| Exigence | Constat |
+|---|---|
+| Espace conditionne, ni garage non chauffe ni comble non isole | ☐ Oui ☐ Non |
+| Eloigne des conduites d'eau et de la buanderie | ☐ Oui ☐ Non |
+| Circuit de derivation dedie de 15 A disponible{% if paquete != 'S' %} (exige a ce niveau){% endif %} | ☐ Oui ☐ Non |
+| Ventilation suffisante | ☐ Oui ☐ Non |
+| Verrouillable | ☐ Oui ☐ Non |
+| Degagement de service a l'avant et a l'arriere | ☐ Oui ☐ Non |
+
+Une baie qu'un intrus peut eteindre en dix secondes annule tout le systeme de cameras.
+
+---
+
+## 3. Internet — le mesurer, pas le lire
+
+**Mesurer les vitesses reelles. Ne pas consigner la vitesse annoncee du forfait.** Le televersement
+est la contrainte determinante, pas le telechargement.
+
+| | Annonce | **Mesure** |
+|---|---|---|
+| Telechargement | | ______ Mbit/s |
+| Televersement | | ______ Mbit/s |
+
+| | |
+|---|---|
+| Fournisseur | |
+| Type de service | ☐ Cable (asymetrique) ☐ Fibre (habituellement symetrique) ☐ Autre |
+| **NAT de niveau operateur ?** | ☐ Oui ☐ Non ☐ Non determine |
+| Signal cellulaire sur place | ☐ Bon ☐ Marginal ☐ Faible |
+
+La traduction d'adresses de niveau operateur empeche l'etablissement d'un tunnel direct et force une
+connexion relayee, ce qui ajoute de la latence. Il faut la reperer maintenant : au niveau L et
+au-dela, elle peut exiger une adresse statique ou un autre palier de service.
+
+Minimum pour le forfait propose **{{ paquete }}** : {{ paquete_def.internet_minimo.bajada_mbps }} Mbit/s
+en telechargement, **{{ paquete_def.internet_minimo.subida_mbps }} Mbit/s en televersement**.
+
+---
+
+## 4. Releve sans fil
+
+Relever les **deux** bandes avant la mise en service, et non apres les plaintes.
+
+| Bande | Canaux utilises sur place | Encombrement |
+|---|---|---|
+| 2,4 GHz | | ☐ Faible ☐ Moyen ☐ Eleve |
+| 5 GHz | | ☐ Faible ☐ Moyen ☐ Eleve |
+
+Canal Zigbee retenu, sans chevaucher les canaux Wi-Fi utilises : ______
+
+Emplacement du coordonnateur (centre geometrique de la population d'appareils, a au moins deux metres
+de la baie, de la passerelle et de tout peripherique USB 3 ou SSD) : ______________________
+
+Appareils routeurs alimentes sur secteur par etage et par aile principale — viser au moins un, et pas
+plus de dix a douze metres entre eux a travers une construction residentielle :
+
+| Etage ou aile | Appareils routeurs prevus |
+|---|---|
+| | |
+
+---
+
+## 5. Cameras
+
+Pour chaque position proposee :
+
+| Position | Champ de vision | Parcours du cable | Longueur | Exterieure ? | Chauffage requis ? | Notes |
+|---|---|---|---|---|---|---|
+{% for cam in camaras %}| {{ cam.nombre_cliente }} | {{ cam.descripcion_campo_vision or '' }} | | | {{ 'Oui' if cam.exterior else 'Non' }} | | |
+{% endfor %}
+
+Verifications :
+
+- ☐ Cat6 au minimum; Cat6A lorsqu'un parcours approche 100 m ou qu'une mise a niveau est prevue
+- ☐ Gaine homologuee colonne montante (CMR) pour les parcours verticaux en mur; plenum (CMP) la ou le code l'exige
+- ☐ Parcours exterieurs sous conduit ou homologues exposition directe
+- ☐ Boucle d'egouttement prevue a chaque penetration
+- ☐ Coupe-feu a chaque traversee de plancher et de separation coupe-feu
+- ☐ Chaque descente etiquetee aux **deux** extremites
+- ☐ Emplacement du panneau de brassage determine{% if paquete != 'S' %} (obligatoire a ce niveau){% endif %}
+
+---
+
+## 6. Menage
+
+| Nom | Plateforme mobile | Droits administratifs requis ? |
+|---|---|---|
+{% for m in hogar %}| {{ m.nombre }} | {{ m.plataforma }} | {{ 'Oui' if m.administrador else 'Non' }} |
+{% endfor %}
+
+Preference de notification discutee et choisie par le client :
+
+☐ Notifications poussees a contenu minimal (categorie et heure seulement) ☐ Alertes uniquement locales
+
+La divulgation sur les notifications poussees a ete expliquee : sur Android et iOS, elles transitent
+par l'infrastructure du fabricant du systeme d'exploitation, aucun fournisseur ne peut l'eviter, et
+l'attenuation consiste en un contenu minimal et la recuperation des medias par le tunnel a
+l'ouverture de l'application.
+
+Plan de controle de l'acces a distance retenu : ☐ Auto-heberge ☐ Commercial
+
+---
+
+## 7. Systemes existants — ce que nous ne touchons pas
+
+| Systeme | Present | Action |
+|---|---|---|
+| Avertisseurs de fumee cables et interconnectes | ☐ Oui ☐ Non | **Intacts, circuits d'origine** |
+| Avertisseurs de monoxyde de carbone | ☐ Oui ☐ Non | **Intacts** |
+| Systeme d'alarme surveille existant | ☐ Oui ☐ Non | **Non integre, non modifie** |
+| Ventilateur recuperateur de chaleur lie aux ventilateurs de salle de bain | ☐ Oui ☐ Non | **Si oui, ce ventilateur n'est pas automatise** |
+| Verrouillages de chaudiere, de fournaise ou de panneau de zones | ☐ Oui ☐ Non | **Non touches** |
+| Appareils intelligents existants a conserver | ☐ Oui ☐ Non | Enumerer et evaluer selon les regles du catalogue |
+
+Tout element present dans les cinq premieres lignes doit etre explicitement consigne comme hors
+portee dans le document tel que construit.
+
+---
+
+## 8. Constats et risques
+
+| # | Constat | Incidence sur le cout ou l'echeancier | Resolution |
+|---|---|---|---|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+
+---
+
+## 9. Approbation
+
+Le client a ete informe de ces constats, y compris de tout element qui modifie le prix.
+
+| | |
+|---|---|
+| Nom du client | |
+| Signature | |
+| Date | |
+| Preposé au releve | |
+| Signature | |
+| Date | |

@@ -1,0 +1,155 @@
+# Acceptance Test Record
+
+**{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
+Package {{ paquete }} · Generated {{ generado_en }}
+
+Every test below is performed **in your presence**, and you sign what you saw. A test that was
+described but not performed is not signed off.
+
+Several of these tests deliberately break the system in front of you. That is the point: you should
+see what happens when things fail, before they fail on a night when nobody is watching.
+
+---
+
+## 1. The controller is switched off
+
+| | |
+|---|---|
+| **What we do** | Power down the controller completely. |
+| **What you should see** | Every light still switches on and off **from the wall switch**. |
+| **Why it matters** | Automation is added on top of a working house, not in place of one. If a smart switch stops responding to the wall, that is a defect, not a limitation. |
+| Result | ☐ Pass ☐ Fail |
+| Notes | |
+
+## 2. The internet connection is disconnected
+
+| | |
+|---|---|
+| **What we do** | Unplug the internet feed at the gateway. |
+| **What you should see** | Lights, thermostats, sensors, cameras and recording all continue to work. Automations continue to run. Only remote access from outside the house stops. |
+| **Why it matters** | Nothing in your home depends on a company's cloud service staying online — including ours. |
+| Result | ☐ Pass ☐ Fail |
+| Notes | |
+
+## 3. Power to the rack is cut
+
+| | |
+|---|---|
+| **What we do** | Cut mains power to the equipment rack. |
+| **What you should see** | The UPS takes over. You receive a notification. The system keeps recording. If power does not return, the system shuts down in an orderly way instead of dropping dead. |
+{% if paquete_def.energia is defined and paquete_def.energia.ups_camaras_dedicado %}
+| **Additional** | Cameras and recording continue on their dedicated battery for the designed runtime. |
+{% endif %}
+| **Why it matters** | Deliberate power interruption is the failure that actually matters for a camera system. |
+| Result | ☐ Pass ☐ Fail |
+| Notes | |
+
+## 4. External port scan
+
+| | |
+|---|---|
+| **What we do** | Scan your public address from outside your network. |
+| **What you should see** | **No open ports.** The clean scan result is attached to this record. |
+| **Why it matters** | No inbound exposure removes an entire class of attack. This is the only test that shows what an attacker actually sees. |
+| Result | ☐ Pass ☐ Fail |
+| Scan attached | ☐ Yes |
+
+## 5. Remote access over cellular
+
+| | |
+|---|---|
+| **What we do** | Turn Wi-Fi off on your phone, use the mobile network, open the app. |
+| **What you should see** | The system responds. Live camera views load. |
+| **Why it matters** | Testing from your home Wi-Fi proves nothing. This is the test that shows the encrypted tunnel works. |
+| Result | ☐ Pass ☐ Fail |
+| Notes | |
+
+## 6. The camera network is isolated
+
+| | |
+|---|---|
+| **What we do** | From a camera's network segment, attempt to reach the internet, your family devices, and the management interfaces. |
+| **What you should see** | All attempts fail. The recorder can still reach the cameras. |
+| **Why it matters** | A compromised camera cannot call home, cannot scan your network, and cannot send video anywhere. This is why the manufacturer's own app will not work — that is by design, and we told you during design. |
+| Result | ☐ Pass ☐ Fail |
+| Notes | |
+
+## 7. The support switch, and its expiry
+
+| | |
+|---|---|
+| **What we do** | You turn on support access from your dashboard. We connect. Then we wait for it to expire, or shorten the timer to demonstrate it. |
+| **What you should see** | A notification when the session opens. A countdown on your dashboard. A notification when it closes. Our access stops working the moment it expires. The event is written to a log **on your machine** that you can read. |
+| **Also demonstrated** | Restarting the controller during an open session revokes access immediately. |
+| **Why it matters** | We hold no standing access to your system. This is the control that guarantees it. |
+| Result | ☐ Pass ☐ Fail |
+| Log shown to customer | ☐ Yes |
+
+## 8. Backup and restore
+
+| | |
+|---|---|
+| **What we do** | Run a backup, then restore a configuration file from it and show you the restored content. |
+| **What you should see** | The backup completes, is encrypted, and restores correctly. |
+| **You are told, and you acknowledge** | **Video is not backed up.** It is protected by drive redundancy only, where your package includes redundancy. **Redundancy is not backup.** The encryption key is yours; we do not keep a copy, and **without it the backup cannot be recovered**. |
+| Result | ☐ Pass ☐ Fail |
+| Customer acknowledges video is not backed up | ☐ Yes |
+
+## 9. Camera detection
+
+| | |
+|---|---|
+| **What we do** | Walk through each camera's field of view. |
+| **What you should see** | The person is detected, the event is recorded, and the notification arrives with minimal content. Opening the app fetches the clip from your own server. |
+| **Why it matters** | Detection zones and masks are tuned to your property, not left at the factory default. |
+| Result | ☐ Pass ☐ Fail |
+
+Per camera:
+
+{% for cam in camaras %}
+- **{{ cam.nombre_cliente }}** — {{ cam.descripcion_campo_vision or 'field of view to be recorded' }} · Result: ☐ Pass ☐ Fail
+{% endfor %}
+
+---
+
+## 10. Hardening checklist
+
+The full hardening checklist has been completed and signed separately. Summary:
+
+- ☐ Host firewall enabled, default deny inbound
+- ☐ No password-based remote shell access
+- ☐ All default credentials changed and recorded in your vault
+- ☐ Multi-factor authentication on all administrative accounts
+- ☐ UPnP disabled, no port forwarding, remote gateway management disabled
+- ☐ Cameras: default account removed, cloud and peer-to-peer features disabled, firmware current
+- ☐ Wireless: WPA3 or WPA2-AES, no WPS, unique key per segment, management not exposed over wireless
+- ☐ Guest network isolated with client isolation
+- ☐ Unused switch ports disabled
+- ☐ Logging enabled with defined retention
+- ☐ External vulnerability scan clean, result attached
+
+---
+
+## 11. Handover
+
+- ☐ Credential vault handed over, and **the Company retains no copy**
+- ☐ As-built document delivered, in your language
+- ☐ Licence appendix delivered
+- ☐ Backup and restore procedure delivered
+- ☐ Continuity section explained: how another provider takes over from us
+- ☐ Scope of work and exclusions signed
+- ☐ Mobile app installed for each household member
+- ☐ Support switch demonstrated to each household member
+
+---
+
+## Signatures
+
+| | |
+|---|---|
+| Customer name | |
+| Signature | |
+| Date | |
+| Technician | |
+| Signature | |
+| Date | |

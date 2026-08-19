@@ -473,6 +473,26 @@ dispositivos:
     ieee: CAMBIAR-EN-COMISIONAMIENTO
 
 # =================================================================================================
+# Nombres de area para el cliente
+# =================================================================================================
+# Los identificadores de area son internos y en espanol sin acentos (docs/NOMENCLATURA.md). Lo que
+# el cliente lee en su documento as-built tiene que estar en su idioma y sonar a su casa, no a un
+# identificador de sistema. Sin entrada aqui, el documento cae al identificador interno, que es
+# feo pero nunca vacio.
+areas:
+  planta_baja_sala:        {en: "Living room",   fr: "Salon"}
+  planta_baja_comedor:     {en: "Dining room",   fr: "Salle a manger"}
+  planta_baja_cocina:      {en: "Kitchen",       fr: "Cuisine"}
+  planta_baja_entrada:     {en: "Entry",         fr: "Entree"}
+  planta_primera_bano:     {en: "Bathroom",      fr: "Salle de bain"}
+  planta_primera_pasillo:  {en: "Upstairs hall", fr: "Couloir a l'etage"}
+  sotano_taller:           {en: "Basement",      fr: "Sous-sol"}
+  garaje:                  {en: "Garage",        fr: "Garage"}
+  exterior_frente:         {en: "Front",         fr: "Facade"}
+  exterior_patio:          {en: "Back yard",     fr: "Cour arriere"}
+  exterior_lateral:        {en: "Side",          fr: "Cote"}
+
+# =================================================================================================
 # Clima, agua, escenas
 # =================================================================================================
 clima:
