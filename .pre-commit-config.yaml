@@ -1,0 +1,41 @@
+# Configuracion para quien tenga `pre-commit` instalado (pip install pre-commit && pre-commit install).
+#
+# El repositorio NO depende de esta herramienta: la proteccion obligatoria de ADR-005 corre como hook
+# nativo de git en `.githooks/pre-commit`, que solo necesita git y python. Este archivo anade
+# comprobaciones adicionales para las maquinas donde `pre-commit` si esta disponible.
+repos:
+  - repo: local
+    hooks:
+      - id: detectar-secretos
+        name: Detectar secretos (ADR-005)
+        entry: python herramientas/detectar_secretos.py
+        language: system
+        pass_filenames: true
+        exclude: ^(referencia/|salida/|docs/fuente/)
+
+      - id: validar-catalogo
+        name: Validar esquema del catalogo
+        entry: python generador/validar.py --catalogo
+        language: system
+        pass_filenames: false
+        files: ^catalogo/.*\.yaml$
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        exclude: ^(plantillas/|.*\.j2$)
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+        exclude: ^docs/fuente/
+      - id: trailing-whitespace
+        exclude: ^docs/fuente/
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        exclude: ^(docs/fuente/|referencia/|salida/)
