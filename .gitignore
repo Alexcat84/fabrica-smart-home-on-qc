@@ -1,0 +1,45 @@
+# Repositorios upstream clonados solo para consulta. Nunca se commitean, nunca se modifican.
+referencia/
+
+# Paquetes generados por el generador. Se reconstruyen desde plantillas + variables.
+salida/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Ansible
+*.retry
+.vault_pass
+vault_pass.txt
+
+# Secretos y material sensible. Nada de esto entra al repo jamas.
+*.key
+*.pem
+*.p12
+*.pfx
+*.wgprivate
+id_rsa
+id_ed25519
+secretos.yaml
+secretos.yml
+.env
+.env.*
+
+# Sistema operativo y editores
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Temporales de Office (el plan de negocio vive en docs/fuente/)
+~$*.docx
+~$*.xlsx
