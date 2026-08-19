@@ -29,6 +29,22 @@ cambie.
 Los identificadores **no se renumeran al reordenar**: el orden cambia, la referencia no, porque hay
 codigo y documentos que apuntan a estas filas por su id.
 
+## Acciones preparadas el 2026-08-19
+
+Tres acciones **fuera del repositorio**, con el texto redactado y listo para enviar. Ninguna esta
+enviada: enviarla es una accion humana, y la fecha de envio la rellena quien la envie.
+
+| Fecha de preparacion | Accion | Fila | Borrador | Fecha de envio | Respuesta |
+|---|---|---|---|---|---|
+| 2026-08-19 | Consulta escrita al Bureau de la securite privee | **R-01** | [consultas/R-01-bureau-securite-privee.md](consultas/R-01-bureau-securite-privee.md) | _(pendiente)_ | _(pendiente)_ |
+| 2026-08-19 | Solicitudes de cuenta corporativa a ADI Canada, Aartech y un distribuidor electrico quebequense, pidiendo ficha tecnica con marcado de certificacion de los 22 dispositivos de caja | **A-04**, **A-05**, y de rebote **A-01**, **A-06**, **A-08** | [consultas/A-04-A-05-cuentas-de-distribucion.md](consultas/A-04-A-05-cuentas-de-distribucion.md) | _(pendiente)_ | _(pendiente)_ |
+| 2026-08-19 | Cotizacion del hardware del banco, incluidos coordinador Zigbee por Ethernet, dos camaras PoE de modelos distintos y switch PoE+ gestionado | **BANCO**, y de rebote **A-02**, **A-08**, **M-02**, **M-04**, **M-11**, **M-13**, **B-04** | [consultas/BANCO-cotizacion-hardware.md](consultas/BANCO-cotizacion-hardware.md) | _(pendiente)_ | _(pendiente)_ |
+
+El orden importa: **R-01 no depende de las otras dos y bloquea mas que ninguna.** Las cuentas de
+distribucion dependen de R-16 (prueba de seguro) solo en parte; se pueden enviar antes para saber
+que documentacion piden. La cotizacion del banco no depende de nada y es el camino critico del
+trabajo tecnico, porque los ocho roles de ansible no se escriben sin banco.
+
 ## Leyenda de urgencia
 
 | Urgencia | Significado | Plazo |

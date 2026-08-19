@@ -29,6 +29,7 @@ archivada.
 | Estado | Significado |
 |---|---|
 | `abierta` | Nadie ha preguntado todavia |
+| `preparada` | Texto redactado y listo para enviar, con fecha de preparacion. **Todavia no enviado**: enviarlo es una accion humana y la fecha de envio la rellena quien lo envie |
 | `consultada` | Preguntado, sin respuesta aun |
 | `respondida` | Respuesta recibida, pendiente de aplicar al repositorio o al contrato |
 | `cerrada` | Respuesta recibida, archivada y aplicada |
@@ -40,7 +41,7 @@ archivada.
 
 | # | Pregunta | Organismo | Estado | Fecha de consulta | Respuesta escrita | Que bloquea |
 |---|---|---|---|---|---|---|
-| **R-01** | **Instalar camaras IP y sensores locales sin panel de intrusion y sin monitoreo, ¿exige licencia de agencia de seguridad privada?** | Bureau de la securite privee | `abierta` | — | ☐ No | **TODA VENTA EN QUEBEC.** Es la primera llamada del negocio. Si la respuesta es que si, no se puede firmar ni un solo contrato en Quebec hasta tener la licencia, y el calendario y el coste de obtenerla cambian el plan financiero entero. Si es que no, **hay que conservar esa respuesta por escrito**: es la defensa si alguien lo cuestiona despues. Nada de lo que hay en este repositorio compensa equivocarse aqui |
+| **R-01** | **Instalar camaras IP y sensores locales sin panel de intrusion y sin monitoreo, ¿exige licencia de agencia de seguridad privada?** Se pregunta ademas si la respuesta cambia **con panel de intrusion y sirena local, sin monitoreo**. Texto listo en [consultas/R-01-bureau-securite-privee.md](consultas/R-01-bureau-securite-privee.md) | Bureau de la securite privee | `preparada` 2026-08-19 | _(pendiente de envio)_ | ☐ No | **TODA VENTA EN QUEBEC.** Es la primera llamada del negocio. Si la respuesta es que si, no se puede firmar ni un solo contrato en Quebec hasta tener la licencia, y el calendario y el coste de obtenerla cambian el plan financiero entero. Si es que no, **hay que conservar esa respuesta por escrito**: es la defensa si alguien lo cuestiona despues. Nada de lo que hay en este repositorio compensa equivocarse aqui |
 
 ---
 
