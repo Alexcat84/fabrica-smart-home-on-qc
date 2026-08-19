@@ -35,7 +35,12 @@ red:
   dominio_local: casa.local
   zona_horaria: America/Toronto
   bajada_mbps: 150.0           # medidas en el relevamiento
-  subida_mbps: 15.0
+  # 15 Mbps de subida NO bastan, aunque superen con holgura el minimo de 10 Mbps publicado para el
+  # paquete M. Los dos visores en vista general piden 10 Mbps justos, y en cuanto uno abre la camara
+  # frontal en stream principal el salto de 7,5 Mbps lleva el total a 17,5. El validador lo rechaza
+  # por escenario 2. Es exactamente el hallazgo de la fila M-12: el minimo publicado solo cubre la
+  # vista general, no el uso que el cliente hace treinta segundos despues.
+  subida_mbps: 25.0
   margen_hogar_mbps: 5.0
   cgnat: false
   failover_celular: false
@@ -92,7 +97,7 @@ almacenamiento:
 # Camaras
 # =================================================================================================
 # Sub-stream a 0,5 Mbps: es parametro de DISENO. A 1 Mbps, dos visores concurrentes agotarian la
-# subida de este sitio (ver docs/POR-VERIFICAR.md, fila M-12).
+# subida de este sitio. La medicion por modelo y firmware es la fila M-13.
 camaras:
   - nombre: camara_exterior_frente_entrada
     nombre_cliente: "Front door"

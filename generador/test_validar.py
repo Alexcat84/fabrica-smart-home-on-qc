@@ -175,11 +175,32 @@ class Dimensionado(unittest.TestCase):
         inf = validar_dict(d)
         self.assertTrue(hay_error_con(inf, "presupuesto_switch_w"))
 
-    def test_subida_insuficiente_para_los_visores_previstos(self):
+    def test_escenario_1_subida_insuficiente_en_vista_general(self):
         d = cliente_base()
-        d["visores_concurrentes"] = 8
+        d["visores_concurrentes"] = 12
         inf = validar_dict(d)
-        self.assertTrue(hay_error_con(inf, "subida es insuficiente"))
+        self.assertTrue(hay_error_con(inf, "ESCENARIO 1"))
+
+    def test_escenario_2_subida_insuficiente_al_escalar_a_principal(self):
+        """M-12. La vista general cabe; abrir una camara en principal, no.
+
+        Es el caso que la primera version del validador dejaba pasar: el minimo publicado del
+        paquete solo cubre mirar, no cubre mirar de cerca.
+        """
+        d = cliente_base()
+        d["red"]["subida_mbps"] = 15.0     # supera el minimo del paquete M, y aun asi no basta
+        inf = validar_dict(d)
+        self.assertFalse(hay_error_con(inf, "ESCENARIO 1"), "la vista general si cabe en 15 Mbps")
+        self.assertTrue(hay_error_con(inf, "ESCENARIO 2"))
+
+    def test_camara_sin_substream_medido_se_rechaza(self):
+        """No se supone un bitrate de sub-stream: sin medicion, el cliente no valida (ADR-001)."""
+        d = cliente_base()
+        for cam in d["camaras"]:
+            cam.pop("bitrate_substream_mbps", None)
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "sub-stream"))
+        self.assertTrue(hay_error_con(inf, "ADR-001"))
 
     def test_subida_por_debajo_del_minimo_del_paquete(self):
         d = cliente_base()

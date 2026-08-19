@@ -94,12 +94,23 @@ Las pruebas de `generador/test_validar.py` comprueban que siguen teniendo diente
 | `docs/SEGURIDAD.md` | Checklist de endurecimiento, acceso de soporte, segmentacion, incidentes |
 | `docs/NOMENCLATURA.md` | Como se nombra todo, y que terminos estan prohibidos |
 | `docs/LICENCIAS.md` | Politica de no forkear y que se entrega al cliente |
-| `docs/POR-VERIFICAR.md` | **Cola de trabajo real**, ordenada por urgencia |
+| `docs/POR-VERIFICAR.md` | **Cola de trabajo tecnica y comercial**, ordenada por lo que desbloquea |
+| `docs/POR-VERIFICAR-REGULATORIO.md` | Consultas a reguladores, aseguradoras y aduanas. Documento controlado |
+| `docs/BANCO.md` | El banco de la empresa: que hardware, que se prueba y como se fijan las versiones |
 | `runbooks/` | Como se hace cada tarea recurrente |
 
 ## Estado
 
-`docs/POR-VERIFICAR.md` esta poblada y ordenada por urgencia. Nada del catalogo esta verificado
-todavia: es el estado correcto tras la primera sesion, no un defecto. Lo que bloquea el primer
-proyecto pagado son las siete filas de urgencia ALTA, encabezadas por la certificacion por SKU y la
-apertura de cuentas de distribucion.
+Nada del catalogo esta verificado todavia: es el estado correcto, no un defecto.
+
+Dos colas de trabajo, con ritmos distintos:
+
+- **`docs/POR-VERIFICAR.md`** (tecnica y comercial) esta ordenada **por lo que desbloquea**. Empieza
+  por abrir cuentas de distribucion (A-04, A-05), porque es el canal por el que se responden casi
+  todas las demas filas de urgencia ALTA.
+- **`docs/POR-VERIFICAR-REGULATORIO.md`** encabeza con **R-01**: si instalar camaras sin panel de
+  intrusion exige licencia de agencia de seguridad privada en Quebec. **Bloquea toda venta en la
+  provincia** y es la primera llamada del negocio.
+
+Antes de escribir los ocho roles de ansible que faltan hay que montar el banco descrito en
+`docs/BANCO.md`. Un rol sin banco es una suposicion con sintaxis YAML.
