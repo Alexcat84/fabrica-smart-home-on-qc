@@ -1,0 +1,32 @@
+#!/bin/sh
+# Hook de pre-commit nativo. No requiere instalar nada: solo git y python.
+# Se activa una vez por clon con:   git config core.hooksPath .githooks
+#
+# Implementa la regla inviolable ADR-005 (ningun secreto en el repositorio) y una comprobacion
+# de sintaxis YAML sobre los archivos preparados, para que un catalogo roto no llegue al remoto.
+
+set -e
+
+PYTHON=python
+command -v python >/dev/null 2>&1 || PYTHON=python3
+
+echo "[pre-commit] Buscando secretos en los archivos preparados..."
+if ! "$PYTHON" herramientas/detectar_secretos.py --preparados; then
+    exit 1
+fi
+
+echo "[pre-commit] Validando sintaxis YAML..."
+ARCHIVOS_YAML=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ya?ml$' || true)
+if [ -n "$ARCHIVOS_YAML" ]; then
+    for archivo in $ARCHIVOS_YAML; do
+        case "$archivo" in
+            *.j2|plantillas/*) continue ;;
+        esac
+        if ! "$PYTHON" -c "import sys,yaml; yaml.safe_load(open(sys.argv[1],encoding='utf-8'))" "$archivo"; then
+            echo "[pre-commit] YAML invalido: $archivo"
+            exit 1
+        fi
+    done
+fi
+
+echo "[pre-commit] Correcto."
