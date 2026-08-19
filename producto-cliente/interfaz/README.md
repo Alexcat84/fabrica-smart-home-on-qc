@@ -22,9 +22,11 @@ Paneles, vistas e internacionalizacion. Capa separada de `../stack/` por el mism
 ## Reglas de los textos
 
 Los dos archivos de `i18n/` estan sujetos a ADR-004: **ningun texto puede sugerir funcion de
-seguridad de vida**. Nada de "alarm", "emergency", "fire", "smoke", "gas", "alarme", "urgence",
-"incendie". La lista completa esta en `docs/NOMENCLATURA.md`, seccion 1, y `verificar_todo.py` la
-comprueba sobre el paquete generado.
+seguridad de vida**, en ninguno de los dos idiomas.
+
+La lista de terminos vetados no se repite aqui a proposito: vive en un solo sitio,
+`docs/NOMENCLATURA.md`, seccion 1, y `verificar_todo.py` la comprueba sobre el paquete generado.
+Copiarla en cada README garantiza que las copias diverjan.
 
 Los mensajes que salen por notificacion push llevan el **minimo**: categoria y hora. Sin imagen, sin
 nombre de camara y sin detalle de ubicacion. El motivo esta en `docs/SEGURIDAD.md`, seccion 3.2.
