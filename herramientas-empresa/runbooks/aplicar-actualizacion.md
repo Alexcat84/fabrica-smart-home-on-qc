@@ -34,6 +34,16 @@ actualizaciones automaticas estan deshabilitadas (ADR-006).
 
 ## 4. Si algo falla: revertir
 
+**Antes de aplicar nada a un cliente, el ensayo de reversion de `docs/BANCO.md` seccion 3.2.1 tiene
+que estar hecho para ese conjunto de versiones.** Ese ensayo responde a una pregunta distinta de la
+restauracion: si la actualizacion va mal, ¿se puede deshacer **sin perder los datos generados desde
+que se aplico**? Restaurar un respaldo tambien deshace, pero se lleva por delante los eventos de
+camara y el historico de la ventana, y eso hace que en la practica nadie quiera revertir.
+
+Si el ensayo dijo que un componente **no se puede revertir** sin restaurar respaldo, su actualizacion
+exige ventana acordada con el cliente y aviso previo: el coste de equivocarse es mucho mayor.
+
+
 1. Restaurar la instantanea previa.
 2. Confirmar que el sistema vuelve al estado anterior.
 3. Registrar **que** fallo y **por que**. Esa nota es lo que evita repetir el fallo en el resto de la
