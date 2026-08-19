@@ -71,9 +71,14 @@ vlans:
 
 internet_minimo:
   bajada_mbps: 300
-  subida_mbps: 50
+  subida_mbps: 40
   simetrico_preferido: true
-  motivo: Varios usuarios simultaneos, varios edificios y revision remota de material archivado.
+  motivo: >-
+    Modelo de tres flujos (ADR-012). Escenario vinculante: cuadricula de 18 camaras con tres
+    visores (32,0) mas apertura sobre flujo medio (+1,5) => 33,5 Mbps. Se publica 40. BAJA DESDE
+    LOS 50 PUBLICADOS ANTES por el mismo motivo que L. Se mantiene la preferencia por enlace
+    simetrico: a este numero de camaras, la cuadricula sola ya domina el enlace.
+  recalculado: 2026-08-19
 
 esfuerzo:
   instalacion_dias_min: 12

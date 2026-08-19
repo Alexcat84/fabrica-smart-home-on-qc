@@ -619,3 +619,94 @@ Esta decision se revisa, no se hereda, si ocurre cualquiera de estas tres:
   datos.
 - `producto-cliente/app/` documenta el flujo de alta de un miembro del hogar de principio a fin, que
   es la parte de la experiencia que mas se improvisa y peor se recuerda.
+
+---
+
+## ADR-012 - Tres roles de flujo de camara, y prohibicion de transcodificar
+
+- **Fecha:** 2026-08-19
+- **Estado:** vigente
+- **Ambito:** `datos-maestros/dispositivos/camara.yaml`, `producto-cliente/stack/frigate/`,
+  `producto-cliente/stack/red/`, `herramientas-empresa/calculadoras/calc_ancho_banda.py`,
+  `comercial/paquetes/`
+
+### Contexto
+
+El modelo anterior tenia dos flujos: `sub` para deteccion y cuadricula, y `principal` para grabacion.
+Cuando el cliente abria **una** camara en remoto, no habia nada intermedio: se le servia el
+principal. Para una camara 4K a 8 Mbps eso es un salto de 7,5 Mbps sobre un enlace residencial, y
+convertia el gesto mas natural del mundo -tocar la camara donde acabas de ver movimiento- en el
+momento en que el sistema se pone lento.
+
+Casi todas las camaras profesionales publican **tres** flujos. No usarlo era desperdiciar una
+capacidad que ya estaba pagada.
+
+### Decision
+
+**Tres roles de flujo, cada uno con un trabajo:**
+
+| Rol | Trabajo | Se sirve por el tunel |
+|---|---|---|
+| `principal` | Grabacion local | **No**, salvo peticion explicita con advertencia |
+| `medio` | Apertura de UNA camara en remoto | Si |
+| `sub` | Deteccion y cuadricula remota | Si, por defecto |
+
+**Tres escenarios en el calculo, dos vinculantes y uno que solo advierte:**
+
+| # | Escenario | Si no cabe |
+|---|---|---|
+| 1 | Cuadricula remota: N visores concurrentes sobre `sub` | **RECHAZA** |
+| 2 | Uno de ellos abre una camara sobre `medio` | **RECHAZA** |
+| 3 | Esa apertura sobre `principal` | **Advierte**, no rechaza |
+
+El escenario 3 no rechaza porque es una **excepcion bajo demanda**: el cliente pide calidad de
+grabacion para revisar algo concreto, sabiendo que va lento. Rechazar por el obligaria a contratar
+enlaces que nadie necesita el 99 % del tiempo. Pero se advierte, y la advertencia sale impresa en el
+documento de calculos, para que no lo interprete como averia.
+
+**Si la camara solo publica dos flujos**, no hay `medio`: el escenario 2 usa el `principal` y
+**rechaza en consecuencia**. Esa es la penalizacion real de esos modelos, y es la razon de que
+`streams_soportados` sea dato de catalogo y no un detalle de configuracion.
+
+### PROHIBIDO transcodificar en el servidor
+
+**No se resuelve la falta de un flujo intermedio transcodificando en el controlador.**
+
+El equipo es **clase N100**. Su presupuesto de graficos integrados esta comprometido con la
+**inferencia de deteccion**, que es una funcion que el cliente ha comprado y que corre todo el dia
+sobre todas las camaras. Transcodificar un flujo 4K a resolucion intermedia consume ese mismo
+presupuesto, y el resultado es que la deteccion empieza a perder cuadros exactamente cuando alguien
+esta mirando: es decir, cuando pasa algo.
+
+El intercambio esta mal por los dos lados. Se cambia una funcion contratada y permanente por una
+comodidad ocasional, y se cambia en el peor momento posible. Si una camara no publica un flujo
+intermedio util, la consecuencia se **asume en el calculo de ancho de banda** o se **cambia la
+camara**, no se tapa con CPU que no hay.
+
+Esta prohibicion se releeria solo si el hardware del controlador cambiara de clase, y en ese caso
+seria un ADR nuevo con su propia medicion, no una excepcion a este.
+
+### Consecuencias
+
+- Tres campos nuevos en el registro de camara, en `null` y sin verificar: `streams_soportados`,
+  `stream_medio_bitrate_mbps` y `stream_medio_resolucion`. **Fila M-14** para medirlos en banco por
+  modelo y firmware.
+- `calc_ancho_banda.py` **falla** si falta `streams_soportados`: sin ese dato no se sabe si abrir una
+  camara sirve un intermedio o el principal, y la diferencia decide si el enlace aguanta.
+- **Minimos publicados recalculados** en los cuatro paquetes. Ver la tabla de abajo.
+- El cliente de demostracion **baja de 25 a 15 Mbps**: con flujo medio, el requisito vinculante pasa
+  de 17,5 a 13,5. Lleva ademas una camara de dos flujos a proposito, para que el calculo muestre la
+  penalizacion en lugar de describirla.
+
+### Minimos publicados, antes y despues
+
+| Paquete | Subida antes | **Subida ahora** | Vinculante calculado | Por que cambia |
+|---|---|---|---|---|
+| S | 5 | **5** | 4,2 | Sin cambio: con tres camaras 2K el flujo medio apenas mueve la aguja |
+| M | 10 | **15** | 11,5 | **Sube.** Los 10 publicados solo cubrian la cuadricula, no abrir una camara |
+| L | 25 | **20** | 16,5 | **Baja.** Con flujo medio, abrir una camara ya no cuesta el principal entero |
+| XL | 50 | **40** | 33,5 | **Baja**, por el mismo motivo. Se mantiene la preferencia por enlace simetrico |
+
+El caso de M es el importante: el minimo publicado estaba **por debajo** de lo que el uso normal
+exige, y llevaba ahi desde el plan de negocio original. El de L y XL es el contrario, y es la ventaja
+de haber medido: se pueden publicar minimos mas bajos y ganar clientes que antes quedaban fuera.

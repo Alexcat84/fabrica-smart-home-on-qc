@@ -1,37 +1,32 @@
 #!/usr/bin/env python3
 """Calculadora de ancho de banda de subida.
 
-Regla (cap. 8.3 del plan de negocio): bitrate del SUB-STREAM por visores concurrentes, mas margen
-para el trafico normal del hogar.
+Tres roles de flujo, y cada uno tiene un trabajo distinto (ADR-012):
 
-Dos cosas que hay que entender y que el cliente no sabe:
+    principal   grabacion local. NO se sirve por el tunel salvo peticion explicita con advertencia
+    medio       apertura de UNA camara en remoto
+    sub         deteccion y cuadricula remota
 
-1. **La subida es la restriccion, no la bajada.** El servicio de cable canadiense es fuertemente
-   asimetrico; la fibra suele ser simetrica. Se mide la subida REAL en el relevamiento, no la
-   velocidad anunciada del plan.
+Y tres escenarios, que es lo que de verdad hace la gente:
 
-2. **Siempre se sirve el sub-stream por defecto** en visionado remoto, y se pasa al principal solo
-   bajo demanda. Un visor remoto tirando de flujos principales satura casi cualquier subida
-   residencial y se percibe como una averia del sistema, no como un limite del enlace.
+    1. Cuadricula remota   N visores concurrentes, todos sobre `sub`        -> RECHAZA si no cabe
+    2. Apertura de camara  uno de ellos abre una camara sobre `medio`       -> RECHAZA si no cabe
+    3. Apertura a principal  esa misma apertura, pero sobre `principal`     -> ADVIERTE, no rechaza
 
-EL SUB-STREAM ES UN PARAMETRO DE DISENO, NO UNA CONSTANTE. Es el hallazgo de la fila M-12, ya
-cerrada; la medicion pendiente por modelo y firmware es la fila M-13 de docs/POR-VERIFICAR.md.
-Este modulo lo lee del registro del dispositivo en `datos-maestros/dispositivos/`
-(`substream_bitrate_mbps`), o del archivo de cliente cuando alli hay una medicion del sitio, que
-manda sobre el catalogo. Si no hay ninguno de los dos, **no se inventa un valor**: se levanta
-`SubstreamSinMedir` y el validador rechaza el cliente. Prometer dos visores concurrentes sobre un
-numero que nadie ha medido es exactamente el tipo de dato inventado que prohibe ADR-001.
+El escenario 3 no rechaza porque es una **excepcion bajo demanda**: el cliente pide calidad de
+grabacion para revisar algo concreto, sabiendo que va a ir lento. Rechazar por el obligaria a
+contratar enlaces que nadie necesita el 99 % del tiempo. Pero se advierte, y la advertencia se
+imprime en el documento de calculos que ve el cliente, para que no lo interprete como averia.
 
-Se evaluan DOS escenarios y **los dos** tienen que caber en la subida declarada:
+**Si la camara solo publica dos flujos**, no hay `medio`: el escenario 2 usa el `principal` y
+**rechaza en consecuencia**. Esa es la penalizacion real de una camara de dos flujos, y es la razon
+de que `streams_soportados` sea un dato de catalogo y no un detalle.
 
-  1. Vista general      - todos los visores concurrentes sobre sub-stream.
-  2. Escalamiento       - los mismos visores en vista general, y uno de ellos abre UNA camara en
-                          stream principal. Es lo que la gente hace en cuanto ve algo.
+PROHIBIDO resolver esto transcodificando en el servidor. Ver ADR-012: el equipo es clase N100 y el
+transcodificado consume el presupuesto de inferencia que necesita la deteccion.
 
-La ventaja estructural que conviene poner en la propuesta: en reposo, un sistema local no consume
-practicamente nada de subida. Un servicio en la nube sube cada segundo de cada camara, todos los
-dias. Para un hogar canadiense con plan medido, eso es un coste mensual real que ya esta pagando y
-que no ve.
+El bitrate de cada flujo se lee del **registro del dispositivo**, no de una constante. Si nadie lo ha
+medido, se levanta `SubstreamSinMedir` y el validador rechaza el cliente (fila M-14).
 
 Sin dependencias externas. Pruebas en `test_calc_ancho_banda.py`.
 """
@@ -49,133 +44,194 @@ visionado remoto y una de las dos se degrada; el cliente culpara al sistema que 
 
 
 class SubstreamSinMedir(ValueError):
-    """No hay bitrate de sub-stream ni en el catalogo ni en el archivo de cliente.
+    """Falta el bitrate de algun flujo, en el catalogo y en el archivo de cliente.
 
-    No se sustituye por un valor por defecto a proposito. El sub-stream determina si el minimo de
-    subida del paquete se sostiene con los visores prometidos; un valor inventado convierte una
-    promesa comercial en una suposicion.
+    No se sustituye por un valor por defecto a proposito: de el depende si el visionado remoto que se
+    promete cabe en la subida contratada. Un valor inventado convierte una promesa comercial en una
+    suposicion (ADR-001).
     """
 
 
 @dataclass
 class CamaraAB:
-    """Una camara, con su sub-stream ya resuelto y la procedencia del dato."""
+    """Una camara con sus tres flujos resueltos, y la procedencia de cada dato."""
 
     nombre: str
-    bitrate_principal_mbps: float
-    substream_mbps: float
-    origen_substream: str
-    """`cliente` (medido en el sitio), `catalogo` (medido en banco) o `desconocido`."""
+    principal_mbps: float
+    sub_mbps: float
+    medio_mbps: float | None
+    streams_soportados: int
+    origen_sub: str
+    origen_medio: str
+
+    @property
+    def tiene_flujo_medio(self) -> bool:
+        return self.streams_soportados >= 3 and self.medio_mbps is not None
+
+    @property
+    def bitrate_de_apertura_mbps(self) -> float:
+        """Lo que se sirve al abrir ESTA camara en remoto.
+
+        Con tres flujos es el medio. Con dos, no hay eleccion: es el principal, y se nota.
+        """
+        return self.medio_mbps if self.tiene_flujo_medio else self.principal_mbps
+
+    @property
+    def salto_de_apertura_mbps(self) -> float:
+        """Coste adicional de abrir esta camara: el visor deja de pedir su sub."""
+        return max(0.0, self.bitrate_de_apertura_mbps - self.sub_mbps)
 
     @property
     def salto_a_principal_mbps(self) -> float:
-        """Coste adicional de que un visor escale ESTA camara al stream principal."""
-        return max(0.0, self.bitrate_principal_mbps - self.substream_mbps)
+        return max(0.0, self.principal_mbps - self.sub_mbps)
 
 
-def resolver_substream(camara_cliente: dict, registro_catalogo: dict | None) -> tuple[float, str]:
-    """Devuelve (bitrate del sub-stream, origen del dato).
+def _resolver(valor_cliente, valor_catalogo, origen_cliente="cliente", origen_catalogo="catalogo"):
+    if valor_cliente is not None:
+        return float(valor_cliente), origen_cliente
+    if valor_catalogo is not None:
+        return float(valor_catalogo), origen_catalogo
+    return None, "desconocido"
 
-    Prioridad, y el orden importa:
 
-    1. **El archivo de cliente**, cuando declara `bitrate_substream_mbps`. Es una medicion del sitio
-       concreto, con el firmware que tiene esa camara: manda sobre cualquier valor general.
-    2. **El catalogo**, `substream_bitrate_mbps` de la familia, medido en el banco de la empresa.
-    3. Nada. Se levanta `SubstreamSinMedir`.
+def resolver_camara(camara_cliente: dict, registro_catalogo: dict | None) -> CamaraAB:
+    """Construye la camara resolviendo cada flujo contra el catalogo.
+
+    Prioridad: el archivo de cliente manda sobre el catalogo, porque es una medicion del sitio
+    concreto con el firmware que tiene esa camara.
     """
-    del_cliente = camara_cliente.get("bitrate_substream_mbps")
-    if del_cliente is not None:
-        return float(del_cliente), "cliente"
+    cat = registro_catalogo or {}
+    nombre = camara_cliente.get("nombre", "(sin nombre)")
 
-    if registro_catalogo:
-        del_catalogo = registro_catalogo.get("substream_bitrate_mbps")
-        if del_catalogo is not None:
-            return float(del_catalogo), "catalogo"
+    sub, origen_sub = _resolver(
+        camara_cliente.get("bitrate_substream_mbps"), cat.get("substream_bitrate_mbps")
+    )
+    if sub is None:
+        raise SubstreamSinMedir(
+            f"La camara '{nombre}' no tiene bitrate de SUB-STREAM ni en el archivo de cliente "
+            f"(`bitrate_substream_mbps`) ni en el catalogo (`substream_bitrate_mbps` de "
+            f"'{camara_cliente.get('id_catalogo')}'). Medirlo en banco por modelo y firmware. No se "
+            f"supone un valor: de el depende si el visionado remoto concurrente que se promete cabe "
+            f"en la subida contratada (M-13)."
+        )
 
-    raise SubstreamSinMedir(
-        f"La camara '{camara_cliente.get('nombre', '(sin nombre)')}' no tiene bitrate de sub-stream "
-        f"ni en el archivo de cliente (`bitrate_substream_mbps`) ni en el catalogo "
-        f"(`substream_bitrate_mbps` de '{camara_cliente.get('id_catalogo')}'). Medirlo en banco por "
-        f"modelo y firmware, o en el sitio. No se supone un valor: de el depende si el visionado "
-        f"remoto concurrente que se promete cabe en la subida contratada (M-13)."
+    streams = camara_cliente.get("streams_soportados", cat.get("streams_soportados"))
+    if streams is None:
+        raise SubstreamSinMedir(
+            f"La camara '{nombre}' no declara `streams_soportados`, ni en el archivo de cliente ni "
+            f"en el catalogo. Sin ese dato no se sabe si al abrirla en remoto se sirve un flujo "
+            f"intermedio o directamente el principal, y la diferencia entre las dos cosas decide si "
+            f"el enlace del sitio aguanta. Medirlo en banco (M-14)."
+        )
+    streams = int(streams)
+
+    medio, origen_medio = _resolver(
+        camara_cliente.get("bitrate_medio_mbps"), cat.get("stream_medio_bitrate_mbps")
+    )
+    if streams >= 3 and medio is None:
+        raise SubstreamSinMedir(
+            f"La camara '{nombre}' declara {streams} flujos pero no tiene bitrate del flujo MEDIO. "
+            f"Medirlo en banco (`stream_medio_bitrate_mbps`), o poner `streams_soportados: 2` si de "
+            f"verdad no publica un tercer flujo util: en ese caso el calculo usa el principal y "
+            f"rechaza en consecuencia, que es el resultado correcto."
+        )
+
+    return CamaraAB(
+        nombre=nombre,
+        principal_mbps=float(camara_cliente["bitrate_principal_mbps"]),
+        sub_mbps=sub,
+        medio_mbps=medio,
+        streams_soportados=streams,
+        origen_sub=origen_sub,
+        origen_medio=origen_medio,
     )
 
 
 @dataclass
 class ResultadoAnchoBanda:
-    # Escenario 1: vista general
-    substream_total_mbps: float
-    requerido_general_mbps: float
-    cumple_general: bool
+    # Escenario 1: cuadricula remota
+    sub_total_mbps: float
+    requerido_cuadricula_mbps: float
+    cumple_cuadricula: bool
 
-    # Escenario 2: escalamiento a principal por un visor
-    salto_maximo_mbps: float
-    camara_del_salto: str
-    requerido_escalamiento_mbps: float
-    cumple_escalamiento: bool
+    # Escenario 2: apertura de una camara (flujo medio, o principal si solo hay dos flujos)
+    salto_apertura_mbps: float
+    camara_de_apertura: str
+    apertura_usa_principal: bool
+    requerido_apertura_mbps: float
+    cumple_apertura: bool
 
-    # Comun
+    # Escenario 3: apertura sobre principal, excepcion bajo demanda
+    salto_principal_mbps: float
+    camara_del_salto_principal: str
+    requerido_principal_mbps: float
+    cabe_principal: bool
+
     margen_hogar_mbps: float
     subida_disponible_mbps: float
     visores_concurrentes: int
     cumple: bool
 
-    # Caso extremo, informativo
-    principal_total_mbps: float
-    cumple_todos_principales: bool
-
-    # Argumento comercial
-    consumo_reposo_gb_mes: float
-    consumo_nube_equivalente_gb_mes: float
-
-    hay_substream_de_catalogo: bool
+    hay_datos_de_catalogo: bool
+    camaras_de_dos_flujos: list[str] = field(default_factory=list)
     detalle: list[dict] = field(default_factory=list)
 
     def resumen(self) -> str:
-        e1 = "CUMPLE" if self.cumple_general else "NO CUMPLE"
-        e2 = "CUMPLE" if self.cumple_escalamiento else "NO CUMPLE"
+        e1 = "CUMPLE" if self.cumple_cuadricula else "NO CUMPLE"
+        e2 = "CUMPLE" if self.cumple_apertura else "NO CUMPLE"
+        e3 = "cabe" if self.cabe_principal else "NO cabe"
         lineas = [
             "CALCULO DE ANCHO DE BANDA DE SUBIDA",
             f"  Visores concurrentes previstos : {self.visores_concurrentes}",
             f"  Subida disponible (medida)     : {self.subida_disponible_mbps:7.2f} Mbps",
             f"  Margen para el hogar           : {self.margen_hogar_mbps:7.2f} Mbps",
             "",
-            "  Escenario 1 - vista general (todos los visores sobre sub-stream)",
-            f"    Sub-stream x visores         : {self.substream_total_mbps:7.2f} Mbps",
-            f"    Requerido                    : {self.requerido_general_mbps:7.2f} Mbps"
+            "  Escenario 1 - cuadricula remota (todos los visores sobre sub-stream)",
+            f"    Sub-stream x visores         : {self.sub_total_mbps:7.2f} Mbps",
+            f"    Requerido                    : {self.requerido_cuadricula_mbps:7.2f} Mbps"
             f"   -> {e1}",
             "",
-            "  Escenario 2 - un visor escala una camara al stream principal",
-            f"    Camara del peor salto        : {self.camara_del_salto}",
-            f"    Coste del salto              : {self.salto_maximo_mbps:7.2f} Mbps",
-            f"    Requerido                    : {self.requerido_escalamiento_mbps:7.2f} Mbps"
+            "  Escenario 2 - un visor abre UNA camara"
+            + ("  (sobre PRINCIPAL: la camara solo publica dos flujos)"
+               if self.apertura_usa_principal else "  (sobre flujo medio)"),
+            f"    Camara del peor salto        : {self.camara_de_apertura}",
+            f"    Coste del salto              : {self.salto_apertura_mbps:7.2f} Mbps",
+            f"    Requerido                    : {self.requerido_apertura_mbps:7.2f} Mbps"
             f"   -> {e2}",
             "",
-        ]
-        if self.hay_substream_de_catalogo:
-            lineas.append(
-                "  AVISO: hay sub-streams tomados del catalogo, no medidos en este sitio."
-            )
-            lineas.append(
-                "         Confirmarlos con el firmware real de la camara instalada (M-13)."
-            )
-            lineas.append("")
-        lineas += [
-            f"  Caso extremo, informativo: un visor con TODOS los streams principales pediria "
-            f"{self.principal_total_mbps:.1f} Mbps "
-            f"(soportado: {'si' if self.cumple_todos_principales else 'no'}).",
+            "  Escenario 3 - apertura sobre stream PRINCIPAL (excepcion bajo demanda)",
+            f"    Camara del peor salto        : {self.camara_del_salto_principal}",
+            f"    Requerido                    : {self.requerido_principal_mbps:7.2f} Mbps"
+            f"   -> {e3}",
             "",
-            "  Argumento para la propuesta:",
-            f"    Sistema local, en reposo         : ~{self.consumo_reposo_gb_mes:.0f} GB/mes de subida",
-            f"    Servicio en la nube equivalente  : ~{self.consumo_nube_equivalente_gb_mes:.0f} GB/mes de subida",
-            "",
-            "  Por camara:",
         ]
+        if not self.cabe_principal:
+            lineas += [
+                "    Es una excepcion, no un defecto: el principal se pide a mano para revisar algo",
+                "    concreto y va lento. Se explica al cliente en el diseno para que no lo",
+                "    interprete como averia. NO se resuelve transcodificando (ADR-012).",
+                "",
+            ]
+        if self.camaras_de_dos_flujos:
+            lineas += [
+                "  AVISO: camaras que solo publican DOS flujos, sin intermedio util:",
+                "         " + ", ".join(self.camaras_de_dos_flujos),
+                "         Abrirlas en remoto sirve el principal. Es la penalizacion real de esos",
+                "         modelos y por eso el escenario 2 rechaza con ellas.",
+                "",
+            ]
+        if self.hay_datos_de_catalogo:
+            lineas += [
+                "  AVISO: hay bitrates tomados del catalogo, no medidos en este sitio.",
+                "         Confirmarlos con el firmware real de la camara instalada (M-13, M-14).",
+                "",
+            ]
+        lineas.append("  Por camara:")
         for d in self.detalle:
+            medio = f"{d['medio_mbps']:5.2f}" if d["medio_mbps"] is not None else "   - "
             lineas.append(
-                f"    {d['nombre']:<32} sub {d['substream_mbps']:5.2f} Mbps "
-                f"({d['origen']:<9}) principal {d['principal_mbps']:5.1f} Mbps "
-                f"salto {d['salto_mbps']:5.1f} Mbps"
+                f"    {d['nombre']:<32} sub {d['sub_mbps']:5.2f}  medio {medio}  "
+                f"principal {d['principal_mbps']:5.1f} Mbps   ({d['streams']} flujos)"
             )
         return "\n".join(lineas)
 
@@ -185,9 +241,8 @@ def calcular(
     visores_concurrentes: int,
     subida_disponible_mbps: float,
     margen_hogar_mbps: float = MARGEN_HOGAR_MBPS,
-    horas_visionado_dia: float = 1.0,
 ) -> ResultadoAnchoBanda:
-    """Evalua los dos escenarios contra la subida realmente disponible."""
+    """Evalua los tres escenarios contra la subida realmente disponible."""
     if visores_concurrentes < 0:
         raise ValueError("El numero de visores concurrentes no puede ser negativo.")
     if subida_disponible_mbps <= 0:
@@ -196,54 +251,61 @@ def calcular(
             "la velocidad anunciada del plan."
         )
 
-    # Escenario 1. Un visor abre la vista general: todos los sub-streams a la vez. Es el caso real,
-    # no el optimista de "una camara cada vez".
-    substream_total = sum(c.substream_mbps for c in camaras) * visores_concurrentes
-    requerido_general = substream_total + margen_hogar_mbps
+    # Escenario 1. Todos los visores en cuadricula: todos los sub-streams a la vez.
+    sub_total = sum(c.sub_mbps for c in camaras) * visores_concurrentes
+    requerido_cuadricula = sub_total + margen_hogar_mbps
 
-    # Escenario 2. Uno de esos visores toca una camara y la abre en principal. Se toma el peor salto
-    # del inventario, que es el unico supuesto defendible: no se sabe cual va a tocar.
+    # Escenario 2. Uno de esos visores abre una camara. Peor caso del inventario: no se sabe cual.
     if camaras and visores_concurrentes > 0:
-        peor = max(camaras, key=lambda c: c.salto_a_principal_mbps)
-        salto_maximo = peor.salto_a_principal_mbps
-        camara_del_salto = peor.nombre
+        peor = max(camaras, key=lambda c: c.salto_de_apertura_mbps)
+        salto_apertura = peor.salto_de_apertura_mbps
+        nombre_apertura = peor.nombre
+        usa_principal = not peor.tiene_flujo_medio
     else:
-        salto_maximo = 0.0
-        camara_del_salto = "-"
-    requerido_escalamiento = requerido_general + salto_maximo
+        salto_apertura, nombre_apertura, usa_principal = 0.0, "-", False
+    requerido_apertura = requerido_cuadricula + salto_apertura
 
-    principal_total = sum(c.bitrate_principal_mbps for c in camaras)
+    # Escenario 3. La misma apertura pero sobre el principal. Excepcion bajo demanda.
+    if camaras and visores_concurrentes > 0:
+        peor_p = max(camaras, key=lambda c: c.salto_a_principal_mbps)
+        salto_principal = peor_p.salto_a_principal_mbps
+        nombre_principal = peor_p.nombre
+    else:
+        salto_principal, nombre_principal = 0.0, "-"
+    requerido_principal = requerido_cuadricula + salto_principal
 
-    reposo_gb_mes = substream_total / 8 * 3600 * horas_visionado_dia * 30 / 1000
-    nube_gb_mes = principal_total / 8 * 86400 * 30 / 1000
-
-    cumple_general = subida_disponible_mbps >= requerido_general
-    cumple_escalamiento = subida_disponible_mbps >= requerido_escalamiento
+    cumple_cuadricula = subida_disponible_mbps >= requerido_cuadricula
+    cumple_apertura = subida_disponible_mbps >= requerido_apertura
 
     return ResultadoAnchoBanda(
-        substream_total_mbps=substream_total,
-        requerido_general_mbps=requerido_general,
-        cumple_general=cumple_general,
-        salto_maximo_mbps=salto_maximo,
-        camara_del_salto=camara_del_salto,
-        requerido_escalamiento_mbps=requerido_escalamiento,
-        cumple_escalamiento=cumple_escalamiento,
+        sub_total_mbps=sub_total,
+        requerido_cuadricula_mbps=requerido_cuadricula,
+        cumple_cuadricula=cumple_cuadricula,
+        salto_apertura_mbps=salto_apertura,
+        camara_de_apertura=nombre_apertura,
+        apertura_usa_principal=usa_principal,
+        requerido_apertura_mbps=requerido_apertura,
+        cumple_apertura=cumple_apertura,
+        salto_principal_mbps=salto_principal,
+        camara_del_salto_principal=nombre_principal,
+        requerido_principal_mbps=requerido_principal,
+        cabe_principal=subida_disponible_mbps >= requerido_principal,
         margen_hogar_mbps=margen_hogar_mbps,
         subida_disponible_mbps=subida_disponible_mbps,
         visores_concurrentes=visores_concurrentes,
-        cumple=cumple_general and cumple_escalamiento,
-        principal_total_mbps=principal_total,
-        cumple_todos_principales=subida_disponible_mbps >= principal_total + margen_hogar_mbps,
-        consumo_reposo_gb_mes=reposo_gb_mes,
-        consumo_nube_equivalente_gb_mes=nube_gb_mes,
-        hay_substream_de_catalogo=any(c.origen_substream == "catalogo" for c in camaras),
+        # Los escenarios 1 y 2 son vinculantes. El 3 advierte y no rechaza.
+        cumple=cumple_cuadricula and cumple_apertura,
+        hay_datos_de_catalogo=any(
+            c.origen_sub == "catalogo" or c.origen_medio == "catalogo" for c in camaras
+        ),
+        camaras_de_dos_flujos=[c.nombre for c in camaras if not c.tiene_flujo_medio],
         detalle=[
             {
                 "nombre": c.nombre,
-                "substream_mbps": c.substream_mbps,
-                "origen": c.origen_substream,
-                "principal_mbps": c.bitrate_principal_mbps,
-                "salto_mbps": c.salto_a_principal_mbps,
+                "sub_mbps": c.sub_mbps,
+                "medio_mbps": c.medio_mbps if c.tiene_flujo_medio else None,
+                "principal_mbps": c.principal_mbps,
+                "streams": c.streams_soportados,
             }
             for c in camaras
         ],
@@ -251,10 +313,7 @@ def calcular(
 
 
 def desde_cliente(cliente: dict, catalogo_dispositivos: list[dict] | None = None) -> ResultadoAnchoBanda:
-    """Calcula a partir de un archivo de cliente, resolviendo el sub-stream contra el catalogo.
-
-    `catalogo_dispositivos` es la lista de `datos-maestros/dispositivos/`. Si no se pasa, se carga.
-    """
+    """Calcula a partir de un archivo de cliente, resolviendo los flujos contra el catalogo."""
     if catalogo_dispositivos is None:
         from pathlib import Path
 
@@ -266,18 +325,10 @@ def desde_cliente(cliente: dict, catalogo_dispositivos: list[dict] | None = None
             catalogo_dispositivos.extend(yaml.safe_load(ruta.read_text(encoding="utf-8")) or [])
 
     por_id = {d["id"]: d for d in (catalogo_dispositivos or [])}
-
-    camaras: list[CamaraAB] = []
-    for cam in cliente.get("camaras", []):
-        substream, origen = resolver_substream(cam, por_id.get(cam.get("id_catalogo")))
-        camaras.append(
-            CamaraAB(
-                nombre=cam["nombre"],
-                bitrate_principal_mbps=cam["bitrate_principal_mbps"],
-                substream_mbps=substream,
-                origen_substream=origen,
-            )
-        )
+    camaras = [
+        resolver_camara(cam, por_id.get(cam.get("id_catalogo")))
+        for cam in cliente.get("camaras", [])
+    ]
 
     red = cliente.get("red", {})
     return calcular(
@@ -285,7 +336,6 @@ def desde_cliente(cliente: dict, catalogo_dispositivos: list[dict] | None = None
         visores_concurrentes=cliente.get("visores_concurrentes", 1),
         subida_disponible_mbps=red.get("subida_mbps", 0),
         margen_hogar_mbps=red.get("margen_hogar_mbps", MARGEN_HOGAR_MBPS),
-        horas_visionado_dia=cliente.get("horas_visionado_dia", 1.0),
     )
 
 

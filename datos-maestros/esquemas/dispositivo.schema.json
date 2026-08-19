@@ -273,6 +273,30 @@
         "descontinuado",
         "en_evaluacion"
       ]
+    },
+    "streams_soportados": {
+      "description": "Cuantos flujos simultaneos publica la camara. 3 permite principal/medio/sub; 2 obliga a escalar directo a principal, que es mucho mas caro en subida. Medido en banco por modelo y firmware (M-14).",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 4
+    },
+    "stream_medio_bitrate_mbps": {
+      "description": "Flujo intermedio, el que se sirve al abrir UNA camara en remoto. Medido en banco (M-14).",
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "stream_medio_resolucion": {
+      "description": "Del tipo 1280x720@15.",
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "allOf": [
@@ -290,7 +314,10 @@
       "then": {
         "required": [
           "substream_bitrate_mbps",
-          "substream_resolucion"
+          "substream_resolucion",
+          "streams_soportados",
+          "stream_medio_bitrate_mbps",
+          "stream_medio_resolucion"
         ]
       },
       "else": {
@@ -304,6 +331,21 @@
             {
               "required": [
                 "substream_resolucion"
+              ]
+            },
+            {
+              "required": [
+                "streams_soportados"
+              ]
+            },
+            {
+              "required": [
+                "stream_medio_bitrate_mbps"
+              ]
+            },
+            {
+              "required": [
+                "stream_medio_resolucion"
               ]
             }
           ]

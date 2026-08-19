@@ -408,12 +408,13 @@ def validar_poe(cliente: dict, inf: Informe) -> dict:
 
 
 def validar_ancho_banda(cliente: dict, catalogo: dict, inf: Informe) -> dict:
-    """Los DOS escenarios tienen que caber en la subida declarada.
+    """Tres escenarios. Los dos primeros son vinculantes; el tercero advierte (ADR-012).
 
-    Escenario 1, vista general: todos los visores concurrentes sobre sub-stream.
-    Escenario 2, escalamiento: los mismos visores en vista general y uno de ellos abre una camara
-    en stream principal. Es lo que la gente hace en cuanto ve algo, asi que no es un caso extremo:
-    es el uso normal treinta segundos despues del uso normal.
+    1. Cuadricula remota: N visores concurrentes sobre sub-stream.
+    2. Apertura de una camara sobre flujo medio, o sobre principal si la camara solo publica dos
+       flujos. Es lo que la gente hace treinta segundos despues de abrir la cuadricula.
+    3. Apertura sobre principal: excepcion bajo demanda. Se advierte y no se rechaza, porque
+       rechazar obligaria a contratar enlaces que nadie necesita el 99 % del tiempo.
     """
     try:
         resultado = calc_ancho_banda.desde_cliente(cliente, catalogo["dispositivos"])
@@ -424,39 +425,54 @@ def validar_ancho_banda(cliente: dict, catalogo: dict, inf: Informe) -> dict:
         inf.error(f"Calculo de ancho de banda imposible: {exc}")
         return {}
 
-    if not resultado.cumple_general:
+    if not resultado.cumple_cuadricula:
         inf.error(
-            f"ESCENARIO 1 (vista general): la subida es insuficiente para "
+            f"ESCENARIO 1 (cuadricula remota): la subida es insuficiente para "
             f"{resultado.visores_concurrentes} visor(es) concurrente(s). Se requieren "
-            f"{resultado.requerido_general_mbps:.2f} Mbps (sub-streams "
-            f"{resultado.substream_total_mbps:.2f} + margen del hogar "
+            f"{resultado.requerido_cuadricula_mbps:.2f} Mbps (sub-streams "
+            f"{resultado.sub_total_mbps:.2f} + margen del hogar "
             f"{resultado.margen_hogar_mbps:.2f}) y hay {resultado.subida_disponible_mbps:.2f} Mbps "
             f"medidos. Bajar el bitrate del sub-stream, reducir visores previstos o subir el enlace."
         )
 
-    if not resultado.cumple_escalamiento:
+    if not resultado.cumple_apertura:
+        via = (
+            "sobre el stream PRINCIPAL, porque esa camara solo publica dos flujos"
+            if resultado.apertura_usa_principal
+            else "sobre el flujo medio"
+        )
         inf.error(
-            f"ESCENARIO 2 (escalamiento a stream principal): si un visor abre "
-            f"'{resultado.camara_del_salto}' en principal, el salto de "
-            f"{resultado.salto_maximo_mbps:.2f} Mbps eleva lo requerido a "
-            f"{resultado.requerido_escalamiento_mbps:.2f} Mbps, y hay "
+            f"ESCENARIO 2 (apertura de una camara): si un visor abre "
+            f"'{resultado.camara_de_apertura}' {via}, el salto de "
+            f"{resultado.salto_apertura_mbps:.2f} Mbps eleva lo requerido a "
+            f"{resultado.requerido_apertura_mbps:.2f} Mbps, y hay "
             f"{resultado.subida_disponible_mbps:.2f} Mbps. El cliente hara esto en cuanto vea algo "
-            f"en la vista general, asi que no es un caso extremo. Bajar el bitrate principal de esa "
-            f"camara, reducir visores previstos o subir el enlace."
+            f"en la cuadricula, asi que no es un caso extremo. Bajar el bitrate del flujo de "
+            f"apertura, usar camaras de tres flujos, reducir visores o subir el enlace. NO se "
+            f"resuelve transcodificando en el servidor (ADR-012)."
         )
 
-    if not resultado.cumple_todos_principales:
+    if not resultado.cabe_principal:
         inf.aviso(
-            f"Un visor que pidiera el stream PRINCIPAL de TODAS las camaras necesitaria "
-            f"{resultado.principal_total_mbps:.1f} Mbps y saturaria el enlace. Es el comportamiento "
-            f"esperado -el principal es bajo demanda- pero hay que explicarlo al cliente en el "
-            f"diseno para que no lo interprete como averia."
+            f"ESCENARIO 3 (apertura sobre stream principal): pediria "
+            f"{resultado.requerido_principal_mbps:.2f} Mbps y hay "
+            f"{resultado.subida_disponible_mbps:.2f} Mbps. Es una EXCEPCION BAJO DEMANDA y por eso "
+            f"no se rechaza: el principal se pide a mano para revisar algo concreto y va lento. "
+            f"Explicarlo al cliente en el diseno para que no lo interprete como averia."
         )
 
-    if resultado.hay_substream_de_catalogo:
+    if resultado.camaras_de_dos_flujos:
         inf.aviso(
-            "Hay sub-streams tomados del catalogo y no medidos en este sitio. Confirmarlos contra "
-            "el firmware real de la camara instalada antes de prometer visionado concurrente (M-13)."
+            f"Camaras que solo publican dos flujos, sin intermedio util: "
+            f"{', '.join(resultado.camaras_de_dos_flujos)}. Abrirlas en remoto sirve el stream "
+            f"principal, que es mucho mas caro en subida. Es la penalizacion real de esos modelos."
+        )
+
+    if resultado.hay_datos_de_catalogo:
+        inf.aviso(
+            "Hay bitrates de flujo tomados del catalogo y no medidos en este sitio. Confirmarlos "
+            "contra el firmware real de la camara instalada antes de prometer visionado remoto "
+            "(M-13, M-14)."
         )
 
     if (cliente.get("red") or {}).get("cgnat"):
@@ -467,13 +483,12 @@ def validar_ancho_banda(cliente: dict, catalogo: dict, inf: Informe) -> dict:
         )
 
     return {
-        "subida_requerida_mbps": round(resultado.requerido_general_mbps, 2),
-        "subida_requerida_escalamiento_mbps": round(resultado.requerido_escalamiento_mbps, 2),
-        "subida_substreams_mbps": round(resultado.substream_total_mbps, 2),
-        "subida_salto_maximo_mbps": round(resultado.salto_maximo_mbps, 2),
-        "subida_principal_mbps": round(resultado.principal_total_mbps, 2),
-        "consumo_reposo_gb_mes": round(resultado.consumo_reposo_gb_mes, 1),
-        "consumo_nube_gb_mes": round(resultado.consumo_nube_equivalente_gb_mes, 1),
+        "subida_requerida_mbps": round(resultado.requerido_cuadricula_mbps, 2),
+        "subida_requerida_apertura_mbps": round(resultado.requerido_apertura_mbps, 2),
+        "subida_requerida_principal_mbps": round(resultado.requerido_principal_mbps, 2),
+        "subida_substreams_mbps": round(resultado.sub_total_mbps, 2),
+        "subida_salto_apertura_mbps": round(resultado.salto_apertura_mbps, 2),
+        "subida_apertura_usa_principal": resultado.apertura_usa_principal,
         "_resumen_ancho_banda": resultado.resumen(),
     }
 

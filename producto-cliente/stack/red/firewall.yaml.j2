@@ -226,6 +226,28 @@ reglas:
     destino: cualquiera
     accion: denegar
 
+  # ---------------------------------------------------------------------------------------------
+  # Roles de flujo de camara sobre el tunel (ADR-012)
+  # ---------------------------------------------------------------------------------------------
+  # principal  grabacion local. NO se sirve por el tunel salvo peticion explicita del cliente, y
+  #            con advertencia: satura la subida y se interpreta como averia del sistema
+  # medio      apertura de UNA camara en remoto
+  # sub        deteccion y cuadricula remota
+  #
+  # No se transcodifica en el servidor para fabricar un flujo que la camara no publique: el equipo
+  # es clase N100 y el transcodificado consume el presupuesto de inferencia de la deteccion.
+  - id: politica_de_flujos_por_tunel
+    descripcion: >-
+      Por defecto, el tunel sirve `sub` para la cuadricula y `medio` al abrir una camara. El
+      `principal` solo se sirve a peticion explicita, y la interfaz advierte antes de servirlo.
+    origen: tunel
+    destino: Controller
+    flujo_por_defecto: sub
+    flujo_de_apertura: medio
+    flujo_principal_bajo_demanda: true
+    accion: permitir
+    con_estado: true
+
   - id: tunel_wireguard
     descripcion: >-
       El telefono del cliente establece un tunel cifrado directo contra su propio controlador. Donde

@@ -160,13 +160,25 @@ La matriz completa esta en `producto-cliente/stack/red/firewall.yaml.j2` y expli
 
 ## 7. Dimensionado: tres calculos que se publican en cada propuesta
 
+Los tres roles de flujo de camara (ADR-012), porque condicionan el tercero:
+
+| Rol | Trabajo | Sale por el tunel |
+|---|---|---|
+| `principal` | Grabacion local | **No**, salvo peticion explicita con advertencia |
+| `medio` | Apertura de UNA camara en remoto | Si |
+| `sub` | Deteccion y cuadricula remota | Si, por defecto |
+
+**No se transcodifica en el servidor** para fabricar un flujo que la camara no publique: el equipo es
+clase N100 y el transcodificado consume el presupuesto de inferencia de la deteccion.
+
+
 Los competidores citan periodos de retencion sin hacer el calculo. Nosotros lo adjuntamos.
 
 | Calculo | Formula | Herramienta |
 |---|---|---|
 | Almacenamiento | `TB = (Mbps / 8) x 86400 x camaras x dias / 1e6` | `herramientas-empresa/calculadoras/calc_almacenamiento.py` |
 | Presupuesto PoE | Suma del peor caso, con infrarrojo nocturno y calefactor, mas **40 % de holgura** | `herramientas-empresa/calculadoras/calc_poe.py` |
-| Ancho de banda de subida | Dos escenarios: (1) sub-stream x visores + margen; (2) lo anterior mas el salto de una camara a stream principal | `herramientas-empresa/calculadoras/calc_ancho_banda.py` |
+| Ancho de banda de subida | **Tres** escenarios (ADR-012): (1) cuadricula sobre `sub`, (2) apertura de una camara sobre `medio`, (3) apertura sobre `principal`. Los dos primeros rechazan; el tercero advierte | `herramientas-empresa/calculadoras/calc_ancho_banda.py` |
 
 Regla practica de referencia: una camara a 8 Mbps consume unos 86 GB al dia.
 

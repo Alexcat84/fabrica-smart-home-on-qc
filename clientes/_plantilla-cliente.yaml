@@ -133,6 +133,7 @@ camaras:
     substream_alto: 480
     substream_fps: 5
     ruta_principal: /h264Preview_01_main
+    ruta_medio: /h264Preview_02_main    # solo si streams_soportados >= 3
     ruta_substream: /h264Preview_01_sub
     fraccion_eventos: 0.10                    # fraccion del dia con actividad; ajustar por sitio
     descripcion_campo_vision: null

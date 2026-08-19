@@ -69,8 +69,13 @@ vlans:
 
 internet_minimo:
   bajada_mbps: 100
-  subida_mbps: 25
-  motivo: Varios visores remotos simultaneos, revision del stream principal y hogar mas numeroso.
+  subida_mbps: 20
+  motivo: >-
+    Modelo de tres flujos (ADR-012). Escenario vinculante: cuadricula de 10 camaras con dos visores
+    (15,0) mas apertura sobre flujo medio (+1,5) => 16,5 Mbps. Se publica 20. BAJA DESDE LOS 25
+    PUBLICADOS ANTES: con flujo medio, abrir una camara ya no cuesta el principal entero. Abrir
+    sobre principal pediria 22,5, dentro de lo que da un enlace de 25 si el cliente lo tiene.
+  recalculado: 2026-08-19
   notas: >-
     Verificar la traduccion de direcciones del proveedor: la de nivel de operador impide establecer
     tunel directo y fuerza conexion relevada, con latencia adicional. Puede hacer falta direccion

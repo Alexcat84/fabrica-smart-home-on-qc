@@ -248,23 +248,31 @@ class Dimensionado(unittest.TestCase):
         inf = validar_dict(d)
         self.assertTrue(hay_error_con(inf, "presupuesto_switch_w"))
 
-    def test_escenario_1_subida_insuficiente_en_vista_general(self):
+    def test_escenario_1_subida_insuficiente_en_cuadricula(self):
         d = cliente_base()
         d["visores_concurrentes"] = 12
         inf = validar_dict(d)
         self.assertTrue(hay_error_con(inf, "ESCENARIO 1"))
 
-    def test_escenario_2_subida_insuficiente_al_escalar_a_principal(self):
-        """M-12. La vista general cabe; abrir una camara en principal, no.
+    def test_escenario_2_subida_insuficiente_al_abrir_una_camara(self):
+        """ADR-012. La cuadricula cabe; abrir una camara, no.
 
         Es el caso que la primera version del validador dejaba pasar: el minimo publicado del
         paquete solo cubre mirar, no cubre mirar de cerca.
         """
         d = cliente_base()
-        d["red"]["subida_mbps"] = 15.0     # supera el minimo del paquete M, y aun asi no basta
+        d["red"]["subida_mbps"] = 11.0     # la cuadricula pide 10; la apertura, 13,5
         inf = validar_dict(d)
-        self.assertFalse(hay_error_con(inf, "ESCENARIO 1"), "la vista general si cabe en 15 Mbps")
+        self.assertFalse(hay_error_con(inf, "ESCENARIO 1"), "la cuadricula si cabe en 11 Mbps")
         self.assertTrue(hay_error_con(inf, "ESCENARIO 2"))
+
+    def test_escenario_3_advierte_pero_no_rechaza(self):
+        """Excepcion bajo demanda: rechazar obligaria a contratar enlaces que nadie necesita."""
+        d = cliente_base()          # el demo esta a 15 Mbps y el escenario 3 pide 17,5
+        inf = validar_dict(d)
+        self.assertFalse(hay_error_con(inf, "ESCENARIO 3"))
+        self.assertTrue(any("ESCENARIO 3" in a for a in inf.avisos))
+        self.assertTrue(inf.valido)
 
     def test_camara_sin_substream_medido_se_rechaza(self):
         """No se supone un bitrate de sub-stream: sin medicion, el cliente no valida (ADR-001)."""
@@ -272,8 +280,17 @@ class Dimensionado(unittest.TestCase):
         for cam in d["camaras"]:
             cam.pop("bitrate_substream_mbps", None)
         inf = validar_dict(d)
-        self.assertTrue(hay_error_con(inf, "sub-stream"))
+        self.assertTrue(hay_error_con(inf, "SUB-STREAM"))
         self.assertTrue(hay_error_con(inf, "ADR-001"))
+
+    def test_camara_sin_streams_soportados_se_rechaza(self):
+        """ADR-012, fila M-14. Sin ese dato no se sabe que se sirve al abrir una camara."""
+        d = cliente_base()
+        for cam in d["camaras"]:
+            cam.pop("streams_soportados", None)
+        inf = validar_dict(d)
+        self.assertTrue(hay_error_con(inf, "streams_soportados"))
+        self.assertTrue(hay_error_con(inf, "M-14"))
 
     def test_subida_por_debajo_del_minimo_del_paquete(self):
         d = cliente_base()

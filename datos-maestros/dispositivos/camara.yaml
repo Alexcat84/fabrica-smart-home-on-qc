@@ -29,8 +29,11 @@
     Grabacion enteramente local sobre hardware propiedad del cliente. Ecosistema cerrado pero
     genuinamente local: adecuado para el cliente que valora la fiabilidad por encima de la apertura.
     Verificar por modelo el rango de temperatura de operacion para invierno canadiense.
+  streams_soportados: null       # 3 permite principal/medio/sub; 2 obliga a escalar a principal (M-14)
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  stream_medio_bitrate_mbps: null  # el que se sirve al abrir UNA camara en remoto (M-14)
+  stream_medio_resolucion: null    # "1280x720@15" u otra
   sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
   sku_fabricante: null
   upc: null
@@ -66,8 +69,11 @@
     Buena relacion precio-imagen. El soporte de RTSP y ONVIF varia por modelo y por version de
     firmware: verificar modelo por modelo antes de comprometer un lote de compra. No ofrecer al
     segmento sensible a linaje de cadena de suministro sin divulgarlo por escrito.
+  streams_soportados: null       # 3 permite principal/medio/sub; 2 obliga a escalar a principal (M-14)
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  stream_medio_bitrate_mbps: null  # el que se sirve al abrir UNA camara en remoto (M-14)
+  stream_medio_resolucion: null    # "1280x720@15" u otra
   sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
   sku_fabricante: null
   upc: null
@@ -102,8 +108,11 @@
   notas: >-
     Respuesta correcta para el hogar con habilitacion de seguridad o vinculado a la industria de
     defensa. Linaje de cadena de suministro claro. Coste mayor, justificado por el segmento.
+  streams_soportados: null       # 3 permite principal/medio/sub; 2 obliga a escalar a principal (M-14)
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  stream_medio_bitrate_mbps: null  # el que se sirve al abrir UNA camara en remoto (M-14)
+  stream_medio_resolucion: null    # "1280x720@15" u otra
   sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
   sku_fabricante: null
   upc: null
@@ -138,8 +147,11 @@
   notas: >-
     Segunda fuente premium por distribucion de seguridad canadiense. Mismo argumento de linaje que
     Axis. Verificar rango de temperatura y calefactor por modelo.
+  streams_soportados: null       # 3 permite principal/medio/sub; 2 obliga a escalar a principal (M-14)
   substream_bitrate_mbps: null   # medir en banco por modelo y firmware (M-13)
   substream_resolucion: null     # "640x480@5" u otra; se mide junto al bitrate
+  stream_medio_bitrate_mbps: null  # el que se sirve al abrir UNA camara en remoto (M-14)
+  stream_medio_resolucion: null    # "1280x720@15" u otra
   sku_interno: null              # estable y nuestro. NO cambia aunque el fabricante cambie de modelo
   sku_fabricante: null
   upc: null
