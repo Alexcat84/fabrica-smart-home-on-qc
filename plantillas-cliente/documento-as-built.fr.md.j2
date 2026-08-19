@@ -1,0 +1,229 @@
+# Documentation tel que construit
+
+**{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
+Forfait {{ paquete }} · Genere le {{ generado_en }}
+
+Le present document decrit tout ce qui est installe dans votre propriete, sa configuration et la
+facon d'en reprendre la charge. Il est redige pour que **tout technicien competent puisse prendre la
+releve**, que nous soyons encore impliques ou non.
+
+Conservez-le. Si vous vendez la propriete ou changez de fournisseur, c'est ce document qui rend la
+transition possible sans tout recommencer.
+
+---
+
+## 1. Inventaire des appareils
+
+{{ dispositivos | length }} appareils automatises, {{ camaras | length }} cameras.
+
+| Nom | Emplacement | Circuit | Protocole | Reference au catalogue |
+|---|---|---|---|---|
+{% for d in dispositivos -%}
+| {{ d.nombre_cliente }} | {{ areas.get(d.area, {}).get(idioma_documento, d.area) }} | {{ d.circuito or '-' }} | {{ d.protocolo }} | `{{ d.id_catalogo }}` |
+{% endfor %}
+
+### Releve electrique
+
+Appareils installes dans une boite electrique, avec le circuit de derivation correspondant et la
+marque de certification canadienne verifiee sur l'unite physique a la reception.
+
+| Appareil | Circuit | Marque de certification | Verifie le |
+|---|---|---|---|
+{% for d in dispositivos if d.certificacion_verificada is defined -%}
+| {{ d.nombre_cliente }} | {{ d.circuito or '-' }} | {{ d.certificacion_verificada.marca }} | {{ d.certificacion_verificada.fecha }} |
+{% endfor %}
+
+**Aucun relais, gradateur, module ni dispositif de commande n'est installe sur un circuit partage
+avec des avertisseurs de fumee ou de monoxyde de carbone interconnectes.**
+
+---
+
+## 2. Reseau
+
+Deuxieme octet attribue a cette propriete : **{{ red.octeto }}**. Toutes les adresses sont
+`10.{{ red.octeto }}.x.y`.
+
+| VLAN | Nom | Sous-reseau | Contenu | Internet |
+|---|---|---|---|---|
+| 10 | Trusted | `10.{{ red.octeto }}.10.0/24` | Vos telephones, portables, tablettes, imprimantes | Complet |
+| 20 | IoT | `10.{{ red.octeto }}.20.0/24` | Relais, thermostats, prises, coordonnateur | Restreint |
+| 30 | Camera | `10.{{ red.octeto }}.30.0/24` | Cameras seulement | **Aucun** |
+| 40 | Controller | `10.{{ red.octeto }}.40.0/24` | Home Assistant et enregistreur | Restreint |
+{% if 50 in paquete_def.vlans.presentes %}| 50 | Management | `10.{{ red.octeto }}.50.0/24` | Passerelle, commutateurs, points d'acces | **Aucun** |
+{% endif %}{% if 60 in paquete_def.vlans.presentes %}| 60 | Guest | `10.{{ red.octeto }}.60.0/24` | Visiteurs, isoles | Complet |
+{% endif %}
+
+### Politique de pare-feu — a lire comme directionnelle
+
+Les regles sont **directionnelles et a etats**. En particulier :
+
+> **L'enregistreur ouvre la connexion vers la camera. La camera ne peut jamais ouvrir de connexion
+> vers quoi que ce soit.**
+
+Une regle formulee simplement comme « bloquer le VLAN des cameras » n'est *pas* equivalente : elle
+briserait l'enregistrement ou laisserait une voie de retour ouverte. Si un futur technicien remplace
+cette politique par un blocage simple, l'enregistrement s'arrete ou la securite est perdue.
+
+Consequences que vous connaissez deja, redites ici pour la personne qui prendra la releve :
+
+- Les cameras n'ont **aucun acces Internet**; un serveur de temps fonctionne donc a l'interieur du
+  segment. Sans lui, les enregistrements portent une heure erronee et perdent leur valeur probante.
+- Les mises a jour du micrologiciel des cameras sont une **tache manuelle planifiee**.
+- **Les applications des fabricants de cameras ne fonctionneront pas.** Tout se visionne par
+  l'interface unique du systeme. C'est voulu.
+
+### Cameras
+
+| Camera | Emplacement | IP | Port du commutateur | Etiquette de cable | Classe PoE |
+|---|---|---|---|---|---|
+{% for cam in camaras -%}
+| {{ cam.nombre_cliente }} | {{ areas.get(cam.area, {}).get(idioma_documento, cam.area) }} | `10.{{ red.octeto }}.30.{{ cam.ip_final }}` | {{ cam.puerto_switch or '-' }} | {{ cam.etiqueta_cable or '-' }} | {{ cam.clase_poe }} |
+{% endfor %}
+
+Champs de vision :
+
+{% for cam in camaras %}
+- **{{ cam.nombre_cliente }}** : {{ cam.descripcion_campo_vision or 'a consigner' }}
+{% endfor %}
+
+### Sans fil
+
+| SSID | VLAN | Securite |
+|---|---|---|
+| {{ red.ssid_familia }} | 10 (Trusted) | {{ red.seguridad_wifi }} |
+| {{ red.ssid_iot }} | 20 (IoT) | {{ red.seguridad_wifi_iot }} |
+{% if 60 in paquete_def.vlans.presentes %}| {{ red.ssid_invitados }} | 60 (Guest) | {{ red.seguridad_wifi }}, isolation des clients activee |
+{% endif %}
+
+Le reseau de gestion n'a **aucun SSID**. On l'atteint par cable depuis une machine autorisee, ou par
+une seance de soutien autorisee. L'exposer par radio annulerait l'interet de l'avoir separe.
+
+### Maillage Zigbee
+
+- Canal **{{ zigbee.canal }}**, choisi apres un releve de la bande de 2,4 GHz chez vous afin de ne pas
+  chevaucher les canaux Wi-Fi utilises.
+- Un seul coordonnateur, place au centre de la population d'appareils et a l'ecart de la baie.
+- Les appareils alimentes sur secteur servent de routeurs du maillage. Si vous ajoutez des appareils
+  plus tard, appairez d'abord ceux alimentes sur secteur.
+
+---
+
+## 3. Automatisations, en langage clair
+
+{% for d in dispositivos if d.tipo_sensor is defined and d.tipo_sensor == 'movimiento' and d.controla_luz %}
+- Lorsqu'un mouvement est detecte dans **{{ areas.get(d.area, {}).get(idioma_documento, d.area) }}** et qu'il fait sombre, la lumiere s'allume a
+  {{ d.brillo_pct | default(70) }} % et s'eteint {{ d.minutos_apagado | default(5) }} minutes apres
+  la fin du mouvement.
+{% endfor %}
+- A {{ clima.hora_retroceso }}, les consignes de chauffage baissent pour la nuit. A
+  {{ clima.hora_recuperacion }}, elles remontent.
+- Lorsque tout le monde est absent depuis {{ clima.horas_ausencia_retroceso }} heures, les consignes
+  baissent davantage, mais **jamais sous {{ clima.limite_antihielo_c }} °C**, afin que la plomberie ne
+  gele pas.
+{% for f in dispositivos if f.tipo_sensor is defined and f.tipo_sensor == 'fuga_agua' %}
+- Si de l'eau est detectee a **{{ areas.get(f.area, {}).get(idioma_documento, f.area) }}**{% if agua.valvula_corte %}, la vanne d'arret principale se ferme automatiquement et{% endif %} vous etes avise immediatement.
+{% endfor %}
+{% for v in dispositivos if v.tipo is defined and v.tipo == 'extractor_bano' and not v.ligado_a_hrv %}
+- Le **{{ v.nombre_cliente }}** se met en marche lorsque l'humidite depasse {{ v.umbral_humedad_pct }} %
+  et continue {{ v.minutos_marcha_posterior }} minutes apres qu'elle redescend.
+{% endfor %}
+{% for s in dispositivos if s.aviso_congelacion is defined and s.aviso_congelacion %}
+- Si la temperature a **{{ areas.get(s.area, {}).get(idioma_documento, s.area) }}** descend sous {{ s.umbral_congelacion_c }} °C pendant une
+  demi-heure, vous etes avise.
+{% endfor %}
+{% for s in dispositivos if s.categoria == 'sirena' %}
+- La sirene de dissuasion ne sonne que si le systeme est en mode « absent », uniquement si vous avez
+  active la dissuasion sonore, et elle **s'arrete d'elle-meme apres {{ s.minutos_corte }} minutes**.
+  Ce n'est pas une alarme et personne d'autre n'est avise.
+{% endfor %}
+- Si une camera cesse de repondre pendant dix minutes, vous etes avise.
+- En cas de panne de courant, vous etes avise et le systeme continue sur batterie.
+
+---
+
+## 4. Identifiants
+
+Tous les identifiants sont conserves dans **votre** coffre d'identifiants (Vaultwarden), execute sur
+votre propre materiel.
+
+- Tous les mots de passe par defaut de tous les appareils ont ete modifies a la mise en service.
+- Chaque mot de passe est unique, genere, et compte au moins seize caracteres.
+- Les comptes administratifs exigent l'authentification a deux facteurs.
+- Il n'existe aucun compte nomme `admin` ni aucun compte administratif partage.
+- **L'entreprise ne conserve aucune copie de vos identifiants apres la remise.**
+
+Pour recuperer l'acces administratif en cas de verrouillage, suivez la procedure de recuperation
+fournie avec le coffre. Conservez la copie imprimee de recuperation en lieu sur et hors des lieux.
+
+---
+
+## 5. Sauvegarde et restauration
+
+| | |
+|---|---|
+| Outil | {{ respaldo.herramienta }} |
+| Frequence | Tous les jours a {{ respaldo.hora }} |
+| Cible principale | `{{ respaldo.destino_local }}` |
+| Cible secondaire | `{{ respaldo.destino_secundario }}` — appareil physiquement distinct |
+{% if respaldo.destino_externo %}| Hors site | {{ respaldo.destino_externo.destino }} — **sous votre controle** |
+{% else %}| Hors site | **Aucune choisie.** Un incendie ou un vol qui emporte l'equipement emporte les deux copies locales. |
+{% endif %}| Essai de restauration | {{ respaldo.frecuencia_prueba }}, consigne au dossier de service |
+| Objectif de reprise | **Reconstruction complete a partir du modele et de la sauvegarde en moins de quatre heures** |
+
+**Ce qui est sauvegarde :** configuration du systeme, automatisations, tableaux de bord, base des
+appareils, exportations de configuration reseau, coffre d'identifiants.
+
+**Ce qui n'est pas sauvegarde : votre video.** Elle est protegee uniquement par la redondance des
+disques, lorsque votre forfait la comprend. **La redondance n'est pas une sauvegarde** : elle protege
+contre la panne d'un disque, pas contre la suppression, la corruption ou un rancongiciel.
+
+**La cle de chiffrement vous appartient.** Nous ne la detenons pas. Sans elle, la sauvegarde est
+irrecuperable.
+
+---
+
+## 6. Politique de mise a jour
+
+Les versions sont figees et les mises a jour automatiques sont desactivees. Les mises a jour sont
+appliquees deliberement, apres essai sur notre banc, avec une image complete prise au prealable et une
+procedure de retour en arriere documentee.
+
+{% if soporte.plano_control %}Plan de controle de l'acces a distance : **{{ soporte.plano_control }}**.{% endif %}
+
+Si vous n'avez pas de plan d'entretien, vos versions sont figees telles que livrees et les mises a
+jour deviennent votre responsabilite. Nous vous remettrons la procedure par ecrit.
+
+---
+
+## 7. Continuite — remettre ce systeme a un autre fournisseur
+
+Cette section existe parce que vous ne devriez jamais etre pris au piege avec nous. Tout ce dont un
+autre fournisseur competent a besoin :
+
+1. **Ce qui est installe** — section 1, avec les references au catalogue et les circuits.
+2. **Le plan d'adressage** — section 2, avec le plan complet des VLAN et la politique de pare-feu
+   directionnelle. Signalez-lui que la regle des cameras est directionnelle : c'est celle qu'on brise
+   le plus souvent lors d'une reprise.
+3. **Ou sont les identifiants** — section 4. Le coffre vous appartient et fonctionne sur votre
+   materiel.
+4. **Comment c'est sauvegarde et restaure** — section 5, ainsi que la procedure de restauration
+   fournie avec votre systeme.
+5. **Quels logiciels sont executes** — l'annexe des licences livree avec votre systeme enumere chaque
+   composant, sa version figee, sa licence et son depot amont. **Aucun n'est modifie par nous**, donc
+   il n'y a aucune version privee a heriter.
+6. **Comment la configuration est construite** — votre systeme est genere a partir de modeles
+   versionnes et d'un fichier de variables; il n'est pas assemble a la main. Demandez-nous une copie
+   de votre fichier de variables a tout moment : il vous appartient.
+
+Rien de tout cela n'exige notre cooperation. C'est precisement l'objectif.
+
+---
+
+## 8. Rappel de la portee
+
+Ce systeme n'est **pas** un systeme de detection d'incendie, de fumee, de gaz, de monoxyde de carbone
+ni d'alerte medicale, et **pas** une alarme antivol surveillee. Les sirenes sont des dispositifs de
+dissuasion. Les capteurs de qualite de l'air ne sont pas des detecteurs de gaz. Les alertes vous sont
+transmises, a vous et aux personnes que vous designez, et a personne d'autre.
+
+Voir l'enonce des travaux et exclusions signe.

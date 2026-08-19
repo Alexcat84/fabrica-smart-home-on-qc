@@ -380,6 +380,11 @@ def generar(ruta_cliente: Path, forzar: bool = False) -> int:
         loader=FileSystemLoader(str(dir_cliente)),
         undefined=StrictUndefined,
         keep_trailing_newline=True,
+        # A diferencia de las plantillas de configuracion, aqui SI se recortan los bloques: son
+        # documentos en Markdown que lee una persona, y las lineas en blanco que dejan los bucles
+        # se ven en el resultado.
+        trim_blocks=True,
+        lstrip_blocks=True,
     )
     for doc in documentos:
         for idioma in ("en", "fr"):

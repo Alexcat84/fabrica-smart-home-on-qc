@@ -1,0 +1,221 @@
+# As-Built Documentation
+
+**{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
+Package {{ paquete }} · Generated {{ generado_en }}
+
+This document describes everything installed in your property, how it is configured, and how to take
+it over. It is written so that **any competent technician can take over from us**, whether or not we
+are still involved.
+
+Keep it. If you ever sell the property or change providers, this document is what makes that possible
+without starting over.
+
+---
+
+## 1. Device inventory
+
+{{ dispositivos | length }} automated devices, {{ camaras | length }} cameras.
+
+| Name | Location | Circuit | Protocol | Catalogue reference |
+|---|---|---|---|---|
+{% for d in dispositivos -%}
+| {{ d.nombre_cliente }} | {{ areas.get(d.area, {}).get(idioma_documento, d.area) }} | {{ d.circuito or '-' }} | {{ d.protocolo }} | `{{ d.id_catalogo }}` |
+{% endfor %}
+
+### Electrical record
+
+Devices installed inside an electrical box, with the branch circuit they are on and the Canadian
+certification mark verified on the physical unit at receiving.
+
+| Device | Circuit | Certification mark | Verified |
+|---|---|---|---|
+{% for d in dispositivos if d.certificacion_verificada is defined -%}
+| {{ d.nombre_cliente }} | {{ d.circuito or '-' }} | {{ d.certificacion_verificada.marca }} | {{ d.certificacion_verificada.fecha }} |
+{% endfor %}
+
+**No relay, dimmer, module or control device is installed on a circuit shared with interconnected
+smoke or carbon monoxide detectors.**
+
+---
+
+## 2. Network
+
+Second octet assigned to this property: **{{ red.octeto }}**. All addresses are `10.{{ red.octeto }}.x.y`.
+
+| VLAN | Name | Subnet | Contents | Internet |
+|---|---|---|---|---|
+| 10 | Trusted | `10.{{ red.octeto }}.10.0/24` | Your phones, laptops, tablets, printers | Full |
+| 20 | IoT | `10.{{ red.octeto }}.20.0/24` | Relays, thermostats, plugs, coordinator | Restricted |
+| 30 | Camera | `10.{{ red.octeto }}.30.0/24` | Cameras only | **None** |
+| 40 | Controller | `10.{{ red.octeto }}.40.0/24` | Home Assistant and recorder | Restricted |
+{% if 50 in paquete_def.vlans.presentes %}| 50 | Management | `10.{{ red.octeto }}.50.0/24` | Gateway, switches, access points | **None** |
+{% endif %}{% if 60 in paquete_def.vlans.presentes %}| 60 | Guest | `10.{{ red.octeto }}.60.0/24` | Visitors, isolated | Full |
+{% endif %}
+
+### Firewall policy — read this as directional
+
+The rules are **directional and stateful**. In particular:
+
+> **The recorder opens the connection to the camera. The camera can never open a connection to
+> anything.**
+
+A rule written simply as "block the camera VLAN" is *not* equivalent — it would either break
+recording or leave a return path open. If a future technician replaces this policy with a simple
+block, recording stops or security is lost.
+
+Consequences you already know about, restated here for whoever comes next:
+
+- Cameras have **no internet access**, so a time server runs inside the camera segment. Without it,
+  recordings carry the wrong timestamps and lose their evidentiary value.
+- Camera firmware updates are a **manual, scheduled task**, not automatic.
+- **Manufacturer camera apps will not work.** Everything is viewed through the single system
+  interface. This is by design.
+
+### Cameras
+
+| Camera | Location | IP | Switch port | Cable label | PoE class |
+|---|---|---|---|---|---|
+{% for cam in camaras -%}
+| {{ cam.nombre_cliente }} | {{ areas.get(cam.area, {}).get(idioma_documento, cam.area) }} | `10.{{ red.octeto }}.30.{{ cam.ip_final }}` | {{ cam.puerto_switch or '-' }} | {{ cam.etiqueta_cable or '-' }} | {{ cam.clase_poe }} |
+{% endfor %}
+
+Fields of view:
+
+{% for cam in camaras %}
+- **{{ cam.nombre_cliente }}**: {{ cam.descripcion_campo_vision or 'to be recorded' }}
+{% endfor %}
+
+### Wireless
+
+| SSID | VLAN | Security |
+|---|---|---|
+| {{ red.ssid_familia }} | 10 (Trusted) | {{ red.seguridad_wifi }} |
+| {{ red.ssid_iot }} | 20 (IoT) | {{ red.seguridad_wifi_iot }} |
+{% if 60 in paquete_def.vlans.presentes %}| {{ red.ssid_invitados }} | 60 (Guest) | {{ red.seguridad_wifi }}, client isolation on |
+{% endif %}
+
+The management network has **no SSID**. It is reached by cable from an authorised machine, or through
+an authorised support session. Exposing management over wireless would defeat the point of separating
+it.
+
+### Zigbee mesh
+
+- Channel **{{ zigbee.canal }}**, chosen after surveying the 2.4 GHz band at your property so it does
+  not overlap the Wi-Fi channels in use.
+- One coordinator, placed at the centre of the device population and away from the rack.
+- Mains-powered devices act as mesh routers. If you add devices later, pair mains-powered ones first.
+
+---
+
+## 3. Automations, in plain language
+
+{% for d in dispositivos if d.tipo_sensor is defined and d.tipo_sensor == 'movimiento' and d.controla_luz %}
+- When motion is detected in **{{ areas.get(d.area, {}).get(idioma_documento, d.area) }}** and it is dark, the light turns on at
+  {{ d.brillo_pct | default(70) }} % and turns off {{ d.minutos_apagado | default(5) }} minutes after
+  the movement stops.
+{% endfor %}
+- At {{ clima.hora_retroceso }}, heating setpoints drop for the night. At {{ clima.hora_recuperacion }},
+  they come back up.
+- When everyone has been away for {{ clima.horas_ausencia_retroceso }} hours, setpoints drop further —
+  but **never below {{ clima.limite_antihielo_c }} °C**, so pipes cannot freeze.
+{% for f in dispositivos if f.tipo_sensor is defined and f.tipo_sensor == 'fuga_agua' %}
+- If water is detected at **{{ areas.get(f.area, {}).get(idioma_documento, f.area) }}**{% if agua.valvula_corte %}, the main shut-off valve closes automatically and{% endif %} you are notified immediately.
+{% endfor %}
+{% for v in dispositivos if v.tipo is defined and v.tipo == 'extractor_bano' and not v.ligado_a_hrv %}
+- The **{{ v.nombre_cliente }}** runs when humidity passes {{ v.umbral_humedad_pct }} %, and keeps
+  running for {{ v.minutos_marcha_posterior }} minutes after it drops.
+{% endfor %}
+{% for s in dispositivos if s.aviso_congelacion is defined and s.aviso_congelacion %}
+- If the temperature at **{{ areas.get(s.area, {}).get(idioma_documento, s.area) }}** falls below {{ s.umbral_congelacion_c }} °C for half an hour,
+  you are notified.
+{% endfor %}
+{% for s in dispositivos if s.categoria == 'sirena' %}
+- The deterrent siren sounds only when the system is set to "away", only if you have enabled audible
+  deterrence, and it **switches itself off after {{ s.minutos_corte }} minutes**. It is not an alarm
+  and no one else is notified.
+{% endfor %}
+- If a camera stops responding for ten minutes, you are notified.
+- If mains power fails, you are notified and the system continues on battery.
+
+---
+
+## 4. Credentials
+
+All credentials are stored in **your** credential vault (Vaultwarden), running on your own hardware.
+
+- Every default password on every device was changed at commissioning.
+- Every password is unique, generated, and at least sixteen characters.
+- Administrative accounts require two-factor authentication.
+- There is no account named `admin` and no shared administrative account.
+- **The Company retains no copy of your credentials after handover.**
+
+To recover administrative access if you are locked out, follow the recovery procedure supplied with
+the vault. Keep the printed recovery copy somewhere safe and off-site.
+
+---
+
+## 5. Backup and restore
+
+| | |
+|---|---|
+| Tool | {{ respaldo.herramienta }} |
+| Schedule | Daily at {{ respaldo.hora }} |
+| Primary target | `{{ respaldo.destino_local }}` |
+| Secondary target | `{{ respaldo.destino_secundario }}` — a physically separate device |
+{% if respaldo.destino_externo %}| Off-site | {{ respaldo.destino_externo.destino }} — **controlled by you** |
+{% else %}| Off-site | **None chosen.** A fire or theft that takes the equipment takes both local copies with it. |
+{% endif %}| Restore test | {{ respaldo.frecuencia_prueba }}, evidenced in the service record |
+| Recovery objective | **Full rebuild from template plus backup in under four hours** |
+
+**What is backed up:** system configuration, automations, dashboards, device database, network
+configuration exports, credential vault.
+
+**What is not backed up: your video.** It is protected by drive redundancy only, where your package
+includes redundancy. **Redundancy is not backup** — it protects against a drive failing, not against
+deletion, corruption or ransomware.
+
+**The encryption key is yours.** We do not hold it. Without it, the backup cannot be recovered.
+
+---
+
+## 6. Update policy
+
+Versions are pinned and automatic updates are disabled. Updates are applied deliberately, after we
+test them on our own bench, with a full snapshot taken first and a documented rollback.
+
+{% if soporte.plano_control %}Remote access control plane: **{{ soporte.plano_control }}**.{% endif %}
+
+If you are not on a care plan, your versions are frozen as delivered and updates become your
+responsibility. We will give you the procedure in writing.
+
+---
+
+## 7. Continuity — how to hand this system to another provider
+
+This section exists because you should never be trapped with us. Everything another competent
+provider needs:
+
+1. **What is installed** — section 1 of this document, with catalogue references and circuits.
+2. **How it is addressed** — section 2, with the full VLAN plan and the directional firewall policy.
+   Point out to them that the camera rule is directional; it is the rule most often broken on
+   handover.
+3. **Where the credentials are** — section 4. The vault is yours and runs on your hardware.
+4. **How it is backed up and restored** — section 5, plus the restore procedure supplied with your
+   system.
+5. **What software it runs** — the licence appendix delivered with your system lists every component,
+   its pinned version, its licence and its upstream repository. **None of it is modified by us**, so
+   there is no private fork for anyone to inherit.
+6. **How the configuration is built** — your system is generated from versioned templates plus a
+   variables file, not hand-built. Ask us for a copy of your variables file at any time; it is yours.
+
+None of this requires our cooperation. That is the point.
+
+---
+
+## 8. Scope reminder
+
+This system is **not** a fire, smoke, gas, carbon monoxide or medical alert system, and **not** a
+monitored intrusion alarm. Sirens are deterrent devices. Air quality sensors are not gas detectors.
+Alerts go to you and to contacts you designate, and to no one else.
+
+See the signed Scope of Work and Exclusions document.

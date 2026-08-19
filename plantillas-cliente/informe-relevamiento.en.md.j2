@@ -1,0 +1,209 @@
+# Site Survey Report
+
+**{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
+Proposed package: {{ paquete }} · Generated {{ generado_en }}
+
+The survey is a paid engagement and it is where the project succeeds or fails. Everything found here
+is cheaper to solve now than on installation day.
+
+Surveyor: ______________________  Date: ______________
+
+---
+
+## 1. Property
+
+| | |
+|---|---|
+| Type | ☐ Detached ☐ Semi-detached ☐ Townhouse ☐ Condo ☐ Other: ______ |
+| Approximate age | ______ |
+| Floors, including basement | ______ |
+| Approximate area | ______ |
+| Construction | ☐ Wood frame ☐ Metal studs ☐ Concrete floors ☐ Stone ☐ Foil-backed insulation |
+| Secondary buildings | ☐ None ☐ Garage ☐ Shed ☐ Other: ______ |
+
+Concrete, foil-backed insulation, in-floor heating, metal studs and stone all attenuate radio
+heavily. Where they are present, the answer is **more routing devices**, not more transmit power.
+
+---
+
+## 2. Electrical — the survey that saves the project
+
+### Neutral in switch boxes
+
+The single most common technical obstacle in Ontario and Quebec retrofit work is the absence of a
+neutral conductor in the switch box. **This must be found now, not on installation day.**
+
+| Room | Switch | Neutral present? | Box depth adequate? | Multi-way? | Notes |
+|---|---|---|---|---|---|
+| | | ☐ Yes ☐ No | ☐ Yes ☐ No | ☐ Yes ☐ No | |
+| | | ☐ Yes ☐ No | ☐ Yes ☐ No | ☐ Yes ☐ No | |
+| | | ☐ Yes ☐ No | ☐ Yes ☐ No | ☐ Yes ☐ No | |
+
+Solutions by case:
+
+| Situation | Approach |
+|---|---|
+| Neutral present, standard box | Standard smart switch or dimmer, or micromodule behind the existing switch |
+| No neutral, standard box | No-neutral capable dimmer designed for the North American market. **Verify LED fixture compatibility** |
+| No neutral, no room in box | Module at the fixture canopy, or bulb-level control. Requires access to the fixture |
+| Multi-way (3-way, 4-way) | Companion devices from the **same** family. **Never mix vendors across a multi-way group** |
+
+### Aluminium branch wiring
+
+☐ Present ☐ Not present ☐ Not determined
+
+Common in certain 1960s and 1970s Canadian housing. If present, it requires pigtailing with approved
+connectors by a licensed electrician. It is an insurance issue in its own right, and a legitimate
+upsell — but it must be quoted, not discovered.
+
+### Panel
+
+| | |
+|---|---|
+| Panel location | |
+| Spare breaker positions | |
+| Circuits to be automated | |
+| **Circuits shared with interconnected smoke or CO detectors** | **List them — nothing is installed on these** |
+
+### Rack location
+
+| Requirement | Found |
+|---|---|
+| Conditioned space, not an unheated garage or uninsulated attic | ☐ Yes ☐ No |
+| Away from water lines and laundry | ☐ Yes ☐ No |
+| Dedicated 15 A branch circuit available{% if paquete != 'S' %} (required at this tier){% endif %} | ☐ Yes ☐ No |
+| Ventilation adequate | ☐ Yes ☐ No |
+| Lockable | ☐ Yes ☐ No |
+| Serviceable clearance front and rear | ☐ Yes ☐ No |
+
+A rack that an intruder can switch off in ten seconds undermines the entire camera system.
+
+---
+
+## 3. Internet — measure it, do not read it
+
+**Measure the actual speeds. Do not record the advertised plan.** Upload is the binding constraint,
+not download.
+
+| | Advertised | **Measured** |
+|---|---|---|
+| Download | | ______ Mbps |
+| Upload | | ______ Mbps |
+
+| | |
+|---|---|
+| Provider | |
+| Service type | ☐ Cable (asymmetric) ☐ Fibre (usually symmetric) ☐ Other |
+| **Carrier-grade NAT?** | ☐ Yes ☐ No ☐ Not determined |
+| Cellular signal at the property | ☐ Good ☐ Marginal ☐ Poor |
+
+Carrier-grade address translation prevents direct tunnel establishment and forces a relayed
+connection, which adds latency. Identify it now: at tier L and above it may require a static address
+or a different service tier.
+
+Minimum for the proposed package **{{ paquete }}**: {{ paquete_def.internet_minimo.bajada_mbps }} Mbps
+down, **{{ paquete_def.internet_minimo.subida_mbps }} Mbps up**.
+
+---
+
+## 4. Wireless survey
+
+Survey **both** bands before commissioning, not after complaints.
+
+| Band | Channels in use on site | Congestion |
+|---|---|---|
+| 2.4 GHz | | ☐ Low ☐ Medium ☐ High |
+| 5 GHz | | ☐ Low ☐ Medium ☐ High |
+
+Zigbee channel selected so it does **not** overlap the Wi-Fi channels in use: ______
+
+Coordinator placement (geometric centre of the device population, at least two metres from the rack,
+the gateway and any USB 3 device or SSD): ______________________
+
+Mains-powered routing devices per floor and per major wing — target at least one, and no more than
+about ten to twelve metres between them through residential construction:
+
+| Floor or wing | Routing devices planned |
+|---|---|
+| | |
+
+---
+
+## 5. Cameras
+
+For each proposed position:
+
+| Position | Field of view | Cable route | Run length | Exterior? | Heater needed? | Notes |
+|---|---|---|---|---|---|---|
+{% for cam in camaras %}| {{ cam.nombre_cliente }} | {{ cam.descripcion_campo_vision or '' }} | | | {{ 'Yes' if cam.exterior else 'No' }} | | |
+{% endfor %}
+
+Checks:
+
+- ☐ Cat6 minimum; Cat6A where a run approaches 100 m or upgrade is anticipated
+- ☐ Riser-rated (CMR) for in-wall vertical runs; plenum-rated (CMP) where the building code requires
+- ☐ Exterior runs in conduit or rated for direct exposure
+- ☐ Drip loop planned at every penetration
+- ☐ Fire-stopping at every floor and fire separation crossing
+- ☐ Every drop labelled at **both** ends
+- ☐ Patch panel location identified{% if paquete != 'S' %} (mandatory at this tier){% endif %}
+
+---
+
+## 6. Household
+
+| Name | Mobile platform | Administrative rights needed? |
+|---|---|---|
+{% for m in hogar %}| {{ m.nombre }} | {{ m.plataforma }} | {{ 'Yes' if m.administrador else 'No' }} |
+{% endfor %}
+
+Notification preference discussed and chosen by the customer:
+
+☐ Push with minimal content (category and time only) ☐ Local-only alerting
+
+The push notification disclosure was explained: notifications on Android and iOS travel through the
+operating system vendor's infrastructure, no vendor can avoid this, and the mitigation is minimal
+content plus fetching media over the tunnel when the app is opened.
+
+Remote access control plane chosen: ☐ Self-hosted ☐ Commercial
+
+---
+
+## 7. Existing systems — what we do not touch
+
+| System | Present | Action |
+|---|---|---|
+| Hardwired interconnected smoke alarms | ☐ Yes ☐ No | **Untouched, original circuits** |
+| Carbon monoxide alarms | ☐ Yes ☐ No | **Untouched** |
+| Existing monitored alarm system | ☐ Yes ☐ No | **Not integrated, not modified** |
+| Heat recovery ventilator tied to bathroom fans | ☐ Yes ☐ No | **If yes, that fan is not automated** |
+| Boiler, furnace or zone panel interlocks | ☐ Yes ☐ No | **Not touched** |
+| Existing smart devices to be retained | ☐ Yes ☐ No | List and assess against catalogue rules |
+
+Anything in the first five rows that is present must be listed explicitly in the as-built as
+out of scope.
+
+---
+
+## 8. Findings and risks
+
+| # | Finding | Impact on cost or schedule | Resolution |
+|---|---|---|---|
+| 1 | | | |
+| 2 | | | |
+| 3 | | | |
+
+---
+
+## 9. Sign-off
+
+The customer has been walked through these findings, including anything that changes the price.
+
+| | |
+|---|---|
+| Customer name | |
+| Signature | |
+| Date | |
+| Surveyor | |
+| Signature | |
+| Date | |

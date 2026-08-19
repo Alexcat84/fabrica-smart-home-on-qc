@@ -6,7 +6,7 @@
 # infraestructura del fabricante del sistema operativo movil equivale a "movimiento detectado".
 #
 # REGLA DE LENGUAJE (ADR-004): ningun texto puede sugerir funcion de seguridad de vida. Nada de
-# "alarm", "emergency", "fire", "smoke", "gas" ni "CO".
+# "alarm", "emergency", "fire", "smoke", "gas" ni "CO".   # regla-del-fuego: mencion permitida
 
 soporte_abierto_titulo: "Support access enabled"
 soporte_abierto_mensaje: >-

@@ -1,0 +1,155 @@
+# Proces-verbal de reception
+
+**{{ cliente.nombre }}** — {{ cliente.ciudad }}, {{ cliente.provincia }}
+Forfait {{ paquete }} · Genere le {{ generado_en }}
+
+Chaque essai ci-dessous est realise **en votre presence**, et vous signez ce que vous avez vu. Un
+essai decrit mais non realise n'est pas signe.
+
+Plusieurs de ces essais brisent volontairement le systeme devant vous. C'est voulu : vous devriez
+voir ce qui se passe en cas de panne, avant qu'elle ne survienne une nuit ou personne ne regarde.
+
+---
+
+## 1. Le controleur est mis hors tension
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Nous coupons completement l'alimentation du controleur. |
+| **Ce que vous devriez voir** | Toutes les lumieres s'allument et s'eteignent toujours **depuis l'interrupteur mural**. |
+| **Pourquoi c'est important** | L'automatisation s'ajoute a une maison qui fonctionne; elle ne la remplace pas. Si un interrupteur intelligent cesse de repondre au mural, c'est un defaut, pas une limite. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Notes | |
+
+## 2. La connexion Internet est debranchee
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Nous debranchons l'arrivee Internet a la passerelle. |
+| **Ce que vous devriez voir** | Lumieres, thermostats, capteurs, cameras et enregistrement continuent de fonctionner. Les automatisations continuent de s'executer. Seul l'acces a distance depuis l'exterieur s'interrompt. |
+| **Pourquoi c'est important** | Rien chez vous ne depend du maintien en ligne du service infonuagique d'une entreprise, y compris le notre. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Notes | |
+
+## 3. L'alimentation de la baie est coupee
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Nous coupons le courant de la baie d'equipement. |
+| **Ce que vous devriez voir** | L'onduleur prend le relais. Vous recevez une notification. Le systeme continue d'enregistrer. Si le courant ne revient pas, le systeme s'arrete de facon ordonnee plutot que de tomber d'un coup. |
+{% if paquete_def.energia is defined and paquete_def.energia.ups_camaras_dedicado %}
+| **En plus** | Les cameras et l'enregistrement se poursuivent sur leur batterie dediee pendant l'autonomie prevue. |
+{% endif %}
+| **Pourquoi c'est important** | L'interruption deliberee du courant est la panne qui compte vraiment pour un systeme de cameras. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Notes | |
+
+## 4. Balayage externe des ports
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Nous balayons votre adresse publique depuis l'exterieur de votre reseau. |
+| **Ce que vous devriez voir** | **Aucun port ouvert.** Le resultat du balayage est joint au present proces-verbal. |
+| **Pourquoi c'est important** | L'absence d'exposition entrante elimine une categorie entiere d'attaques. C'est le seul essai qui montre ce qu'un attaquant voit reellement. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Balayage joint | ☐ Oui |
+
+## 5. Acces a distance par reseau cellulaire
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Vous desactivez le Wi-Fi de votre telephone, utilisez le reseau mobile et ouvrez l'application. |
+| **Ce que vous devriez voir** | Le systeme repond. Les vues en direct des cameras se chargent. |
+| **Pourquoi c'est important** | Faire l'essai depuis votre Wi-Fi ne prouve rien. C'est cet essai qui demontre que le tunnel chiffre fonctionne. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Notes | |
+
+## 6. Le reseau des cameras est isole
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Depuis le segment reseau d'une camera, nous tentons de joindre Internet, vos appareils personnels et les interfaces de gestion. |
+| **Ce que vous devriez voir** | Toutes les tentatives echouent. L'enregistreur, lui, joint toujours les cameras. |
+| **Pourquoi c'est important** | Une camera compromise ne peut pas appeler l'exterieur, ni balayer votre reseau, ni envoyer de video ailleurs. C'est pourquoi l'application du fabricant ne fonctionnera pas : c'est voulu, et nous vous l'avons dit a la conception. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Notes | |
+
+## 7. Le controle de soutien et son expiration
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Vous activez l'acces de soutien depuis votre tableau de bord. Nous nous connectons. Puis nous attendons l'expiration, ou nous raccourcissons la minuterie pour la demontrer. |
+| **Ce que vous devriez voir** | Une notification a l'ouverture de la seance. Un compte a rebours sur votre tableau de bord. Une notification a la fermeture. Notre acces cesse de fonctionner des l'expiration. L'evenement est inscrit dans un journal **sur votre machine**, que vous pouvez consulter. |
+| **Egalement demontre** | Le redemarrage du controleur pendant une seance ouverte revoque l'acces immediatement. |
+| **Pourquoi c'est important** | Nous ne detenons aucun acces permanent a votre systeme. C'est le controle qui le garantit. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Journal montre au client | ☐ Oui |
+
+## 8. Sauvegarde et restauration
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Nous executons une sauvegarde, puis nous en restaurons un fichier de configuration et vous montrons le contenu restaure. |
+| **Ce que vous devriez voir** | La sauvegarde se termine, elle est chiffree, et elle se restaure correctement. |
+| **Ce qui vous est dit, et que vous reconnaissez** | **La video n'est pas sauvegardee.** Elle est protegee uniquement par la redondance des disques, lorsque votre forfait la comprend. **La redondance n'est pas une sauvegarde.** La cle de chiffrement vous appartient; nous n'en conservons pas de copie et, **sans elle, la sauvegarde est irrecuperable**. |
+| Resultat | ☐ Reussi ☐ Echec |
+| Le client reconnait que la video n'est pas sauvegardee | ☐ Oui |
+
+## 9. Detection par camera
+
+| | |
+|---|---|
+| **Ce que nous faisons** | Nous traversons le champ de vision de chaque camera. |
+| **Ce que vous devriez voir** | La personne est detectee, l'evenement est enregistre, et la notification arrive avec un contenu minimal. L'ouverture de l'application recupere la sequence depuis votre propre serveur. |
+| **Pourquoi c'est important** | Les zones de detection et les masques sont ajustes a votre propriete, et non laisses au reglage d'usine. |
+| Resultat | ☐ Reussi ☐ Echec |
+
+Par camera :
+
+{% for cam in camaras %}
+- **{{ cam.nombre_cliente }}** — {{ cam.descripcion_campo_vision or 'champ de vision a consigner' }} · Resultat : ☐ Reussi ☐ Echec
+{% endfor %}
+
+---
+
+## 10. Liste de verification du durcissement
+
+La liste complete de durcissement a ete remplie et signee separement. Resume :
+
+- ☐ Pare-feu de l'hote actif, refus par defaut en entree
+- ☐ Aucun acces shell a distance par mot de passe
+- ☐ Tous les identifiants par defaut modifies et consignes dans votre coffre
+- ☐ Authentification a deux facteurs sur tous les comptes administratifs
+- ☐ UPnP desactive, aucune redirection de port, gestion a distance de la passerelle desactivee
+- ☐ Cameras : compte par defaut supprime, fonctions infonuagiques et pair-a-pair desactivees, micrologiciel a jour
+- ☐ Sans fil : WPA3 ou WPA2-AES, sans WPS, cle unique par segment, gestion non exposee par radio
+- ☐ Reseau invite isole avec isolation des clients
+- ☐ Ports de commutateur inutilises desactives
+- ☐ Journalisation active avec conservation definie
+- ☐ Balayage externe de vulnerabilites propre, resultat joint
+
+---
+
+## 11. Remise
+
+- ☐ Coffre d'identifiants remis, et **l'entreprise n'en conserve aucune copie**
+- ☐ Document tel que construit remis, dans votre langue
+- ☐ Annexe des licences remise
+- ☐ Procedure de sauvegarde et de restauration remise
+- ☐ Section de continuite expliquee : comment un autre fournisseur prend la releve
+- ☐ Enonce des travaux et exclusions signe
+- ☐ Application mobile installee pour chaque membre du menage
+- ☐ Controle de soutien demontre a chaque membre du menage
+
+---
+
+## Signatures
+
+| | |
+|---|---|
+| Nom du client | |
+| Signature | |
+| Date | |
+| Technicien | |
+| Signature | |
+| Date | |
