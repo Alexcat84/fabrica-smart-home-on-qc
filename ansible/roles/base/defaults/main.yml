@@ -1,0 +1,29 @@
+---
+# Rol base: valores por defecto.
+# ADR-005: ninguna credencial aqui. Las claves publicas si pueden estar: son publicas.
+
+paquetes_base:
+  - ufw
+  - chrony
+  - curl
+  - ca-certificates
+  - gnupg
+  - restic
+
+usuario_despliegue: despliegue
+grupos_despliegue: [sudo, docker]
+
+# Se rellenan por cliente. Sin clave publica no hay acceso: es lo correcto.
+claves_publicas_despliegue: []
+
+octeto: 0
+zona_horaria: America/Toronto
+retencion_registro_dias: 35
+
+# Solo el segmento de gestion y el tunel pueden abrir shell. Trusted no.
+origenes_administrativos:
+  - "10.{{ octeto }}.50.0/24"
+  - "10.{{ octeto }}.40.0/24"
+
+origenes_interfaz:
+  - "10.{{ octeto }}.10.0/24"

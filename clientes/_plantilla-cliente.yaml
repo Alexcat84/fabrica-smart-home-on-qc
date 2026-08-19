@@ -1,2 +1,222 @@
-# Plantilla de variables de cliente - se puebla en la Fase 3.
+# PLANTILLA DE VARIABLES DE CLIENTE
+#
+# Copiar a `clientes/<APELLIDO-ciudad>/cliente.yaml` y rellenar con los datos del relevamiento.
+# Este archivo es LO UNICO especifico de una casa. Todo lo demas vive en plantillas/ y se genera.
+#
+# ADR-005: NINGUNA contrasena, clave ni token aqui. Usar `CAMBIAR-EN-COMISIONAMIENTO`. Las
+# credenciales reales se generan en el sitio y viven en el baul del cliente (Vaultwarden).
+#
+# Antes de comprar nada:   python generador/validar.py clientes/<cliente>/cliente.yaml
+# Para generar el paquete: python generador/generar.py clientes/<cliente>/cliente.yaml
 ---
+
+# =================================================================================================
+# Identidad
+# =================================================================================================
+cliente:
+  id: APELLIDO-ciudad          # minusculas, guiones; se usa en rutas, hostnames y nombres de archivo
+  nombre: "Apellido, Nombre"
+  nombre_sistema: "Casa Apellido"   # aparece en la interfaz del cliente
+  provincia: ON                # ON | QC
+  ciudad: null
+  idioma: en                   # en | fr  -> determina el idioma de TODO lo que ve el cliente
+  latitud: null
+  longitud: null
+  elevacion_m: null
+
+paquete: M                     # S | M | L | XL
+
+# =================================================================================================
+# Red
+# =================================================================================================
+red:
+  octeto: null                 # SEGUNDO OCTETO, asignado desde el registro de la empresa.
+                               # Dos sitios nunca comparten octeto: un tecnico conectado a ambos por
+                               # la superposicion de soporte tendria colision de direcciones.
+  dominio_local: casa.local
+  zona_horaria: America/Toronto      # America/Toronto (ON) | America/Montreal (QC)
+
+  # MEDIDAS EN EL RELEVAMIENTO, no la velocidad anunciada del plan. La subida es la restriccion.
+  bajada_mbps: null
+  subida_mbps: null
+  margen_hogar_mbps: 5.0
+  cgnat: null                  # true si el proveedor usa traduccion de nivel de operador: impide
+                               # tunel directo y fuerza relevo, con latencia adicional
+  failover_celular: false
+
+  ssid_familia: null
+  ssid_iot: null
+  ssid_invitados: null
+  seguridad_wifi: WPA3
+  seguridad_wifi_iot: WPA2-AES
+  equipo_administrativo: null  # host autorizado a alcanzar el segmento Management
+
+visores_concurrentes: 2        # visores remotos simultaneos previstos
+horas_visionado_dia: 1.0       # para el argumento comercial de consumo mensual
+
+# =================================================================================================
+# Zigbee
+# =================================================================================================
+zigbee:
+  canal: null                  # elegido tras relevar 2,4 GHz en el sitio, sin solapar con el Wi-Fi
+  coordinador_transporte: ethernet   # ethernet (preferente) | usb
+  coordinador_ip_final: 50           # ultimo octeto dentro de la VLAN IoT
+  puerto_usb: null
+  adaptador: ezsp
+  potencia_dbm: 5
+
+# =================================================================================================
+# Soporte remoto
+# =================================================================================================
+soporte:
+  duracion_horas: 2            # la autorizacion expira sola; tambien al reiniciar
+  plano_control: autoalojado   # autoalojado (por defecto) | comercial
+
+# =================================================================================================
+# Notificaciones
+# =================================================================================================
+notificaciones:
+  # push_mitigado : notificacion push con contenido MINIMO (categoria y hora). Se divulga por
+  #                 escrito que atraviesa la infraestructura del fabricante del sistema operativo.
+  # solo_local    : sin terceros. Aviso sonoro y visual en la vivienda mas canal autoalojado.
+  # La eleccion es del CLIENTE y consta en la declaracion de alcance firmada.
+  modo: push_mitigado
+
+# =================================================================================================
+# Hogar
+# =================================================================================================
+hogar:
+  - nombre: null
+    dispositivo_movil: null    # nombre del dispositivo en la app; forma notify.mobile_app_<nombre>
+    plataforma: null           # ios | android
+    administrador: false
+
+# =================================================================================================
+# Retencion y almacenamiento
+# =================================================================================================
+retencion:
+  continua_dias: 7
+  eventos_dias: 60
+  margen: 0.15                 # sistema de archivos, metadatos y variacion de bitrate del codec
+
+almacenamiento:
+  nvme_sistema_gb: 500
+  vigilancia_tb: null          # debe cubrir el calculo; validar.py lo comprueba
+  redundancia: ninguna         # ninguna | espejo | paridad
+
+# =================================================================================================
+# Camaras
+# =================================================================================================
+camaras:
+  - nombre: camara_exterior_frente_entrada    # docs/NOMENCLATURA.md seccion 8: describe LO QUE VE
+    nombre_cliente: "Front door"              # lo que ve el cliente, en su idioma
+    id_catalogo: null                         # debe existir en catalogo/dispositivos.yaml
+    area: exterior_frente
+    exterior: true
+    ip_final: 11                              # 10.<octeto>.30.<ip_final>
+    mac: CAMBIAR-EN-COMISIONAMIENTO
+    puerto_switch: null
+    etiqueta_cable: null                      # mismo codigo en ambos extremos y en el plano as-built
+    tipo_poe: camara_4k_ir                    # camara_2k | camara_4k_ir | camara_4k_ir_calefactor
+    consumo_w: null                           # de ficha tecnica; null usa el tipico del tipo
+    clase_poe: 802.3at
+    bitrate_principal_mbps: 8.0
+    bitrate_substream_mbps: 0.5               # parametro de DISENO, no valor heredado (M-12)
+    substream_ancho: 640
+    substream_alto: 480
+    substream_fps: 5
+    ruta_principal: /h264Preview_01_main
+    ruta_substream: /h264Preview_01_sub
+    fraccion_eventos: 0.10                    # fraccion del dia con actividad; ajustar por sitio
+    descripcion_campo_vision: null
+    deteccion_personas: true
+    zonas: []
+    mascaras: []
+
+# =================================================================================================
+# PoE
+# =================================================================================================
+poe:
+  presupuesto_switch_w: null   # del switch especificado; exige 40 % de holgura sobre el peor caso
+  otros:
+    - nombre: null
+      tipo: punto_acceso       # punto_acceso | coordinador_zigbee | panel_tactil
+      consumo_w: null
+
+# =================================================================================================
+# Dispositivos
+# =================================================================================================
+# Todo dispositivo debe existir en catalogo/dispositivos.yaml. Si `instalable_en_caja` es true en el
+# catalogo y su `certificacion` es null, validar.py RECHAZA el cliente (ADR-002). Es lo correcto:
+# obliga a verificar la marca sobre la unidad fisica antes de comprarla.
+dispositivos:
+  - nombre: interruptor_planta_baja_sala_principal
+    nombre_cliente: "Living room"
+    id_catalogo: leviton-decora-smart-interruptor
+    categoria: interruptor
+    area: planta_baja_sala
+    circuito: null             # numero de circuito del panel; va al registro electrico del as-built
+    protocolo: zigbee
+    router: true               # alimentado de red: se empareja ANTES que los dispositivos de bateria
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+
+# =================================================================================================
+# Clima
+# =================================================================================================
+clima:
+  hora_retroceso: "22:30:00"
+  hora_recuperacion: "06:00:00"
+  horas_ausencia_retroceso: 4
+  limite_antihielo_c: 12       # NUNCA por debajo: una casa canadiense sin calefaccion en enero
+                               # revienta la fontaneria en horas
+
+# =================================================================================================
+# Agua
+# =================================================================================================
+agua:
+  valvula_corte: null          # entidad de la valvula motorizada, si la hay
+
+# =================================================================================================
+# Escenas
+# =================================================================================================
+escenas: []
+
+# =================================================================================================
+# Respaldo
+# =================================================================================================
+respaldo:
+  herramienta: restic          # restic | borg
+  hora: "03:15"
+  destino_local: /mnt/respaldo
+  destino_secundario: /mnt/respaldo-secundario   # dispositivo FISICO distinto
+  destino_externo: null        # opcional y controlado por el cliente; la empresa no aloja respaldos
+  frecuencia_prueba: anual
+
+# =================================================================================================
+# Software desplegado
+# =================================================================================================
+# Ids de catalogo/software.yaml. Determina que se despliega y que aparece en el apendice de licencias.
+software_desplegado:
+  - home-assistant-os
+  - home-assistant-core
+  - mosquitto
+  - zigbee2mqtt
+  - frigate
+  - go2rtc
+  - wireguard
+  - plano-control-malla
+  - traefik
+  - vaultwarden
+  - restic
+  - nut
+  - uptime-kuma
+
+registro:
+  dias_retencion: 35           # que una pregunta de hace un mes siga teniendo respuesta
+
+inferencia:
+  acelerador_discreto: false   # la ruta por defecto es la grafica Intel integrada
+  tipo_acelerador: null
+  dispositivo_acelerador: null
+
+version_stack: null            # se fija al validar el conjunto en el banco de la empresa
