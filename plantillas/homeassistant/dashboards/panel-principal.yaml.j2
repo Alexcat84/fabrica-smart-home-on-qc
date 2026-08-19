@@ -1,0 +1,66 @@
+# Panel principal del cliente
+# GENERADO. No editar a mano (ADR-006).
+#
+# El control de SOPORTE va arriba y claramente etiquetado: es la pieza que el cliente compro y tiene
+# que encontrarlo sin buscar. Debajo, lo que usa a diario.
+
+title: "{{ textos_panel.titulo }}"
+views:
+  - title: "{{ textos_panel.vista_casa }}"
+    path: casa
+    icon: mdi:home
+    cards:
+      - type: entities
+        title: "{{ textos_panel.soporte_titulo }}"
+        show_header_toggle: false
+        entities:
+          - entity: input_boolean.soporte_remoto
+            name: "{{ textos_panel.soporte_interruptor }}"
+          - entity: timer.soporte_remoto
+            name: "{{ textos_panel.soporte_restante }}"
+          - entity: input_text.soporte_ultimo_evento
+            name: "{{ textos_panel.soporte_ultimo }}"
+        footer:
+          type: graph
+          entity: sensor.version_fijada_del_stack
+
+      - type: markdown
+        content: |
+          {{ textos_panel.soporte_explicacion }}
+
+{% if camaras %}
+  - title: "{{ textos_panel.vista_camaras }}"
+    path: camaras
+    icon: mdi:cctv
+    cards:
+{% for cam in camaras %}
+      - type: picture-entity
+        entity: camera.{{ cam.nombre }}
+        name: "{{ cam.nombre_cliente }}"
+        camera_view: live
+{% endfor %}
+{% endif %}
+
+  - title: "{{ textos_panel.vista_clima }}"
+    path: clima
+    icon: mdi:thermometer
+    cards:
+{% for t in dispositivos if t.categoria == 'termostato' %}
+      - type: thermostat
+        entity: climate.{{ t.nombre }}
+        name: "{{ t.nombre_cliente }}"
+{% endfor %}
+
+  - title: "{{ textos_panel.vista_sistema }}"
+    path: sistema
+    icon: mdi:server
+    cards:
+      - type: entities
+        title: "{{ textos_panel.salud }}"
+        entities:
+          - binary_sensor.sistema_respaldo_reciente
+          - binary_sensor.enlace_internet
+          - sensor.ups_carga_bateria
+{% for cam in camaras %}
+          - binary_sensor.enlace_{{ cam.nombre }}
+{% endfor %}

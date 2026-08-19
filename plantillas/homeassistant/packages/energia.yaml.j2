@@ -1,0 +1,99 @@
+# Paquete de dominio: ENERGIA
+# GENERADO. No editar a mano (ADR-006).
+#
+# El desplazamiento de carga es una propuesta real en Ontario por la estructura tarifaria horaria.
+# En Quebec el argumento de ahorro es marginal y no se vende como tal: alli el valor esta en la
+# visibilidad por circuito y en el control de cargas altas (cap. 6.5).
+
+# =================================================================================================
+# Panel de energia
+# =================================================================================================
+
+{% set medidores = dispositivos | selectattr('categoria', 'equalto', 'energia') | list %}
+
+{% if medidores %}
+sensor:
+  - platform: integration
+    source: sensor.consumo_total_w
+    name: consumo_total_kwh
+    unit_prefix: k
+    round: 2
+    method: left
+{% endif %}
+
+utility_meter:
+  consumo_diario:
+    source: sensor.consumo_total_kwh
+    cycle: daily
+  consumo_mensual:
+    source: sensor.consumo_total_kwh
+    cycle: monthly
+
+# =================================================================================================
+# Sistema de alimentacion ininterrumpida
+# =================================================================================================
+# El UPS se integra por Network UPS Tools: da estado, aviso de bateria baja y apagado ordenado.
+# Por eso el catalogo exige puerto de datos: sin el, el UPS es una caja que no dice nada.
+
+automation:
+  - id: energia_ups_en_bateria
+    alias: "Energia - UPS en bateria"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.ups_en_bateria
+        to: "on"
+        for: "00:01:00"
+    action:
+      - service: notify.familia
+        data:
+          title: "{{ textos.aviso_corte_energia_titulo }}"
+          message: "{{ textos.aviso_corte_energia_mensaje }}"
+      - service: notify.registro_soporte_local
+        data:
+          message: "UPS en bateria. Se inicia la cuenta atras de apagado ordenado."
+
+  - id: energia_ups_bateria_baja
+    alias: "Energia - UPS con bateria baja"
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.ups_carga_bateria
+        below: 25
+    action:
+      - service: notify.familia
+        data:
+          title: "{{ textos.aviso_bateria_baja_titulo }}"
+          message: "{{ textos.aviso_bateria_baja_mensaje }}"
+      # El apagado ordenado lo ejecuta Network UPS Tools en el anfitrion, no Home Assistant: si el
+      # controlador ya esta degradado por falta de energia, no es quien debe tomar esa decision.
+
+{% for c in dispositivos if c.categoria == 'energia' and c.tipo | default('') == 'controlador_carga' %}
+  # Control de carga alta: {{ c.nombre }}
+  # Instalado por electricista licenciado. Nunca sobre un circuito compartido con detectores
+  # interconectados exigidos por codigo (ADR-004).
+  - id: energia_desplazamiento_{{ c.nombre }}
+    alias: "Energia - desplazamiento de carga - {{ c.nombre }}"
+    mode: single
+    trigger:
+      - platform: time
+        at: "{{ c.hora_inicio_punta | default('16:00:00') }}"
+    condition:
+      - condition: template
+        value_template: "{{ '{{' }} now().weekday() < 5 {{ '}}' }}"
+    action:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.{{ c.nombre }}
+
+  - id: energia_restauracion_{{ c.nombre }}
+    alias: "Energia - fin de punta - {{ c.nombre }}"
+    mode: single
+    trigger:
+      - platform: time
+        at: "{{ c.hora_fin_punta | default('21:00:00') }}"
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.{{ c.nombre }}
+{% endfor %}

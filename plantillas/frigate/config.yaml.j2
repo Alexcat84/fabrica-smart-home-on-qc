@@ -1,0 +1,157 @@
+# Frigate NVR - configuracion
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cliente : {{ cliente.nombre }} ({{ cliente.id }})
+# Paquete : {{ paquete }}
+# Camaras : {{ camaras | length }}
+# Generado: {{ generado_en }}
+#
+# Decisiones fijas de este diseno:
+#   - Inferencia sobre grafica Intel integrada (OpenVINO) como RUTA POR DEFECTO. El acelerador
+#     discreto es opcion y solo en el nivel XL: su suministro ha sido poco fiable (cap. 6.11).
+#   - SUB-STREAM para deteccion, STREAM PRINCIPAL para grabacion. Detectar sobre el principal
+#     desperdicia CPU y no mejora la deteccion.
+#   - RETENCION HIBRIDA: continua corta mas eventos larga. Reduce el almacenamiento entre la mitad y
+#     dos tercios conservando exactamente lo que el cliente busca despues (cap. 6.12).
+#   - Las camaras estan en la VLAN Camera sin salida a internet. El grabador abre la conexion; la
+#     camara nunca origina nada (cap. 7.4.1).
+
+mqtt:
+  enabled: true
+  host: 10.{{ red.octeto }}.40.10
+  port: 1883
+  user: "{FRIGATE_MQTT_USER}"
+  password: "{FRIGATE_MQTT_PASSWORD}"    # inyectada por variable de entorno desde ansible-vault
+  topic_prefix: frigate
+  client_id: frigate_{{ cliente.id }}
+
+detectors:
+{% if inferencia.acelerador_discreto | default(false) %}
+  # Acelerador discreto solicitado para este cliente. Sigue sin ser la ruta por defecto.
+  discreto:
+    type: {{ inferencia.tipo_acelerador }}
+    device: {{ inferencia.dispositivo_acelerador }}
+{% else %}
+  ov:
+    type: openvino
+    device: GPU        # grafica Intel integrada del anfitrion
+{% endif %}
+
+model:
+  path: /openvino-model/ssdlite_mobilenet_v2.xml
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+
+ffmpeg:
+  hwaccel_args: preset-vaapi        # decodificacion por hardware en la iGPU Intel
+
+# -------------------------------------------------------------------------------------------------
+# Retencion hibrida
+# -------------------------------------------------------------------------------------------------
+record:
+  enabled: true
+  retain:
+    days: {{ retencion.continua_dias }}      # grabacion continua, ventana corta
+    mode: all
+  alerts:
+    retain:
+      days: {{ retencion.eventos_dias }}     # eventos con persona o vehiculo, ventana larga
+      mode: motion
+  detections:
+    retain:
+      days: {{ retencion.eventos_dias }}
+      mode: motion
+
+snapshots:
+  enabled: true
+  timestamp: false
+  bounding_box: true
+  retain:
+    default: {{ retencion.eventos_dias }}
+
+# -------------------------------------------------------------------------------------------------
+# Objetos
+# -------------------------------------------------------------------------------------------------
+# Solo persona y vehiculo. Anadir mas clases multiplica los falsos positivos y con ellos las
+# notificaciones que el cliente acaba silenciando, que es el peor resultado posible.
+objects:
+  track:
+    - person
+    - car
+  filters:
+    person:
+      min_score: 0.6
+      threshold: 0.75
+    car:
+      min_score: 0.6
+      threshold: 0.75
+
+go2rtc:
+  streams:
+{% for cam in camaras %}
+    {{ cam.nombre }}:
+      - "rtsp://{RTSP_USER}:{RTSP_PASSWORD}@10.{{ red.octeto }}.30.{{ cam.ip_final }}{{ cam.ruta_principal }}"
+    {{ cam.nombre }}_sub:
+      - "rtsp://{RTSP_USER}:{RTSP_PASSWORD}@10.{{ red.octeto }}.30.{{ cam.ip_final }}{{ cam.ruta_substream }}"
+{% endfor %}
+
+# -------------------------------------------------------------------------------------------------
+# Camaras
+# -------------------------------------------------------------------------------------------------
+cameras:
+{% for cam in camaras %}
+  {{ cam.nombre }}:
+    # {{ cam.descripcion_campo_vision }}
+    # Modelo: {{ cam.modelo | default('por fijar') }} | Exterior: {{ 'si' if cam.exterior else 'no' }}
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/{{ cam.nombre }}_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+        - path: rtsp://127.0.0.1:8554/{{ cam.nombre }}
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+    detect:
+      width: {{ cam.substream_ancho | default(640) }}
+      height: {{ cam.substream_alto | default(480) }}
+      fps: {{ cam.substream_fps | default(5) }}
+{% if cam.zonas | default([]) %}
+    zones:
+{% for z in cam.zonas %}
+      {{ z.nombre }}:
+        coordinates: {{ z.coordenadas }}
+        objects:
+{% for o in z.objetos | default(['person']) %}
+          - {{ o }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% if cam.mascaras | default([]) %}
+    motion:
+      # Mascaras: zonas que se excluyen del analisis de movimiento. Tipicas: la via publica, el
+      # arbol que se mueve con el viento y el reflejo de una ventana.
+      mask:
+{% for m in cam.mascaras %}
+        - {{ m }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+# -------------------------------------------------------------------------------------------------
+# Notas de dimensionado, generadas desde los calculos justificados
+# -------------------------------------------------------------------------------------------------
+# Almacenamiento requerido segun herramientas/calc_almacenamiento.py:
+#   continua {{ retencion.continua_dias }} d + eventos {{ retencion.eventos_dias }} d
+#   => {{ calculos.almacenamiento_tb }} TB   (instalado: {{ almacenamiento.vigilancia_tb }} TB)
+# Presupuesto PoE segun herramientas/calc_poe.py:
+#   peor caso {{ calculos.poe_peor_caso_w }} W, requerido con 40 % de holgura
+#   {{ calculos.poe_requerido_w }} W (switch: {{ poe.presupuesto_switch_w }} W)
+# Ancho de banda de subida segun herramientas/calc_ancho_banda.py:
+#   {{ visores_concurrentes }} visor(es) => {{ calculos.subida_requerida_mbps }} Mbps
+#   (contratado: {{ red.subida_mbps }} Mbps)

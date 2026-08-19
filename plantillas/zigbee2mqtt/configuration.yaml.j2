@@ -1,0 +1,84 @@
+# Zigbee2MQTT - configuracion
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cliente : {{ cliente.nombre }} ({{ cliente.id }})
+# Generado: {{ generado_en }}
+#
+# Diseno de malla (cap. 6.15 y 8.4):
+#   - UN coordinador por propiedad, en el centro geometrico de la poblacion de dispositivos.
+#   - A dos metros como minimo del rack, de la pasarela y de todo puerto USB 3 o unidad SSD, que son
+#     fuentes fuertes de ruido en 2,4 GHz.
+#   - Canal elegido para no solapar con los canales Wi-Fi en uso en el sitio. Se hace un relevamiento
+#     de ambas bandas ANTES de la puesta en servicio, no despues de las quejas.
+#   - Orden de emparejamiento: primero todos los dispositivos alimentados de red, que actuan como
+#     routers, y despues los de bateria, para que estos se unan a traves de una malla ya madura y
+#     elijan buenos padres.
+
+homeassistant:
+  enabled: true
+  discovery_topic: homeassistant
+  status_topic: homeassistant/status
+
+frontend:
+  enabled: true
+  host: 10.{{ red.octeto }}.40.10
+  port: 8080
+
+mqtt:
+  base_topic: zigbee2mqtt
+  server: 'mqtt://10.{{ red.octeto }}.40.10:1883'
+  user: '!secreto usuario'
+  password: '!secreto contrasena'
+  # Credenciales inyectadas desde ansible-vault. Nunca en claro en el repositorio (ADR-005).
+
+serial:
+  # Coordinador preferente: por Ethernet o PoE, para poder colocarlo donde llegue un cable.
+{% if zigbee.coordinador_transporte == 'ethernet' %}
+  port: 'tcp://10.{{ red.octeto }}.20.{{ zigbee.coordinador_ip_final }}:6638'
+  adapter: {{ zigbee.adaptador | default('ezsp') }}
+{% else %}
+  # Coordinador USB: solo cuando no hay version Ethernet disponible en Canada. Extender con cable
+  # USB apantallado y mantenerlo lejos de puertos USB 3 y de unidades SSD.
+  port: {{ zigbee.puerto_usb | default('/dev/serial/by-id/CAMBIAR-EN-COMISIONAMIENTO') }}
+  adapter: {{ zigbee.adaptador | default('ezsp') }}
+{% endif %}
+
+advanced:
+  channel: {{ zigbee.canal }}          # elegido tras el relevamiento de 2,4 GHz del sitio
+  pan_id: {{ zigbee.pan_id | default('GENERATE') }}
+  ext_pan_id: GENERATE
+  network_key: GENERATE                # se genera en el sitio y se guarda en el baul del cliente
+  transmit_power: {{ zigbee.potencia_dbm | default(5) }}
+  log_level: info
+  log_output:
+    - console
+    - file
+  last_seen: ISO_8601
+  legacy_api: false
+  legacy_availability_payload: false
+
+availability:
+  enabled: true
+  active:
+    timeout: 10
+  passive:
+    timeout: 1500
+
+# Emparejamiento cerrado por defecto. Se abre de forma deliberada durante el comisionamiento o
+# siguiendo runbooks/emparejar-dispositivo.md, y se vuelve a cerrar al terminar. Dejarlo abierto
+# permite que cualquiera con un dispositivo Zigbee se una a la red de la casa.
+permit_join: false
+
+device_options:
+  retain: true
+
+devices:
+{% for d in dispositivos if d.protocolo == 'zigbee' %}
+  # {{ d.nombre }} - {{ d.area }}{% if d.circuito %} - circuito {{ d.circuito }}{% endif %}
+
+  '{{ d.ieee | default('CAMBIAR-EN-COMISIONAMIENTO') }}':
+    friendly_name: {{ d.nombre }}
+{% if d.router | default(false) %}
+    # Alimentado de red: actua como router de la malla. Se empareja ANTES que los de bateria.
+{% endif %}
+{% endfor %}

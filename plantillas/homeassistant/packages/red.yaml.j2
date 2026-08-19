@@ -1,0 +1,101 @@
+# Paquete de dominio: RED
+# GENERADO. No editar a mano (ADR-006).
+#
+# Vigila lo que el cliente nota antes que nosotros: el enlace caido, la camara que dejo de responder
+# y el tunel que no levanta. Con el segmento de camaras aislado, una camara muda no genera alerta por
+# si sola: hay que preguntarle activamente desde el grabador.
+
+# =================================================================================================
+# Disponibilidad de camaras
+# =================================================================================================
+{% if camaras %}
+binary_sensor:
+  - platform: ping
+    # El grabador (Controller) sondea a la camara. La camara nunca origina conexion: matriz de
+    # firewall direccional y con estado (cap. 7.4.1).
+{% for cam in camaras %}
+    host: 10.{{ red.octeto }}.30.{{ cam.ip_final }}
+    name: "enlace_{{ cam.nombre }}"
+    count: 3
+    scan_interval: 120
+{% endfor %}
+{% endif %}
+
+# =================================================================================================
+# Estado del enlace de internet
+# =================================================================================================
+
+automation:
+  - id: red_enlace_caido
+    alias: "Red - enlace de internet caido"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.enlace_internet
+        to: "off"
+        for: "00:05:00"
+    action:
+      - service: notify.registro_soporte_local
+        data:
+          message: "Enlace de internet caido. El sistema local sigue operativo."
+      # NO se notifica al movil: si el enlace esta caido, la notificacion no saldria de todos modos.
+      # El aviso sonoro local si tiene sentido y lo decide el cliente en el diseno.
+
+  - id: red_enlace_restablecido
+    alias: "Red - enlace de internet restablecido"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.enlace_internet
+        from: "off"
+        to: "on"
+    action:
+      - service: notify.familia
+        data:
+          title: "{{ textos.aviso_red_titulo }}"
+          message: "{{ textos.aviso_red_mensaje }}"
+
+{% for cam in camaras %}
+  - id: red_camara_sin_respuesta_{{ cam.nombre }}
+    alias: "Red - camara sin respuesta - {{ cam.nombre }}"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.enlace_{{ cam.nombre }}
+        to: "off"
+        for: "00:10:00"
+    action:
+      - service: notify.registro_soporte_local
+        data:
+          message: >-
+            Camara {{ cam.nombre }} sin respuesta durante 10 minutos. Causa habitual en invierno:
+            presupuesto PoE insuficiente con el infrarrojo nocturno y el calefactor activos. El
+            sintoma solo aparece de noche y con frio, que es lo que lo hace dificil de diagnosticar
+            despues. Verificar el calculo de herramientas/calc_poe.py contra el consumo real.
+      - service: notify.familia
+        data:
+          title: "{{ textos.aviso_camara_titulo }}"
+          message: "{{ textos.aviso_camara_mensaje }}"
+{% endfor %}
+
+# =================================================================================================
+# Hora local del segmento de camaras
+# =================================================================================================
+# Una camara con la hora mal produce grabaciones con marca de tiempo equivocada, lo que destruye su
+# valor probatorio. Como el segmento de camaras no tiene salida a internet, el servidor de hora vive
+# DENTRO del propio segmento (cap. 7.4.2). Su despliegue esta en ansible/roles/red y su
+# configuracion en plantillas/red/.
+
+  - id: red_deriva_horaria_camaras
+    alias: "Red - deriva horaria en el segmento de camaras"
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.deriva_ntp_camaras_segundos
+        above: 5
+    action:
+      - service: notify.registro_soporte_local
+        data:
+          message: >-
+            Deriva horaria superior a 5 s en el segmento de camaras. Revisar el servidor de hora
+            local antes de que las grabaciones pierdan valor probatorio.

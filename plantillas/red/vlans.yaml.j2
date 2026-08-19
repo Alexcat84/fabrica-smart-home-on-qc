@@ -1,0 +1,130 @@
+# Definicion declarativa de la red
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cliente : {{ cliente.nombre }} ({{ cliente.id }})
+# Paquete : {{ paquete }}
+# Octeto  : {{ red.octeto }}
+# Generado: {{ generado_en }}
+#
+# Se aplica el MISMO estandar de direccionamiento en cada instalacion, para que cualquier tecnico
+# pueda moverse por cualquier sitio sin leer antes la documentacion.
+#
+# El SEGUNDO OCTETO se asigna por cliente desde el registro de la empresa, de modo que dos sitios
+# nunca colisionen cuando un tecnico esta conectado a ambos a traves de la superposicion de soporte.
+# Es una disciplina pequena que evita una clase de fallo real y muy confusa.
+# `generador/validar.py` rechaza un octeto repetido o fuera de rango.
+
+octeto: {{ red.octeto }}
+dominio_local: {{ red.dominio_local }}
+zona_horaria: {{ red.zona_horaria }}
+
+vlans:
+  - id: 10
+    nombre: Trusted
+    subred: "10.{{ red.octeto }}.10.0/24"
+    gateway: "10.{{ red.octeto }}.10.1"
+    dhcp: true
+    rango_dhcp: "10.{{ red.octeto }}.10.100 - 10.{{ red.octeto }}.10.250"
+    contenido: Telefonos, portatiles, tabletas e impresoras de la familia
+    acceso_internet: completo
+    presente: true
+
+  - id: 20
+    nombre: IoT
+    subred: "10.{{ red.octeto }}.20.0/24"
+    gateway: "10.{{ red.octeto }}.20.1"
+    dhcp: true
+    reservas: true
+    rango_dhcp: "10.{{ red.octeto }}.20.100 - 10.{{ red.octeto }}.20.250"
+    contenido: Reles Wi-Fi, termostatos, enchufes, paneles tactiles, coordinador Zigbee por Ethernet
+    acceso_internet: restringido
+    acceso_internet_detalle: >-
+      Solo sincronizacion horaria y los puntos concretos de actualizacion que cada fabricante
+      requiera. Sin ruta hacia Trusted.
+    presente: true
+
+  - id: 30
+    nombre: Camera
+    subred: "10.{{ red.octeto }}.30.0/24"
+    gateway: "10.{{ red.octeto }}.30.1"
+    dhcp: false
+    reservas_estaticas: true
+    contenido: Camaras IP unicamente
+    acceso_internet: ninguno
+    acceso_internet_detalle: >-
+      Sin salida. Las camaras aceptan conexiones del grabador y no originan ninguna. Por eso el
+      servidor de hora vive DENTRO de este segmento (ver ntp-camaras.conf) y por eso la
+      actualizacion de firmware es tarea manual programada del tecnico, que es argumento del plan de
+      cuidado y no un defecto. Las aplicaciones del fabricante NO funcionaran: se le dice al cliente
+      durante el diseno, porque es la sorpresa mas comun en la entrega.
+    presente: true
+
+  - id: 40
+    nombre: Controller
+    subred: "10.{{ red.octeto }}.40.0/24"
+    gateway: "10.{{ red.octeto }}.40.1"
+    dhcp: false
+    contenido: Home Assistant y el anfitrion de grabacion
+    acceso_internet: restringido
+    acceso_internet_detalle: Solo actualizaciones y repositorios de paquetes.
+    presente: true
+    hosts:
+      - ip: "10.{{ red.octeto }}.40.10"
+        nombre: controlador
+        descripcion: Home Assistant, Mosquitto, Frigate, go2rtc
+
+  - id: 50
+    nombre: Management
+    subred: "10.{{ red.octeto }}.50.0/24"
+    gateway: "10.{{ red.octeto }}.50.1"
+    dhcp: false
+    contenido: Pasarela, switches, puntos de acceso e interfaces fuera de banda
+    acceso_internet: ninguno
+    acceso_internet_detalle: Salvo descarga deliberada de firmware por el tecnico.
+{% if 50 in paquete_def.vlans.presentes %}
+    presente: true
+{% else %}
+    presente: false
+    plegada_en: 40
+    nota: >-
+      En este nivel Management se pliega dentro de Controller. El acceso administrativo sigue
+      restringido a un equipo autorizado o a una sesion de soporte autorizada.
+{% endif %}
+
+  - id: 60
+    nombre: Guest
+    subred: "10.{{ red.octeto }}.60.0/24"
+    gateway: "10.{{ red.octeto }}.60.1"
+    dhcp: true
+    rango_dhcp: "10.{{ red.octeto }}.60.100 - 10.{{ red.octeto }}.60.250"
+    contenido: Visitas
+    acceso_internet: completo
+    aislamiento_de_clientes: true
+{% if 60 in paquete_def.vlans.presentes %}
+    presente: true
+{% else %}
+    presente: false
+{% endif %}
+
+# -------------------------------------------------------------------------------------------------
+# Reservas estaticas del segmento de camaras
+# -------------------------------------------------------------------------------------------------
+reservas_camaras:
+{% for cam in camaras %}
+  - nombre: {{ cam.nombre }}
+    ip: "10.{{ red.octeto }}.30.{{ cam.ip_final }}"
+    mac: "{{ cam.mac | default('CAMBIAR-EN-COMISIONAMIENTO') }}"
+    puerto_switch: "{{ cam.puerto_switch | default('por asignar') }}"
+    etiqueta_cable: "{{ cam.etiqueta_cable | default('por asignar') }}"
+    clase_poe: "{{ cam.clase_poe | default('802.3at') }}"
+{% endfor %}
+
+# -------------------------------------------------------------------------------------------------
+# Servidor de hora local del segmento de camaras
+# -------------------------------------------------------------------------------------------------
+# Una camara con la hora mal produce grabaciones con marca de tiempo equivocada, lo que destruye su
+# valor probatorio. Como el segmento no tiene salida, se pone un servidor de hora dentro en lugar de
+# abrir una excepcion de salida (cap. 7.4.2).
+ntp_camaras:
+  servidor: "10.{{ red.octeto }}.30.2"
+  fuente_ascendente: controlador

@@ -1,0 +1,65 @@
+# Textos que ve el cliente, en ingles.
+# El generador carga este archivo segun `cliente.idioma` y lo pasa a las plantillas como `textos`.
+#
+# REGLA DE CONTENIDO (cap. 7.6.2): los mensajes que salen por notificacion push llevan el MINIMO:
+# categoria y hora. Sin imagen, sin nombre de camara y sin detalle de ubicacion. Lo que atraviesa la
+# infraestructura del fabricante del sistema operativo movil equivale a "movimiento detectado".
+#
+# REGLA DE LENGUAJE (ADR-004): ningun texto puede sugerir funcion de seguridad de vida. Nada de
+# "alarm", "emergency", "fire", "smoke", "gas" ni "CO".
+
+soporte_abierto_titulo: "Support access enabled"
+soporte_abierto_mensaje: >-
+  You enabled support access to your system. It expires automatically and you will be notified when
+  it closes. You can cancel it at any time from your dashboard.
+soporte_cerrado_titulo: "Support access closed"
+soporte_cerrado_mensaje: >-
+  Support access to your system is closed. No one can reach your system until you enable it again.
+
+aviso_apertura_titulo: "Door or window opened"
+aviso_apertura_mensaje: "Opening detected. Open the app to see details."
+
+aviso_movimiento_titulo: "Motion detected"
+aviso_movimiento_mensaje: "Motion detected. Open the app to see the clip."
+
+disuasion_titulo: "Deterrent siren activated"
+disuasion_mensaje: >-
+  The deterrent siren was activated and has switched itself off. This is not a monitored alarm and
+  no emergency service has been contacted.
+
+aviso_fuga_titulo: "Water detected"
+aviso_fuga_mensaje: "Water detected. The shut-off valve was closed. Open the app for details."
+
+aviso_congelacion_titulo: "Low temperature"
+aviso_congelacion_mensaje: "A low temperature was recorded. Open the app for details."
+
+aviso_corte_energia_titulo: "Power interruption"
+aviso_corte_energia_mensaje: "The equipment is running on battery. Your system is still recording."
+
+aviso_bateria_baja_titulo: "Battery low"
+aviso_bateria_baja_mensaje: "Backup battery is low. The system will shut down in an orderly way."
+
+aviso_red_titulo: "Internet connection restored"
+aviso_red_mensaje: "Remote access is available again. Your system kept working while it was down."
+
+aviso_camara_titulo: "A camera stopped responding"
+aviso_camara_mensaje: "One camera is not responding. Open the app for details."
+
+# ---------------------------------------------------------------------------------------------
+# Panel del cliente
+# ---------------------------------------------------------------------------------------------
+panel:
+  titulo: "Home"
+  vista_casa: "Home"
+  vista_camaras: "Cameras"
+  vista_clima: "Climate"
+  vista_sistema: "System"
+  salud: "System health"
+  soporte_titulo: "Support access"
+  soporte_interruptor: "Let our technician in"
+  soporte_restante: "Time remaining"
+  soporte_ultimo: "Last support event"
+  soporte_explicacion: >-
+    We cannot reach your system unless you turn this on. It switches itself off automatically,
+    on restart, and whenever you turn it off yourself. Every session is written to a log on your
+    own machine that you can read, and you are notified when a session opens and closes.

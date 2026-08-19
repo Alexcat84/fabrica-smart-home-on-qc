@@ -1,0 +1,28 @@
+# Servidor de hora local del segmento de camaras (chrony)
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cliente: {{ cliente.nombre }} ({{ cliente.id }})
+#
+# POR QUE EXISTE ESTE ARCHIVO: el segmento de camaras no tiene salida a internet. Una camara con el
+# reloj mal produce grabaciones con marca de tiempo equivocada, y eso destruye su valor probatorio,
+# que es justo aquello para lo que el cliente compro las camaras. La alternativa -abrir una excepcion
+# de salida solo para NTP- perfora el aislamiento del segmento por un servicio trivial. Se pone el
+# servidor de hora dentro.
+
+# Fuente ascendente: el controlador, que si tiene salida restringida y disciplina su propio reloj.
+server 10.{{ red.octeto }}.40.10 iburst prefer
+
+driftfile /var/lib/chrony/drift
+makestep 1.0 3
+rtcsync
+
+# Solo el propio segmento de camaras puede consultar.
+allow 10.{{ red.octeto }}.30.0/24
+deny all
+
+# Si la fuente ascendente cae, se sigue sirviendo hora local en lugar de dejar de servir: un reloj
+# que deriva despacio es mucho mejor que camaras sin sincronizar.
+local stratum 10
+
+logdir /var/log/chrony
+log measurements statistics tracking

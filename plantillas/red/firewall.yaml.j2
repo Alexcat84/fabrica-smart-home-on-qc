@@ -1,0 +1,228 @@
+# Matriz de cortafuegos - direccional y con estado
+# GENERADO. No editar a mano (ADR-006).
+#
+# Cliente: {{ cliente.nombre }} ({{ cliente.id }})  |  Octeto: {{ red.octeto }}
+#
+# LA REGLA QUE MAS SE IMPLEMENTA MAL, Y POR QUE IMPORTA:
+#
+#   La regla de camara es DIRECCIONAL y CON ESTADO. El grabador abre la conexion hacia la camara;
+#   la camara no puede abrir una conexion hacia nada. Una regla escrita simplemente como "bloquear
+#   la VLAN de camaras" NO es equivalente: o rompe la grabacion, o deja abierta la via de retorno.
+#
+#   En el documento as-built las reglas se documentan como direccionales. Si el as-built dice
+#   "camaras bloqueadas" sin mas, el as-built esta mal.
+#
+# Politica base: denegar. Lo que no esta permitido explicitamente, no pasa.
+#
+# Matriz de origen a destino (cap. 7.4.1):
+#
+#   Desde \ Hacia | Trusted | IoT      | Camera | Controller | Management
+#   Trusted       |   -     | permitir | DENY   | permitir   | denegar por defecto
+#   IoT           | DENY    |    -     | DENY   | permitir   | DENY
+#   Camera        | DENY    | DENY     |   -    | DENY       | DENY
+#   Controller    | DENY    | permitir | permitir |    -     | denegar por defecto
+#   Guest         | DENY    | DENY     | DENY   | DENY       | DENY
+
+politica_por_defecto: denegar
+inspeccion_con_estado: true
+
+reglas:
+
+  # -----------------------------------------------------------------------------------------------
+  # Trusted
+  # -----------------------------------------------------------------------------------------------
+  - id: trusted_a_controller_ui
+    descripcion: La familia accede a la interfaz del sistema.
+    origen: Trusted
+    destino: Controller
+    destino_host: "10.{{ red.octeto }}.40.10"
+    puertos: [443, 8123]
+    protocolo: tcp
+    accion: permitir
+    con_estado: true
+
+  - id: trusted_a_iot_control
+    descripcion: >-
+      Control directo de dispositivos IoT concretos desde la red de la familia, solo donde el diseno
+      lo requiera. No es un permiso general de Trusted hacia IoT.
+    origen: Trusted
+    destino: IoT
+    puertos: {{ red.puertos_trusted_a_iot | default([80, 443]) }}
+    protocolo: tcp
+    accion: permitir
+    con_estado: true
+
+  - id: trusted_a_camera
+    descripcion: >-
+      La familia NO habla con las camaras directamente. Todo el video se ve por la interfaz del
+      sistema, que es la unica que abre conexion contra la camara.
+    origen: Trusted
+    destino: Camera
+    accion: denegar
+
+  - id: trusted_a_management
+    descripcion: >-
+      Gestion accesible solo desde un equipo administrativo declarado o desde una sesion de soporte
+      autorizada, nunca desde cualquier equipo de la familia.
+    origen: Trusted
+    destino: Management
+    accion: denegar
+    excepcion_host: "{{ red.equipo_administrativo | default('ninguno declarado') }}"
+
+  # -----------------------------------------------------------------------------------------------
+  # IoT
+  # -----------------------------------------------------------------------------------------------
+  - id: iot_a_controller_mqtt
+    descripcion: Los dispositivos IoT publican en el broker MQTT del controlador.
+    origen: IoT
+    destino: Controller
+    destino_host: "10.{{ red.octeto }}.40.10"
+    puertos: [1883]
+    protocolo: tcp
+    accion: permitir
+    con_estado: true
+
+  - id: iot_a_trusted
+    descripcion: Un dispositivo IoT comprometido no debe alcanzar los equipos personales del hogar.
+    origen: IoT
+    destino: Trusted
+    accion: denegar
+
+  - id: iot_a_camera
+    origen: IoT
+    destino: Camera
+    accion: denegar
+
+  - id: iot_a_management
+    origen: IoT
+    destino: Management
+    accion: denegar
+
+  - id: iot_a_internet
+    descripcion: >-
+      Salida restringida: sincronizacion horaria y los puntos de actualizacion concretos que cada
+      fabricante requiera. Se enumeran en el as-built; no hay salida general.
+    origen: IoT
+    destino: internet
+    puertos: [123]
+    protocolo: udp
+    accion: permitir
+    con_estado: true
+
+  # -----------------------------------------------------------------------------------------------
+  # Camera - el segmento mas restringido de la instalacion
+  # -----------------------------------------------------------------------------------------------
+  - id: camera_no_origina_nada
+    descripcion: >-
+      REGLA CENTRAL. La camara no origina ninguna conexion, hacia ningun destino, incluido internet.
+      Solo responde a la sesion que abre el grabador. Con esto, una camara comprometida no puede
+      llamar a casa, no puede escanear la red y no puede exfiltrar video.
+    origen: Camera
+    destino: cualquiera
+    accion: denegar
+
+  - id: controller_a_camera_rtsp
+    descripcion: El grabador abre la conexion hacia la camara. Esta es la unica direccion permitida.
+    origen: Controller
+    origen_host: "10.{{ red.octeto }}.40.10"
+    destino: Camera
+    puertos: [554, 80, 443, 8000]
+    protocolo: tcp
+    accion: permitir
+    con_estado: true
+
+  - id: ntp_local_camaras
+    descripcion: >-
+      Servidor de hora dentro del propio segmento. Evita abrir una excepcion de salida solo para
+      sincronizar el reloj, y sin reloj correcto la grabacion pierde valor probatorio.
+    origen: Camera
+    destino: Camera
+    destino_host: "10.{{ red.octeto }}.30.2"
+    puertos: [123]
+    protocolo: udp
+    accion: permitir
+    con_estado: true
+
+  # -----------------------------------------------------------------------------------------------
+  # Controller
+  # -----------------------------------------------------------------------------------------------
+  - id: controller_a_iot
+    descripcion: El controlador manda a los dispositivos IoT.
+    origen: Controller
+    destino: IoT
+    accion: permitir
+    con_estado: true
+
+  - id: controller_a_trusted
+    descripcion: >-
+      El controlador no inicia conexiones hacia los equipos personales. Las notificaciones salen por
+      el canal correspondiente, no por conexion directa a un telefono.
+    origen: Controller
+    destino: Trusted
+    accion: denegar
+
+  - id: controller_a_management
+    origen: Controller
+    destino: Management
+    accion: denegar
+
+  - id: controller_a_internet
+    descripcion: Solo actualizaciones y repositorios de paquetes.
+    origen: Controller
+    destino: internet
+    puertos: [80, 443, 123]
+    protocolo: tcp_udp
+    accion: permitir
+    con_estado: true
+
+  # -----------------------------------------------------------------------------------------------
+  # Guest
+  # -----------------------------------------------------------------------------------------------
+  - id: guest_aislado
+    descripcion: Internet y nada mas. Aislamiento de clientes activado dentro del propio segmento.
+    origen: Guest
+    destino: [Trusted, IoT, Camera, Controller, Management]
+    accion: denegar
+
+  - id: guest_a_internet
+    origen: Guest
+    destino: internet
+    accion: permitir
+    con_estado: true
+
+  # -----------------------------------------------------------------------------------------------
+  # Perimetro
+  # -----------------------------------------------------------------------------------------------
+  - id: sin_entrantes
+    descripcion: >-
+      NINGUN puerto abierto hacia internet. Sin reenvio de puertos, sin UPnP, sin gestion remota de
+      la pasarela. El acceso remoto entra por el tunel WireGuard, que se establece desde dentro.
+      Se comprueba con escaneo externo en la puesta en servicio y el resultado limpio se adjunta al
+      acta de aceptacion.
+    origen: internet
+    destino: cualquiera
+    accion: denegar
+
+  - id: tunel_wireguard
+    descripcion: >-
+      El telefono del cliente establece un tunel cifrado directo contra su propio controlador. Donde
+      la traduccion de direcciones simetrica lo impide, la conexion cae a un relevo cifrado que NO
+      puede descifrar el trafico que pasa por el. Las claves pertenecen al cliente.
+    origen: tunel
+    destino: Controller
+    destino_host: "10.{{ red.octeto }}.40.10"
+    puertos: [443, 8123]
+    protocolo: tcp
+    accion: permitir
+    con_estado: true
+
+  - id: tunel_soporte
+    descripcion: >-
+      Acceso de soporte de la empresa. NO existe de forma permanente: lo crea el cliente desde su
+      panel y expira solo (plantillas/homeassistant/packages/sistema.yaml.j2). Esta regla describe
+      lo que la autorizacion temporal habilita mientras esta viva.
+    origen: tunel_soporte
+    destino: [Controller, Management]
+    accion: permitir_temporal
+    duracion_horas: {{ soporte.duracion_horas | default(2) }}
+    con_estado: true

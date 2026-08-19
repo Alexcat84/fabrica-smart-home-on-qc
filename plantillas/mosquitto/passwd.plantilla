@@ -1,0 +1,16 @@
+# Archivo de contrasenas de Mosquitto - PLANTILLA
+#
+# ADR-005: este archivo NO contiene credenciales. Las contrasenas reales se generan en el
+# comisionamiento, se cargan con `mosquitto_passwd` en el anfitrion y se guardan en el baul de
+# credenciales del cliente (Vaultwarden). La empresa no conserva copia tras la entrega.
+#
+# Procedimiento (ansible/roles/mosquitto lo automatiza):
+#   mosquitto_passwd -c /mosquitto/config/passwd homeassistant
+#   mosquitto_passwd    /mosquitto/config/passwd zigbee2mqtt
+#   mosquitto_passwd    /mosquitto/config/passwd frigate
+#
+# Politica de contrasena: unica, generada, minimo dieciseis caracteres, almacenada solo en el baul.
+
+homeassistant:CAMBIAR-EN-COMISIONAMIENTO
+zigbee2mqtt:CAMBIAR-EN-COMISIONAMIENTO
+frigate:CAMBIAR-EN-COMISIONAMIENTO

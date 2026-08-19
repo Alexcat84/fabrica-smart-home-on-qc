@@ -1,0 +1,171 @@
+# Paquete de dominio: SEGURIDAD
+# GENERADO. No editar a mano (ADR-006).
+#
+# ADR-004, LEER ANTES DE MODIFICAR NADA DE ESTE ARCHIVO:
+#
+#   Esto NO es un sistema de alarma. No hay central de monitoreo, no hay transmision de senal a
+#   ningun tercero y no hay despacho de servicios de emergencia. Todo aviso va al propietario y a los
+#   contactos que el propietario haya designado.
+#
+#   Las sirenas son DISPOSITIVOS DISUASORIOS, no senalizadores de alarma. Prohibido el patron
+#   temporal-tres, reservado a la senalizacion de evacuacion. Corte automatico obligatorio dentro del
+#   limite del reglamento municipal de ruido.
+#
+#   Nada aqui toca incendio, humo, gas, monoxido de carbono ni alerta medica.
+#
+#   Ninguna entidad de este archivo puede llamarse `alarma`. Ver docs/NOMENCLATURA.md, seccion 1.
+#   `generador/validar.py` lo comprueba y rechaza el cliente si aparece.
+
+{% set contactos = dispositivos | selectattr('tipo_sensor', 'defined') | selectattr('tipo_sensor', 'equalto', 'contacto') | list %}
+{% set sirenas = dispositivos | selectattr('categoria', 'equalto', 'sirena') | list %}
+
+# =================================================================================================
+# Modo de vigilancia (elegido por el propietario, sin panel de alarma)
+# =================================================================================================
+
+input_select:
+  modo_vigilancia:
+    name: "Modo de vigilancia"
+    options:
+      - desactivado
+      - en_casa
+      - fuera
+      - noche
+    initial: desactivado
+    icon: mdi:home-search
+
+input_boolean:
+  disuasion_sonora_habilitada:
+    name: "Permitir sirena disuasoria"
+    icon: mdi:bullhorn
+
+# =================================================================================================
+# Avisos al propietario
+# =================================================================================================
+
+automation:
+{% for c in contactos %}
+  - id: seguridad_aviso_apertura_{{ c.area }}_{{ c.discriminador | default('principal') }}
+    alias: "Seguridad - aviso de apertura - {{ c.area }}"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.{{ c.nombre }}
+        to: "on"
+    condition:
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: input_select.modo_vigilancia
+            state: desactivado
+    action:
+      - service: notify.familia
+        data:
+          # Contenido MINIMO a proposito: categoria y hora. Sin imagen, sin nombre de camara y sin
+          # detalle de ubicacion. Es lo unico que atraviesa la infraestructura push del fabricante
+          # del sistema operativo movil (cap. 7.6.2).
+          title: "{{ textos.aviso_apertura_titulo }}"
+          message: "{{ textos.aviso_apertura_mensaje }}"
+{% endfor %}
+
+{% for cam in camaras if cam.deteccion_personas | default(true) %}
+  - id: seguridad_aviso_persona_{{ cam.nombre }}
+    alias: "Seguridad - persona detectada - {{ cam.nombre }}"
+    mode: single
+    trigger:
+      - platform: mqtt
+        topic: "frigate/events"
+        value_template: "{{ '{{' }} value_json['after']['camera'] {{ '}}' }}"
+        payload: "{{ cam.nombre }}"
+    condition:
+      - condition: template
+        value_template: "{{ '{{' }} trigger.payload_json['after']['label'] == 'person' {{ '}}' }}"
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: input_select.modo_vigilancia
+            state: desactivado
+    action:
+      - service: notify.familia
+        data:
+          title: "{{ textos.aviso_movimiento_titulo }}"
+          message: "{{ textos.aviso_movimiento_mensaje }}"
+{% endfor %}
+
+# =================================================================================================
+# Disuasion sonora
+# =================================================================================================
+{% for s in sirenas %}
+  - id: disuasion_{{ s.area }}
+    alias: "Disuasion - {{ s.area }}"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id:
+{% for c in contactos if c.perimetral | default(false) %}
+          - binary_sensor.{{ c.nombre }}
+{% endfor %}
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: input_select.modo_vigilancia
+        state: fuera
+      - condition: state
+        entity_id: input_boolean.disuasion_sonora_habilitada
+        state: "on"
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.{{ s.nombre }}
+      # CORTE AUTOMATICO OBLIGATORIO. El limite lo fija el reglamento municipal de ruido del
+      # municipio servido y se confirma antes de la puesta en servicio (fila A-07 de POR-VERIFICAR).
+      - delay: "00:{{ '%02d' % (s.minutos_corte | default(5)) }}:00"
+      - service: switch.turn_off
+        target:
+          entity_id: switch.{{ s.nombre }}
+      - service: notify.familia
+        data:
+          title: "{{ textos.disuasion_titulo }}"
+          message: "{{ textos.disuasion_mensaje }}"
+
+  # Corte de respaldo: si algo dejara la sirena encendida, esto la apaga igualmente. Una sirena
+  # atascada es una infraccion del reglamento de ruido y una llamada del vecino a las tres de la
+  # manana.
+  - id: disuasion_corte_de_respaldo_{{ s.area }}
+    alias: "Disuasion - corte de respaldo - {{ s.area }}"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: switch.{{ s.nombre }}
+        to: "on"
+        for: "00:{{ '%02d' % ((s.minutos_corte | default(5)) + 1) }}:00"
+    action:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.{{ s.nombre }}
+{% endfor %}
+
+# =================================================================================================
+# Agua
+# =================================================================================================
+# El sensor de fuga con valvula de corte es el de mayor valor percibido del mercado canadiense.
+# Deteccion y respuesta, ambas locales.
+{% for f in dispositivos if f.tipo_sensor | default('') == 'fuga_agua' %}
+  - id: agua_corte_por_fuga_{{ f.area }}
+    alias: "Agua - corte por fuga - {{ f.area }}"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.{{ f.nombre }}
+        to: "on"
+    action:
+{% if agua.valvula_corte is defined and agua.valvula_corte %}
+      - service: switch.turn_off
+        target:
+          entity_id: switch.{{ agua.valvula_corte }}
+{% endif %}
+      - service: notify.familia
+        data:
+          title: "{{ textos.aviso_fuga_titulo }}"
+          message: "{{ textos.aviso_fuga_mensaje }}"
+{% endfor %}
