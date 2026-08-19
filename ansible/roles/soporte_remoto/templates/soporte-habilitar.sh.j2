@@ -1,0 +1,34 @@
+#!/bin/sh
+# Habilita una sesion de soporte de duracion limitada.
+# GENERADO por ansible/roles/soporte_remoto. No editar en el anfitrion.
+#
+# Lo invoca Home Assistant cuando el CLIENTE activa el interruptor en su panel. Nunca lo invoca la
+# empresa: no hay forma de que la empresa lo invoque, porque la empresa no tiene sesion aqui.
+set -eu
+
+REGISTRO="{{ registro_soporte }}"
+DURACION_HORAS="{{ duracion_soporte_horas }}"
+
+registrar() {
+    printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S %Z')" "$1" >> "$REGISTRO"
+}
+
+registrar "SESION DE SOPORTE ABIERTA por el propietario. Expira en ${DURACION_HORAS} h."
+
+{% if plano_control == 'autoalojado' %}
+# Plano de control autoalojado: se anuncia la ruta al nodo de soporte durante la sesion.
+# La clave de la empresa NO queda instalada: se autoriza el par para esta sesion y se retira al
+# cerrarla (ver soporte-revocar.sh).
+/usr/local/bin/malla-autorizar-soporte --duracion "${DURACION_HORAS}h" || {
+    registrar "ERROR: no se pudo abrir la autorizacion en el plano de control."
+    exit 1
+}
+{% else %}
+# Plano de control comercial: se etiqueta el nodo como accesible para soporte durante la sesion.
+/usr/local/bin/malla-comercial --habilitar-soporte --duracion "${DURACION_HORAS}h" || {
+    registrar "ERROR: no se pudo abrir la autorizacion en el plano de control."
+    exit 1
+}
+{% endif %}
+
+registrar "Autorizacion creada correctamente."

@@ -1,0 +1,126 @@
+---
+# Rol base: endurecimiento del anfitrion.
+#
+# Implementa los puntos 1, 2, 11 y 12 del checklist de docs/SEGURIDAD.md. Estos no son opcionales y
+# no se dejan "para el final": un controlador con shell por contrasena y sin cortafuegos ya esta
+# comprometido antes de que llegue la primera camara.
+#
+# Idempotente: ejecutarlo dos veces seguidas no cambia nada la segunda vez.
+
+- name: Instalar paquetes base
+  ansible.builtin.package:
+    name: "{{ paquetes_base }}"
+    state: present
+
+- name: Crear el usuario de despliegue
+  ansible.builtin.user:
+    name: "{{ usuario_despliegue }}"
+    groups: "{{ grupos_despliegue }}"
+    append: true
+    shell: /bin/bash
+    create_home: true
+
+- name: Instalar las claves publicas autorizadas
+  ansible.posix.authorized_key:
+    user: "{{ usuario_despliegue }}"
+    key: "{{ item }}"
+    state: present
+  loop: "{{ claves_publicas_despliegue }}"
+
+# ---------------------------------------------------------------------------------------------
+# SSH: solo por clave (checklist punto 2)
+# ---------------------------------------------------------------------------------------------
+- name: Deshabilitar el acceso por contrasena en SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PasswordAuthentication"
+    line: "PasswordAuthentication no"
+    validate: "sshd -t -f %s"
+  notify: reiniciar sshd
+
+- name: Deshabilitar el acceso directo de root por SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin no"
+    validate: "sshd -t -f %s"
+  notify: reiniciar sshd
+
+- name: Deshabilitar la autenticacion por teclado interactivo
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?KbdInteractiveAuthentication"
+    line: "KbdInteractiveAuthentication no"
+    validate: "sshd -t -f %s"
+  notify: reiniciar sshd
+
+# ---------------------------------------------------------------------------------------------
+# Cortafuegos del anfitrion: denegar entrante por defecto (checklist punto 1)
+# ---------------------------------------------------------------------------------------------
+- name: "Politica por defecto: denegar entrante"
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: "Politica por defecto: permitir saliente"
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Permitir SSH solo desde el segmento de gestion o desde el tunel
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+    src: "{{ item }}"
+  loop: "{{ origenes_administrativos }}"
+
+- name: Permitir la interfaz del sistema desde Trusted y desde el tunel
+  community.general.ufw:
+    rule: allow
+    port: "8123"
+    proto: tcp
+    src: "{{ item }}"
+  loop: "{{ origenes_interfaz }}"
+
+- name: Permitir MQTT solo desde IoT
+  community.general.ufw:
+    rule: allow
+    port: "1883"
+    proto: tcp
+    src: "10.{{ octeto }}.20.0/24"
+
+- name: Activar el cortafuegos
+  community.general.ufw:
+    state: enabled
+
+# ---------------------------------------------------------------------------------------------
+# Hora y registro (checklist punto 12)
+# ---------------------------------------------------------------------------------------------
+- name: Fijar la zona horaria
+  community.general.timezone:
+    name: "{{ zona_horaria }}"
+
+- name: Configurar la retencion del registro del sistema
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/journald.conf
+    regexp: "^#?MaxRetentionSec"
+    line: "MaxRetentionSec={{ retencion_registro_dias }}day"
+  notify: reiniciar journald
+
+# ---------------------------------------------------------------------------------------------
+# Actualizaciones automaticas DESHABILITADAS (ADR-006)
+# ---------------------------------------------------------------------------------------------
+# Una actualizacion no supervisada que rompe una integracion un domingo por la noche es trabajo de
+# soporte no pagado y una llamada del cliente. Las actualizaciones se aplican de forma deliberada,
+# tras validarlas en el banco, con instantanea previa y reversion documentada.
+- name: Deshabilitar las actualizaciones desatendidas
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "0";
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_os_family == "Debian"

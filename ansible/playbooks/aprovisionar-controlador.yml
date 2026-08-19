@@ -1,0 +1,49 @@
+# Aprovisionamiento completo del anfitrion del controlador, desde cero.
+#
+# OBJETIVO DECLARADO Y VERIFICABLE: reconstruccion completa desde plantilla mas respaldo en MENOS DE
+# CUATRO HORAS, sin conocimiento tribal. Si una prueba de restauracion tarda mas, el defecto esta en
+# este playbook o en el runbook, y se corrige ahi (runbooks/restaurar-controlador.md).
+#
+# Todos los roles son IDEMPOTENTES: ejecutarlo dos veces seguidas no cambia nada la segunda vez.
+# Esa propiedad es lo que permite usarlo tanto para aprovisionar como para corregir deriva.
+---
+- name: Aprovisionar el controlador
+  hosts: controladores
+  become: true
+  gather_facts: true
+
+  vars:
+    # ADR-006: versiones FIJADAS y actualizaciones automaticas deshabilitadas. Se aplican de forma
+    # deliberada tras validarlas en el banco de la empresa, con instantanea previa.
+    actualizaciones_automaticas: false
+
+  pre_tasks:
+    - name: Comprobar que las versiones estan fijadas
+      ansible.builtin.assert:
+        that:
+          - versiones is defined
+          - versiones | length > 0
+        fail_msg: >-
+          No hay versiones fijadas para este cliente. ADR-006 prohibe desplegar con etiquetas
+          moviles: un contenedor que se actualiza solo convierte una instalacion reproducible en
+          una que nadie puede reconstruir igual.
+
+  roles:
+    - role: base                 # usuarios, SSH por clave, cortafuegos, hora, registro
+    - role: docker               # motor de contenedores con versiones fijadas
+    - role: red                  # servidor de hora del segmento de camaras, rutas, deriva
+    - role: mosquitto            # broker con autenticacion obligatoria y ACL
+    - role: zigbee2mqtt          # coordinador y malla
+    - role: homeassistant        # nucleo, paquetes por dominio, panel
+    - role: frigate              # grabacion e inferencia sobre iGPU
+    - role: soporte_remoto       # scripts de habilitar y revocar la sesion de soporte
+    - role: backup               # respaldo cifrado y prueba de restauracion programada
+    - role: monitorizacion       # salud local, UPS, disponibilidad
+
+  post_tasks:
+    - name: Recordar el checklist de endurecimiento
+      ansible.builtin.debug:
+        msg: >-
+          Aprovisionamiento terminado. El sistema NO esta entregado hasta completar y firmar el
+          checklist de docs/SEGURIDAD.md, incluido el escaneo externo de puertos cuyo resultado
+          limpio se adjunta al acta de aceptacion.

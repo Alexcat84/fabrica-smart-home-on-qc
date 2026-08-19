@@ -1,0 +1,533 @@
+# =================================================================================================
+# CLIENTE DE DEMOSTRACION - NO ES UNA PROPIEDAD REAL
+# =================================================================================================
+#
+# Existe para que el repositorio se pueda probar de extremo a extremo: validar, generar y revisar el
+# paquete completo sin tener un cliente de verdad.
+#
+# Los registros `certificacion_verificada` de este archivo son FICTICIOS y estan marcados con
+# `verificado_por: EJEMPLO-NO-REAL`. `generador/validar.py` solo los acepta porque este archivo
+# declara `es_ejemplo: true`; en cualquier otro cliente los rechaza con error, para que este patron
+# no se filtre a una instalacion real copiando y pegando.
+#
+# NO SE COMPRA NADA a partir de este archivo.
+---
+es_ejemplo: true
+
+cliente:
+  id: EJEMPLO-demo
+  nombre: "Cliente de demostracion"
+  nombre_sistema: "Casa Demo"
+  provincia: ON
+  ciudad: Ottawa
+  idioma: en
+  latitud: 45.42
+  longitud: -75.70
+  elevacion_m: 70
+
+paquete: M
+
+# =================================================================================================
+# Red
+# =================================================================================================
+red:
+  octeto: 99                   # el 99 queda reservado a demostraciones en el registro de la empresa
+  dominio_local: casa.local
+  zona_horaria: America/Toronto
+  bajada_mbps: 150.0           # medidas en el relevamiento
+  subida_mbps: 15.0
+  margen_hogar_mbps: 5.0
+  cgnat: false
+  failover_celular: false
+  ssid_familia: demo-home
+  ssid_iot: demo-iot
+  ssid_invitados: demo-guest
+  seguridad_wifi: WPA3
+  seguridad_wifi_iot: WPA2-AES
+  equipo_administrativo: 10.99.10.20
+  puertos_trusted_a_iot: [80, 443]
+
+visores_concurrentes: 2
+horas_visionado_dia: 1.0
+
+zigbee:
+  canal: 25                    # elegido para no solapar con los canales Wi-Fi del sitio
+  coordinador_transporte: ethernet
+  coordinador_ip_final: 50
+  puerto_usb: null
+  adaptador: ezsp
+  potencia_dbm: 5
+
+soporte:
+  duracion_horas: 2
+  plano_control: autoalojado
+
+notificaciones:
+  modo: push_mitigado
+
+hogar:
+  - nombre: "Titular 1"
+    dispositivo_movil: demo_iphone
+    plataforma: ios
+    administrador: true
+  - nombre: "Titular 2"
+    dispositivo_movil: demo_pixel
+    plataforma: android
+    administrador: false
+
+# =================================================================================================
+# Retencion y almacenamiento
+# =================================================================================================
+retencion:
+  continua_dias: 7
+  eventos_dias: 60
+  margen: 0.15
+
+almacenamiento:
+  nvme_sistema_gb: 500
+  vigilancia_tb: 8             # el paquete M especifica 8 TB; el calculo lo confirma
+  redundancia: ninguna
+
+# =================================================================================================
+# Camaras
+# =================================================================================================
+# Sub-stream a 0,5 Mbps: es parametro de DISENO. A 1 Mbps, dos visores concurrentes agotarian la
+# subida de este sitio (ver docs/POR-VERIFICAR.md, fila M-12).
+camaras:
+  - nombre: camara_exterior_frente_entrada
+    nombre_cliente: "Front door"
+    id_catalogo: reolink-poe-camara
+    area: exterior_frente
+    exterior: true
+    ip_final: 11
+    mac: CAMBIAR-EN-COMISIONAMIENTO
+    puerto_switch: "1"
+    etiqueta_cable: PP1-01
+    tipo_poe: camara_4k_ir
+    consumo_w: null
+    clase_poe: 802.3at
+    bitrate_principal_mbps: 8.0
+    bitrate_substream_mbps: 0.5
+    substream_ancho: 640
+    substream_alto: 480
+    substream_fps: 5
+    ruta_principal: /h264Preview_01_main
+    ruta_substream: /h264Preview_01_sub
+    fraccion_eventos: 0.20     # da a la via publica: mas actividad de la habitual
+    descripcion_campo_vision: "Puerta de entrada y camino de acceso, hasta la acera."
+    deteccion_personas: true
+    zonas:
+      - nombre: acceso
+        coordenadas: "0,480,640,480,640,300,0,300"
+        objetos: [person]
+    mascaras:
+      - "0,0,640,0,640,120,0,120"   # via publica: fuera del analisis de movimiento
+
+  - nombre: camara_exterior_patio_norte
+    nombre_cliente: "Back yard"
+    id_catalogo: reolink-poe-camara
+    area: exterior_patio
+    exterior: true
+    ip_final: 12
+    mac: CAMBIAR-EN-COMISIONAMIENTO
+    puerto_switch: "2"
+    etiqueta_cable: PP1-02
+    tipo_poe: camara_4k_ir
+    consumo_w: null
+    clase_poe: 802.3at
+    bitrate_principal_mbps: 8.0
+    bitrate_substream_mbps: 0.5
+    substream_ancho: 640
+    substream_alto: 480
+    substream_fps: 5
+    ruta_principal: /h264Preview_01_main
+    ruta_substream: /h264Preview_01_sub
+    fraccion_eventos: 0.05
+    descripcion_campo_vision: "Patio trasero y puerta del jardin."
+    deteccion_personas: true
+    zonas: []
+    mascaras: []
+
+  - nombre: camara_exterior_lateral_este
+    nombre_cliente: "Side path"
+    id_catalogo: reolink-poe-camara
+    area: exterior_lateral
+    exterior: true
+    ip_final: 13
+    mac: CAMBIAR-EN-COMISIONAMIENTO
+    puerto_switch: "3"
+    etiqueta_cable: PP1-03
+    tipo_poe: camara_4k_ir
+    consumo_w: null
+    clase_poe: 802.3at
+    bitrate_principal_mbps: 4.0
+    bitrate_substream_mbps: 0.5
+    substream_ancho: 640
+    substream_alto: 480
+    substream_fps: 5
+    ruta_principal: /h264Preview_01_main
+    ruta_substream: /h264Preview_01_sub
+    fraccion_eventos: 0.05
+    descripcion_campo_vision: "Paso lateral este, entre la casa y la valla."
+    deteccion_personas: true
+    zonas: []
+    mascaras: []
+
+  - nombre: camara_garaje_interior
+    nombre_cliente: "Garage"
+    id_catalogo: reolink-poe-camara
+    area: garaje
+    exterior: false
+    ip_final: 14
+    mac: CAMBIAR-EN-COMISIONAMIENTO
+    puerto_switch: "4"
+    etiqueta_cable: PP1-04
+    tipo_poe: camara_2k
+    consumo_w: null
+    clase_poe: 802.3af
+    bitrate_principal_mbps: 4.0
+    bitrate_substream_mbps: 0.5
+    substream_ancho: 640
+    substream_alto: 480
+    substream_fps: 5
+    ruta_principal: /h264Preview_01_main
+    ruta_substream: /h264Preview_01_sub
+    fraccion_eventos: 0.05
+    descripcion_campo_vision: "Interior del garaje, puerta basculante y puerta de servicio."
+    deteccion_personas: true
+    zonas: []
+    mascaras: []
+
+  - nombre: camara_exterior_terraza
+    nombre_cliente: "Deck"
+    id_catalogo: reolink-poe-camara
+    area: exterior_patio
+    exterior: true
+    ip_final: 15
+    mac: CAMBIAR-EN-COMISIONAMIENTO
+    puerto_switch: "5"
+    etiqueta_cable: PP1-05
+    tipo_poe: camara_2k
+    consumo_w: null
+    clase_poe: 802.3af
+    bitrate_principal_mbps: 4.0
+    bitrate_substream_mbps: 0.5
+    substream_ancho: 640
+    substream_alto: 480
+    substream_fps: 5
+    ruta_principal: /h264Preview_01_main
+    ruta_substream: /h264Preview_01_sub
+    fraccion_eventos: 0.05
+    descripcion_campo_vision: "Terraza trasera y puerta corredera."
+    deteccion_personas: true
+    zonas: []
+    mascaras: []
+
+# =================================================================================================
+# PoE
+# =================================================================================================
+poe:
+  # Peor caso 99 W (3 camaras 4K con IR + 2 camaras 2K + 2 puntos de acceso + coordinador).
+  # Con el 40 % de holgura exigido: 138,6 W. Un switch de 120 W NO vale, aunque parezca sobrado:
+  # la primera noche de invierno con el infrarrojo a plena potencia se queda corto y las camaras
+  # empiezan a caerse de forma intermitente. Se especifica 180 W.
+  presupuesto_switch_w: 180
+  otros:
+    - nombre: ap_planta_baja
+      tipo: punto_acceso
+      consumo_w: null
+    - nombre: ap_planta_primera
+      tipo: punto_acceso
+      consumo_w: null
+    - nombre: coordinador_zigbee_central
+      tipo: coordinador_zigbee
+      consumo_w: null
+
+# =================================================================================================
+# Dispositivos
+# =================================================================================================
+dispositivos:
+  # --- Iluminacion e interruptores ---
+  - nombre: interruptor_planta_baja_sala_principal
+    nombre_cliente: "Living room"
+    id_catalogo: leviton-decora-smart-interruptor
+    categoria: interruptor
+    area: planta_baja_sala
+    circuito: "12"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    certificacion_verificada:
+      marca: cULus
+      sku: EJEMPLO-SKU-NO-REAL
+      verificado_por: EJEMPLO-NO-REAL
+      fecha: 2026-08-19
+      metodo: marca impresa en la unidad fisica en recepcion
+
+  - nombre: atenuador_planta_baja_comedor
+    nombre_cliente: "Dining room"
+    id_catalogo: leviton-decora-smart-atenuador
+    categoria: iluminacion
+    area: planta_baja_comedor
+    circuito: "12"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    certificacion_verificada:
+      marca: cULus
+      sku: EJEMPLO-SKU-NO-REAL
+      verificado_por: EJEMPLO-NO-REAL
+      fecha: 2026-08-19
+      metodo: marca impresa en la unidad fisica en recepcion
+
+  - nombre: atenuador_planta_baja_cocina
+    nombre_cliente: "Kitchen"
+    id_catalogo: inovelli-blue-2-1
+    categoria: iluminacion
+    area: planta_baja_cocina
+    circuito: "14"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    certificacion_verificada:
+      marca: cETL
+      sku: EJEMPLO-SKU-NO-REAL
+      verificado_por: EJEMPLO-NO-REAL
+      fecha: 2026-08-19
+      metodo: marca impresa en la unidad fisica en recepcion
+
+  - nombre: interruptor_planta_baja_entrada
+    nombre_cliente: "Entry"
+    id_catalogo: leviton-decora-smart-interruptor
+    categoria: interruptor
+    area: planta_baja_entrada
+    circuito: "12"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    certificacion_verificada:
+      marca: cULus
+      sku: EJEMPLO-SKU-NO-REAL
+      verificado_por: EJEMPLO-NO-REAL
+      fecha: 2026-08-19
+      metodo: marca impresa en la unidad fisica en recepcion
+
+  - nombre: interruptor_exterior_frente_porche
+    nombre_cliente: "Porch light"
+    id_catalogo: leviton-decora-smart-interruptor
+    categoria: interruptor
+    area: exterior_frente
+    circuito: "16"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    certificacion_verificada:
+      marca: cULus
+      sku: EJEMPLO-SKU-NO-REAL
+      verificado_por: EJEMPLO-NO-REAL
+      fecha: 2026-08-19
+      metodo: marca impresa en la unidad fisica en recepcion
+
+  # --- Climatizacion ---
+  - nombre: termostato_planta_baja_principal
+    nombre_cliente: "Main floor"
+    id_catalogo: ecobee-termostato
+    categoria: termostato
+    area: planta_baja_sala
+    circuito: "24V"
+    protocolo: matter
+    router: false
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    retroceso_nocturno: true
+    consigna_dia_c: 21
+    consigna_noche_c: 18
+    consigna_ausencia_c: 16
+    certificacion_verificada:
+      marca: cULus
+      sku: EJEMPLO-SKU-NO-REAL
+      verificado_por: EJEMPLO-NO-REAL
+      fecha: 2026-08-19
+      metodo: marca impresa en la unidad fisica en recepcion
+
+  # --- Ventilacion ---
+  - nombre: extractor_planta_primera_bano
+    nombre_cliente: "Bathroom fan"
+    id_catalogo: extractor-bano-automatizado
+    categoria: ventilador
+    tipo: extractor_bano
+    area: planta_primera_bano
+    circuito: "18"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    sensor_humedad: sensor_planta_primera_bano_humedad
+    umbral_humedad_pct: 65
+    minutos_marcha_posterior: 10
+    ligado_a_hrv: false        # verificado en el relevamiento: no esta ligado al recuperador de calor
+    certificacion_verificada:
+      marca: cULus
+      sku: EJEMPLO-SKU-NO-REAL
+      verificado_por: EJEMPLO-NO-REAL
+      fecha: 2026-08-19
+      metodo: marca impresa en la unidad fisica en recepcion
+
+  # --- Sensores ---
+  - nombre: contacto_planta_baja_entrada_puerta
+    nombre_cliente: "Front door"
+    id_catalogo: contacto-puerta-ventana-zigbee
+    categoria: sensor
+    tipo_sensor: contacto
+    discriminador: entrada
+    perimetral: true
+    area: planta_baja_entrada
+    circuito: null
+    protocolo: zigbee
+    router: false
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+
+  - nombre: contacto_planta_baja_patio_corredera
+    nombre_cliente: "Patio door"
+    id_catalogo: contacto-puerta-ventana-zigbee
+    categoria: sensor
+    tipo_sensor: contacto
+    discriminador: corredera
+    perimetral: true
+    area: planta_baja_sala
+    circuito: null
+    protocolo: zigbee
+    router: false
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+
+  - nombre: movimiento_planta_baja_entrada
+    nombre_cliente: "Entry motion"
+    id_catalogo: sensor-movimiento-pir
+    categoria: sensor
+    tipo_sensor: movimiento
+    area: planta_baja_entrada
+    circuito: null
+    protocolo: zigbee
+    router: false
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    controla_luz: interruptor_planta_baja_entrada
+    umbral_lux: 40
+    brillo_pct: 60
+    minutos_apagado: 5
+
+  - nombre: fuga_sotano_calentador
+    nombre_cliente: "Water heater"
+    id_catalogo: sinope-sensor-fuga-agua
+    categoria: sensor
+    tipo_sensor: fuga_agua
+    area: sotano_taller
+    circuito: null
+    protocolo: zigbee
+    router: false
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+
+  - nombre: sensor_planta_primera_bano_humedad
+    nombre_cliente: "Bathroom humidity"
+    id_catalogo: sensor-temperatura-humedad
+    categoria: sensor
+    tipo_sensor: humedad
+    area: planta_primera_bano
+    circuito: null
+    protocolo: zigbee
+    router: false
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+
+  - nombre: sensor_sotano_temperatura
+    nombre_cliente: "Basement temperature"
+    id_catalogo: sensor-temperatura-humedad
+    categoria: sensor
+    tipo_sensor: temperatura
+    area: sotano_taller
+    circuito: null
+    protocolo: zigbee
+    router: false
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    aviso_congelacion: true
+    umbral_congelacion_c: 5
+
+  # --- Disuasion ---
+  # Dispositivo DISUASORIO, no alarma. Sin patron temporal-tres. Corte automatico obligatorio.
+  - nombre: disuasion_sirena_interior_pasillo
+    nombre_cliente: "Indoor siren"
+    id_catalogo: sirena-interior-zigbee
+    categoria: sirena
+    area: planta_primera_pasillo
+    circuito: "18"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+    minutos_corte: 5           # CONFIRMAR contra el reglamento de ruido de Ottawa (POR-VERIFICAR A-07)
+
+  # --- Tomas ---
+  - nombre: toma_planta_baja_sala_lampara
+    nombre_cliente: "Living room lamp"
+    id_catalogo: sinope-plug-inteligente
+    categoria: toma
+    area: planta_baja_sala
+    circuito: "12"
+    protocolo: zigbee
+    router: true
+    ieee: CAMBIAR-EN-COMISIONAMIENTO
+
+# =================================================================================================
+# Clima, agua, escenas
+# =================================================================================================
+clima:
+  hora_retroceso: "22:30:00"
+  hora_recuperacion: "06:00:00"
+  horas_ausencia_retroceso: 4
+  limite_antihielo_c: 12
+
+agua:
+  valvula_corte: null          # este cliente no contrato la valvula motorizada
+
+escenas: []
+
+nodos_esphome: []
+
+# =================================================================================================
+# Respaldo
+# =================================================================================================
+respaldo:
+  herramienta: restic
+  hora: "03:15"
+  destino_local: /mnt/respaldo
+  destino_secundario: /mnt/respaldo-secundario
+  destino_externo: null
+  frecuencia_prueba: anual
+
+# =================================================================================================
+# Software y sistema
+# =================================================================================================
+software_desplegado:
+  - home-assistant-os
+  - home-assistant-core
+  - mosquitto
+  - zigbee2mqtt
+  - frigate
+  - go2rtc
+  - wireguard
+  - plano-control-malla
+  - traefik
+  - vaultwarden
+  - restic
+  - nut
+  - uptime-kuma
+
+registro:
+  dias_retencion: 35
+
+inferencia:
+  acelerador_discreto: false
+  tipo_acelerador: null
+  dispositivo_acelerador: null
+
+version_stack: null
+
+mqtt:
+  usuario_homeassistant: homeassistant
+  usuario_zigbee2mqtt: zigbee2mqtt
+  usuario_frigate: frigate

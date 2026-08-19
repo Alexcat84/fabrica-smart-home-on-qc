@@ -1,0 +1,3 @@
+---
+# Rol monitorizacion: tareas.
+# Idempotente por diseno (ADR-006). Se implementa contra el banco de la empresa.

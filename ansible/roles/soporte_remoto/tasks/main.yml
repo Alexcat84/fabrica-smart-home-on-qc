@@ -1,0 +1,70 @@
+---
+# Rol soporte_remoto: los dos scripts que Home Assistant invoca desde el interruptor de soporte.
+#
+# El modelo completo esta en docs/SEGURIDAD.md seccion 4, y la automatizacion en
+# plantillas/homeassistant/packages/sistema.yaml.j2. Este rol solo pone en el anfitrion los dos
+# scripts que levantan y retiran la autorizacion, y el registro que el cliente puede leer.
+#
+# INVARIANTE: no existe credencial permanente de la empresa en el sistema del cliente. El script de
+# habilitar CREA la autorizacion; el de revocar la DESTRUYE. Entre sesiones no queda nada.
+
+- name: Crear el directorio de scripts
+  ansible.builtin.file:
+    path: /config/scripts
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Desplegar el script de habilitar soporte
+  ansible.builtin.template:
+    src: soporte-habilitar.sh.j2
+    dest: /config/scripts/soporte-habilitar.sh
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Desplegar el script de revocar soporte
+  ansible.builtin.template:
+    src: soporte-revocar.sh.j2
+    dest: /config/scripts/soporte-revocar.sh
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Crear el registro de soporte legible por el cliente
+  ansible.builtin.file:
+    path: /config/registro-soporte.log
+    state: touch
+    owner: root
+    group: root
+    mode: "0644"        # legible por el cliente: es su registro, no el nuestro
+    modification_time: preserve
+    access_time: preserve
+
+# Cinturon y tirantes. La automatizacion de Home Assistant ya revoca al reiniciar, pero si el propio
+# Home Assistant no arranca, esta unidad garantiza que la autorizacion no sobrevive al reinicio.
+- name: Desplegar la unidad de revocacion al arranque
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/revocar-soporte-al-arranque.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Revocar el acceso de soporte al arrancar (docs/SEGURIDAD.md seccion 4)
+      After=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/config/scripts/soporte-revocar.sh
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: recargar systemd
+
+- name: Activar la revocacion al arranque
+  ansible.builtin.systemd:
+    name: revocar-soporte-al-arranque.service
+    enabled: true
+    daemon_reload: true

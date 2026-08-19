@@ -1,0 +1,15 @@
+# Inventario de ejemplo.
+#
+# Un archivo por cliente, generado o escrito a mano a partir del archivo de variables. La direccion
+# del controlador siempre es 10.<octeto>.40.10 (plantillas/red/vlans.yaml.j2).
+#
+# ADR-005: sin contrasenas aqui. Acceso por clave, y el usuario se declara sin credencial.
+all:
+  children:
+    controladores:
+      hosts:
+        EJEMPLO-demo:
+          ansible_host: 10.99.40.10
+          ansible_user: despliegue
+          cliente_id: EJEMPLO-demo
+          octeto: 99

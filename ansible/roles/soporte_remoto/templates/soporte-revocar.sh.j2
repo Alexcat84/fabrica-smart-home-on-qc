@@ -1,0 +1,27 @@
+#!/bin/sh
+# Revoca la sesion de soporte.
+# GENERADO por ansible/roles/soporte_remoto. No editar en el anfitrion.
+#
+# Se invoca en CUATRO situaciones, y las cuatro importan:
+#   1. Expiracion del temporizador de dos horas.
+#   2. Cancelacion manual por el propietario.
+#   3. Arranque del sistema (unidad revocar-soporte-al-arranque.service).
+#   4. Cierre normal de la sesion.
+#
+# Es IDEMPOTENTE: revocar algo ya revocado no es un error. Tiene que serlo, porque se ejecuta en
+# cada arranque haya o no sesion abierta.
+set -eu
+
+REGISTRO="{{ registro_soporte }}"
+
+registrar() {
+    printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S %Z')" "$1" >> "$REGISTRO"
+}
+
+{% if plano_control == 'autoalojado' %}
+/usr/local/bin/malla-autorizar-soporte --revocar || true
+{% else %}
+/usr/local/bin/malla-comercial --revocar-soporte || true
+{% endif %}
+
+registrar "ACCESO DE SOPORTE REVOCADO. No hay acceso de la empresa a este sistema."

@@ -1,0 +1,5 @@
+---
+# Rol soporte_remoto: valores por defecto.
+duracion_soporte_horas: 2
+plano_control: autoalojado      # autoalojado | comercial
+registro_soporte: /config/registro-soporte.log
