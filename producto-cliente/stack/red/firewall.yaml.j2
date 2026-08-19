@@ -14,6 +14,32 @@
 #
 # Politica base: denegar. Lo que no esta permitido explicitamente, no pasa.
 #
+# =================================================================================================
+# DOS RUTAS DISTINTAS, Y UNA REGLA EN LA RUTA EQUIVOCADA NO PROTEGE
+# =================================================================================================
+#
+# Este archivo tiene DOS listas, y la diferencia no es organizativa:
+#
+#   `reglas`         RUTA DE REENVIO. Trafico que ATRAVIESA la pasarela para ir de un segmento a
+#                    otro. Es donde viven las reglas entre VLAN.
+#
+#   `reglas_entrada` RUTA DE ENTRADA. Trafico DIRIGIDO A LA PASARELA MISMA: su interfaz de
+#                    administracion, SSH, SNMP, el portal de gestion.
+#
+# El trafico dirigido a la pasarela **no se reenvia**: termina en ella. Por eso se filtra en una
+# ruta distinta, que las reglas de reenvio NO TOCAN. UniFi, Omada y MikroTik se comportan asi.
+#
+# Consecuencia practica, y es la que costo encontrar: una regla de reenvio con destino la IP de la
+# pasarela **no bloquea nada**. Parece que protege el acceso administrativo y no lo toca.
+#
+# Y hay un segundo detalle del mismo tipo: **la pasarela tiene una interfaz en CADA VLAN que
+# sirve**, y todas responden a la misma administracion. Denegar el acceso a `10.<octeto>.10.1` no
+# impide llegar a `10.<octeto>.40.1`, que desde el controlador es literalmente su propia puerta de
+# enlace. Por eso `grupo_gestion` de vlans.yaml enumera la pasarela en todas las VLAN presentes.
+#
+# REGLA GENERAL: una regla protege cuando su destino resuelve a direcciones concretas Y esta en la
+# ruta por la que el trafico pasa de verdad. Lo primero sin lo segundo es cobertura aparente.
+#
 # NOTA SOBRE MANAGEMENT (ADR-009, enmienda de 2026-08-19): en los niveles S y M la VLAN 50 esta
 # plegada dentro de TRUSTED (10), no dentro de Controller.
 #
@@ -46,6 +72,18 @@
 #   Camera        | DENY    | DENY     |   -    | DENY       | DENY
 #   Controller    | DENY    | permitir | permitir |    -     | denegar por defecto
 #   Guest         | DENY    | DENY     | DENY   | DENY       | DENY
+
+{# Las VLAN que este paquete despliega. La pasarela tiene una interfaz en cada una, y todas
+   responden a la misma administracion: por eso las reglas de entrada las enumeran todas. #}
+{% set VLANS = [
+     {'id': 10, 'nombre': 'Trusted'},
+     {'id': 20, 'nombre': 'IoT'},
+     {'id': 30, 'nombre': 'Camera'},
+     {'id': 40, 'nombre': 'Controller'},
+     {'id': 50, 'nombre': 'Management'},
+     {'id': 60, 'nombre': 'Guest'},
+   ] %}
+{% set vlans_presentes = VLANS | selectattr('id', 'in', paquete_def.vlans.presentes) | list %}
 
 politica_por_defecto: denegar
 inspeccion_con_estado: true
@@ -193,17 +231,28 @@ reglas:
       grabacion: darle alcance administrativo sobre la pasarela y los switches convertiria un
       compromiso del grabador en un compromiso de la red entera. La gestion se hace desde el equipo
       administrativo declarado o desde una sesion de soporte, nunca desde el propio controlador.
+    ruta: reenvio
+    nota_ruta: >-
+      Esta regla vive en la ruta de REENVIO y cubre el trafico que atraviesa la pasarela hacia el
+      equipo gestionado: switches, puntos de acceso, interfaz fuera de banda. NO cubre el acceso a
+      la administracion de la pasarela misma, que termina en ella y se filtra en la ruta de entrada.
+      Su companera obligatoria es `entrada_admin_pasarela`, mas abajo. Las dos, o ninguna protege.
     origen: Controller
 {% if 50 in paquete_def.vlans.presentes %}
     destino: Management
     destino_subred: "10.{{ red.octeto }}.50.0/24"
+    # La subred cubre el equipo gestionado de Management. Las interfaces de la pasarela en las OTRAS
+    # VLAN no se reenvian: las cubre `entrada_admin_pasarela`.
 {% else %}
     # Management esta plegada en Trusted. El destino NO puede ser el nombre de un segmento que no
     # existe: apuntaria a nada y la regla daria cobertura aparente. Se apunta al grupo de
     # direcciones materializado en vlans.yaml, que enumera las interfaces de gestion una por una.
     destino: grupo_gestion
+    # Equipo gestionado que SI se alcanza por reenvio: switch, interfaz fuera de banda y puntos de
+    # acceso. Las interfaces de la pasarela NO estan aqui a proposito: no se reenvia hacia ellas,
+    # terminan en el router, y las cubre `entrada_admin_pasarela` en la ruta de entrada. Entre las
+    # dos reglas cubren `grupo_gestion` entero, y hay una prueba que lo comprueba.
     destino_direcciones:
-      - "10.{{ red.octeto }}.10.1"    # pasarela
       - "10.{{ red.octeto }}.10.2"    # switch principal
       - "10.{{ red.octeto }}.10.3"    # interfaz fuera de banda
 {% set n_ap = paquete_def.red.puntos_acceso | default(0, true) or paquete_def.red.puntos_acceso_min | default(0, true) or 1 %}
@@ -295,3 +344,109 @@ reglas:
     accion: permitir_temporal
     duracion_horas: {{ soporte.duracion_horas | default(2) }}
     con_estado: true
+
+# =================================================================================================
+# REGLAS DE ENTRADA
+# =================================================================================================
+# Trafico DIRIGIDO A LA PASARELA MISMA. No se reenvia: termina en ella, y se filtra en esta ruta,
+# que las reglas de arriba no tocan.
+#
+# Esta seccion existe porque sin ella la proteccion del acceso administrativo era aparente. La regla
+# de reenvio `controller_a_management` cubre el camino hacia switches y puntos de acceso; el acceso
+# a la administracion del propio router nunca paso por ahi.
+
+politica_entrada_por_defecto: denegar
+
+reglas_entrada:
+
+  - id: entrada_admin_pasarela
+    descripcion: >-
+      NINGUN segmento alcanza los servicios de administracion de la pasarela. La excepcion es
+      Management cuando existe como VLAN propia, y el equipo administrativo declarado en Trusted
+      cuando Management esta plegada. Se aplica a TODAS las interfaces de la pasarela, no solo a
+      una: tiene una en cada VLAN que sirve y todas responden a la misma administracion.
+    ruta: entrada
+    destino: interfaces_de_la_pasarela
+    destino_direcciones:
+{% for v in vlans_presentes %}
+      - "10.{{ red.octeto }}.{{ v.id }}.1"    # {{ v.nombre }}
+{% endfor %}
+    puertos_administracion: [22, 80, 443, 8443, 161]
+    protocolo: tcp_udp
+    origenes_denegados:
+      - Controller
+      - IoT
+      - Camera
+{% if 60 in paquete_def.vlans.presentes %}
+      - Guest
+{% endif %}
+    accion: denegar
+
+  - id: entrada_admin_pasarela_permitida
+    descripcion: >-
+      Unica via de administracion de la pasarela.
+{% if 50 in paquete_def.vlans.presentes %}
+      Management es VLAN propia: la administracion se hace desde ella.
+{% else %}
+      Management esta plegada: la administracion se hace SOLO desde el equipo administrativo
+      declarado en `red.equipo_administrativo`, no desde cualquier equipo de Trusted. Si ese campo
+      esta sin declarar, no hay via permitida y la administracion se hace por consola fisica, que es
+      el estado correcto mientras nadie decida lo contrario.
+{% endif %}
+    ruta: entrada
+    destino: interfaces_de_la_pasarela
+    puertos_administracion: [22, 443, 8443]
+    protocolo: tcp
+{% if 50 in paquete_def.vlans.presentes %}
+    origen_permitido: Management
+    origen_subred: "10.{{ red.octeto }}.50.0/24"
+{% else %}
+    origen_permitido: equipo_administrativo
+    origen_direccion: "{{ red.equipo_administrativo | default('ninguno declarado', true) }}"
+{% endif %}
+    accion: permitir
+    con_estado: true
+
+  - id: entrada_dns_dhcp
+    descripcion: >-
+      La pasarela sigue sirviendo DNS y DHCP a los segmentos que lo necesitan. Son servicios de red,
+      no administracion, y bloquearlos por error deja la instalacion sin resolver nombres. Se
+      declaran aparte para que nadie los meta en la regla de administracion ni al reves.
+    ruta: entrada
+    destino: interfaces_de_la_pasarela
+    puertos: [53, 67]
+    protocolo: tcp_udp
+    origenes_permitidos:
+      - Trusted
+      - IoT
+      - Controller
+{% if 60 in paquete_def.vlans.presentes %}
+      - Guest
+{% endif %}
+    accion: permitir
+    con_estado: true
+    nota: >-
+      Camera NO esta en la lista: su segmento no tiene salida y su hora la sirve el servidor local
+      del propio segmento (cap. 7.4.2). Si una camara pidiera DNS, es que algo esta mal configurado.
+
+  - id: entrada_sin_administracion_desde_internet
+    descripcion: >-
+      Gestion remota de la pasarela desde internet, deshabilitada. Es el punto 7 del checklist de
+      endurecimiento y se comprueba con el escaneo externo de la puesta en servicio.
+    ruta: entrada
+    origen: internet
+    destino: interfaces_de_la_pasarela
+    accion: denegar
+
+# -------------------------------------------------------------------------------------------------
+# Comprobacion en obra
+# -------------------------------------------------------------------------------------------------
+# Desde el anfitrion del controlador, intentar abrir la administracion de la pasarela por CADA una
+# de sus direcciones. El resultado esperado es FALLO EN TODAS, no solo en la primera:
+#
+{% for v in vlans_presentes %}
+#   curl -sS --max-time 5 https://10.{{ red.octeto }}.{{ v.id }}.1/    # {{ v.nombre }}  -> debe fallar
+{% endfor %}
+#
+# Consta como prueba del acta de aceptacion. Probar solo una direccion es exactamente el error que
+# esta seccion corrige.

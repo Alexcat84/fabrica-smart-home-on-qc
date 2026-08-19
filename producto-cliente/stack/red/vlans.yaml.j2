@@ -14,6 +14,17 @@
 # Es una disciplina pequena que evita una clase de fallo real y muy confusa.
 # `generador/validar.py` rechaza un octeto repetido o fuera de rango.
 
+{# Las VLAN que este paquete despliega. Se usa para enumerar las interfaces de la pasarela: tiene
+   una en cada red que sirve, y todas responden a la misma administracion. #}
+{% set VLANS = [
+     {'id': 10, 'nombre': 'Trusted'},
+     {'id': 20, 'nombre': 'IoT'},
+     {'id': 30, 'nombre': 'Camera'},
+     {'id': 40, 'nombre': 'Controller'},
+     {'id': 50, 'nombre': 'Management'},
+     {'id': 60, 'nombre': 'Guest'},
+   ] %}
+{% set vlans_presentes = VLANS | selectattr('id', 'in', paquete_def.vlans.presentes) | list %}
 octeto: {{ red.octeto }}
 dominio_local: {{ red.dominio_local }}
 zona_horaria: {{ red.zona_horaria }}
@@ -146,25 +157,21 @@ ntp_camaras:
 # Grupo de direcciones de gestion
 # -------------------------------------------------------------------------------------------------
 # Existe SIEMPRE, este Management separada o plegada, para que las reglas del cortafuegos tengan un
-# destino concreto en los dos casos. Cuando la VLAN esta separada, coincide con su subred; cuando
-# esta plegada, son direcciones sueltas dentro de la VLAN receptora.
+# destino concreto en los dos casos.
+#
+# LA PASARELA TIENE UNA INTERFAZ EN CADA VLAN QUE SIRVE, y todas son la misma administracion.
+# Enumerar solo su direccion en la VLAN receptora cubria una puerta y dejaba las demas abiertas: el
+# controlador, en 10.<octeto>.40.x, tiene la administracion de la pasarela en 10.<octeto>.40.1, que
+# es literalmente su propia puerta de enlace. Por eso los miembros se generan recorriendo las VLAN
+# PRESENTES y tomando su gateway, y no a mano.
 grupo_gestion:
 {% if 50 in paquete_def.vlans.presentes %}
-  tipo: subred
-  subred: "10.{{ red.octeto }}.50.0/24"
+  tipo: mixto
+  subred_management: "10.{{ red.octeto }}.50.0/24"
   nota: >-
-    Management es VLAN propia en este nivel: el grupo es la subred entera.
-  miembros:
-    - nombre: pasarela
-      ip: "10.{{ red.octeto }}.50.1"
-    - nombre: switch_principal
-      ip: "10.{{ red.octeto }}.50.2"
-{# `default(x, true)`: XL declara `puntos_acceso: null` y el default normal no sustituye None. #}
-{% set n_ap = paquete_def.red.puntos_acceso_min | default(0, true) or paquete_def.red.puntos_acceso | default(0, true) or 4 %}
-{% for i in range(n_ap) %}
-    - nombre: punto_acceso_{{ i + 1 }}
-      ip: "10.{{ red.octeto }}.50.{{ 10 + i }}"
-{% endfor %}
+    Management es VLAN propia en este nivel. Aun asi el grupo enumera tambien las interfaces de la
+    pasarela en las demas VLAN: tener un segmento de gestion separado no quita que el router siga
+    teniendo una pata en cada red que sirve, y esa pata responde a la administracion igual.
 {% else %}
   tipo: direcciones
   vlan_receptora: 10
@@ -172,16 +179,48 @@ grupo_gestion:
     Management plegada en Trusted. Estas son las interfaces de gestion que la regla
     `controller_a_management` tiene que poder nombrar. Se les reserva direccion FIJA en la parte
     baja del rango de Trusted, fuera del rango DHCP, para que el grupo no dependa de una concesion.
+{% endif %}
   miembros:
-    - nombre: pasarela
-      ip: "10.{{ red.octeto }}.10.1"
+    # --- Interfaces de la pasarela, UNA POR CADA VLAN PRESENTE ---
+    # Todas son la misma administracion vista desde redes distintas.
+{% for v in vlans_presentes %}
+    - nombre: pasarela_vlan_{{ v.id }}
+      ip: "10.{{ red.octeto }}.{{ v.id }}.1"
+      rol: interfaz_de_pasarela
+      vlan: {{ v.id }}
+{% endfor %}
+{% if 50 in paquete_def.vlans.presentes %}
+    # --- Resto de equipo gestionado, en la VLAN Management ---
+    - nombre: switch_principal
+      ip: "10.{{ red.octeto }}.50.2"
+      rol: switch
+      vlan: 50
+    - nombre: interfaz_fuera_de_banda
+      ip: "10.{{ red.octeto }}.50.3"
+      rol: fuera_de_banda
+      vlan: 50
+{% set n_ap = paquete_def.red.puntos_acceso_min | default(0, true) or paquete_def.red.puntos_acceso | default(0, true) or 4 %}
+{% for i in range(n_ap) %}
+    - nombre: punto_acceso_{{ i + 1 }}
+      ip: "10.{{ red.octeto }}.50.{{ 10 + i }}"
+      rol: punto_acceso
+      vlan: 50
+{% endfor %}
+{% else %}
+    # --- Resto de equipo gestionado, con direccion fija en la VLAN receptora ---
     - nombre: switch_principal
       ip: "10.{{ red.octeto }}.10.2"
+      rol: switch
+      vlan: 10
+    - nombre: interfaz_fuera_de_banda
+      ip: "10.{{ red.octeto }}.10.3"
+      rol: fuera_de_banda
+      vlan: 10
 {% set n_ap = paquete_def.red.puntos_acceso | default(0, true) or paquete_def.red.puntos_acceso_min | default(0, true) or 1 %}
 {% for i in range(n_ap) %}
     - nombre: punto_acceso_{{ i + 1 }}
       ip: "10.{{ red.octeto }}.10.{{ 10 + i }}"
+      rol: punto_acceso
+      vlan: 10
 {% endfor %}
-    - nombre: interfaz_fuera_de_banda
-      ip: "10.{{ red.octeto }}.10.3"
 {% endif %}

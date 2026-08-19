@@ -29,8 +29,9 @@ Se aplica en cada instalacion y se firma en el comisionamiento. Marcar por evide
 | 11 | Puertos de switch sin uso deshabilitados administrativamente | Configuracion del switch | Exportacion |
 | 12 | Registro activo en pasarela y controlador, con retencion definida | Configuracion | Captura |
 | 13 | **Escaneo externo de vulnerabilidades de la direccion publica del cliente**, con resultado limpio adjunto al acta de aceptacion | Escaneo desde fuera de la red del cliente | Informe del escaneo |
+| 14 | **Acceso de administracion por interfaz desactivado en la pasarela, los switches y los puntos de acceso, en TODAS las interfaces salvo la prevista** | Ver seccion 5.1 | Lista por equipo, mas la prueba desde el controlador |
 
-El punto 13 no es opcional y no se sustituye por "revisamos la configuracion de la pasarela". El
+Los puntos 13 y 14 no son opcionales y no se sustituye por "revisamos la configuracion de la pasarela". El
 escaneo externo es la unica comprobacion que demuestra lo que un atacante ve de verdad.
 
 ---
@@ -144,6 +145,42 @@ La matriz direccional completa esta en `producto-cliente/stack/red/firewall.yaml
 abre la conexion hacia la camara; la camara no puede abrir una conexion hacia nada. Una regla escrita
 simplemente como "bloquear la VLAN de camaras" **no** es equivalente: o rompe la grabacion, o deja
 abierta la via de retorno. En el as-built se documentan como direccionales.
+
+### 5.1 Acceso de administracion por interfaz: la pasarela tiene mas de una puerta
+
+Dos cosas que parecen detalle y no lo son.
+
+**La pasarela tiene una interfaz en CADA VLAN que sirve.** En una instalacion de seis segmentos, el
+router responde en `10.x.10.1`, `10.x.20.1`, `10.x.30.1`, `10.x.40.1`, `10.x.50.1` y `10.x.60.1`, y
+**todas son la misma administracion**. Denegar el acceso a una deja abiertas las otras cinco. Desde
+el anfitrion del controlador, la administracion del router esta en `10.x.40.1`, que es literalmente
+su propia puerta de enlace.
+
+**El trafico dirigido a la pasarela no se reenvia: termina en ella**, y se filtra en una ruta
+distinta de la de reenvio. UniFi, Omada y MikroTik se comportan asi. Una regla entre VLAN con
+destino la IP del router **no bloquea nada**: parece que protege el acceso administrativo y no lo
+toca.
+
+De ahi salen dos obligaciones:
+
+1. **Desactivar el acceso de administracion por interfaz** en la pasarela, los switches y los puntos
+   de acceso, **en todas las interfaces salvo la prevista**. Es configuracion del equipo, no del
+   cortafuegos, y es lo que cierra la puerta de verdad.
+2. **Escribir la regla en la ruta de entrada**, no solo en la de reenvio. La matriz de
+   `producto-cliente/stack/red/firewall.yaml.j2` tiene las dos listas separadas y explicadas.
+
+**Prueba verificable en obra**, que consta en el acta de aceptacion: desde el anfitrion del
+controlador, intentar abrir la administracion de la pasarela por **cada una** de sus direcciones. El
+resultado esperado es **fallo en todas**, no solo en la primera.
+
+```bash
+# Una linea por VLAN presente. Todas deben fallar.
+for v in 10 20 30 40 50 60; do
+    curl -sS --max-time 5 "https://10.<octeto>.$v.1/" && echo "FALLO DE SEGURIDAD: VLAN $v responde"
+done
+```
+
+Probar solo una direccion es exactamente el error que este punto corrige.
 
 ### Consecuencias practicas del segmento de camaras aislado
 
