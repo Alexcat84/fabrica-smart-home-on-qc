@@ -1,3 +1,236 @@
-# excluidos - se puebla en la Fase 1 (catalogo e inventario).
-# Reglas aplicables: ADR-001, ADR-002, ADR-003 en docs/DECISIONES.md
+# Registro de exclusion
+#
+# Documento vivo. Un dispositivo o una categoria entra aqui cuando incumple una regla de seleccion,
+# con el motivo registrado, para que la misma evaluacion no se repita nunca mas. Este archivo existe
+# para que un tecnico que encuentre un producto barato y capaz en un foro pueda comprobar en diez
+# segundos si ya fue rechazado y por que.
+#
+# Los dispositivos rechazados suelen ser mas baratos, populares en la comunidad de aficionados y
+# tecnicamente capaces. Esa no es la cuestion. Instalarlos en una caja electrica canadiense expone al
+# cliente a una falla de inspeccion y a una denegacion de seguro, y al instalador a la responsabilidad
+# resultante. Es una categoria donde la decision correcta cuesta dinero y hay que preciarla.
+#
+# Fuente de siembra: prompt de arranque, seccion 1.2, y cap. 6.17 del plan de negocio.
+#
+# Esquema:
+#   id, que, tipo (dispositivo | categoria | practica), motivo, regla_violada,
+#   alternativa_aprobada, reevaluable_si, fuente_url, verificado
 ---
+
+- id: sonoff-zbminil2
+  que: Sonoff ZBMINIL2
+  tipo: dispositivo
+  motivo: >-
+    Sin certificacion canadiense confirmada para instalacion fija. Aparece constantemente en disenos
+    de borrador por precio y por tamano, y no puede arrastrarse al diseno final.
+  regla_violada: ADR-002
+  alternativa_aprobada: [inovelli-micromodulo, shelly-modulo-na, rele-din-certificado]
+  reevaluable_si: >-
+    El fabricante publica un SKU norteamericano con marca cULus, cETL o CSA visible en la unidad
+    fisica, verificada en recepcion.
+  fuente_url: null
+  verificado: false
+
+- id: aqara-modulos-rele
+  que: Modulos de rele Aqara
+  tipo: dispositivo
+  motivo: >-
+    Sin certificacion canadiense confirmada para instalacion fija en caja electrica.
+  regla_violada: ADR-002
+  alternativa_aprobada: [inovelli-micromodulo, shelly-modulo-na]
+  reevaluable_si: >-
+    Existe SKU norteamericano certificado y disponible por canal canadiense.
+  fuente_url: null
+  verificado: false
+
+- id: rele-solo-marcado-ce
+  que: Cualquier rele o micromodulo con marcado CE unicamente
+  tipo: categoria
+  motivo: >-
+    El marcado europeo CE no es equivalente a la certificacion canadiense y no es aceptable bajo el
+    Codigo Electrico Canadiense. La equivalencia tecnica es irrelevante frente al inspector y frente
+    a la aseguradora.
+  regla_violada: ADR-002
+  alternativa_aprobada: [inovelli-micromodulo, shelly-modulo-na, rele-din-certificado]
+  reevaluable_si: >-
+    Nunca por si mismo. Solo entra el SKU norteamericano equivalente, con marca verificada en la
+    unidad fisica.
+  fuente_url: null
+  verificado: false
+
+- id: sku-europeos-de-marcas-aprobadas
+  que: SKU europeos de marcas por lo demas aprobadas
+  tipo: categoria
+  motivo: >-
+    Certificacion incorrecta y supuestos de tension y frecuencia incorrectos. El mismo nombre
+    comercial se envia con certificacion distinta segun el mercado de destino, asi que la marca no
+    basta: hay que verificar el SKU.
+  regla_violada: ADR-002
+  alternativa_aprobada: []
+  reevaluable_si: >-
+    No aplica. Se compra el SKU norteamericano de la misma marca.
+  fuente_url: null
+  verificado: false
+
+- id: dispositivo-con-cuenta-de-nube-obligatoria
+  que: Cualquier dispositivo que exija cuenta de fabricante en la nube para operar
+  tipo: categoria
+  motivo: >-
+    Destruye la propuesta de valor completa. Un dispositivo que necesita autenticacion en la nube para
+    cambiar de estado queda descalificado sin importar precio ni prestaciones. Ademas convierte al
+    fabricante en punto unico de fallo de una casa que el cliente cree autonoma.
+  regla_violada: ADR-003
+  alternativa_aprobada: []
+  reevaluable_si: >-
+    El fabricante documenta y soporta una interfaz local completa que no requiere cuenta, y se
+    verifica desconectando la propiedad de internet durante la prueba de aceptacion.
+  fuente_url: null
+  verificado: false
+
+- id: camara-exterior-consumo-plastico
+  que: Camaras exteriores de cuerpo plastico de gama consumidor
+  tipo: categoria
+  motivo: >-
+    Falla en clima frio, sin PoE y con soporte RTSP debil. En el clima de Ottawa y Gatineau el
+    fallo no es hipotetico: aparece el primer invierno y la sustitucion la paga la empresa.
+  regla_violada: ADR-003 y criterios de seleccion de camara (cap. 6.10.1)
+  alternativa_aprobada: [ubiquiti-unifi-protect-camara, reolink-poe-camara, axis-camara, hanwha-camara]
+  reevaluable_si: >-
+    Nunca para exterior fijo. Envolvente metalica, IP66 o mejor y rango de operacion hasta al menos
+    treinta grados bajo cero son requisitos, no preferencias.
+  fuente_url: null
+  verificado: false
+
+- id: camara-linaje-restringido
+  que: Camaras con linaje de cadena de suministro restringido o poco claro
+  tipo: categoria
+  motivo: >-
+    Inaceptable para el segmento principal de clientes de la Region de la Capital Nacional, que
+    incluye funcionariado federal y hogares vinculados a la cadena de suministro de defensa. Varias
+    marcas norteamericanas de amplia venta son reetiquetadas de fabricantes cuya posicion en Canada ha
+    sido objeto de accion gubernamental. Se mantiene fuera del catalogo en lugar de gestionarlo caso
+    por caso.
+  regla_violada: politica comercial (cap. 6.10.2)
+  alternativa_aprobada: [axis-camara, hanwha-camara, ubiquiti-unifi-protect-camara]
+  reevaluable_si: >-
+    Verificar el estado vigente antes de publicar cualquier afirmacion sobre una marca concreta.
+    Politica practica: mantener al menos una linea de camara con linaje claramente no restringido,
+    divulgar el linaje abiertamente cuando el cliente pregunte, y no presentar jamas una unidad
+    reetiquetada como producto domestico.
+  fuente_url: null
+  verificado: false
+
+- id: atenuador-sobre-motor-de-ventilador
+  que: Atenuadores de iluminacion aplicados a motores de ventilador
+  tipo: practica
+  motivo: >-
+    Riesgo de incendio y de falla del motor. Es un error de instalador frecuente, no una eleccion de
+    diseno. Los ventiladores de techo exigen control de velocidad con clasificacion para motor o un
+    rele simple de encendido y apagado.
+  regla_violada: ADR-004 y regla de seguridad del cap. 6.6
+  alternativa_aprobada: [control-ventilador-lutron, control-ventilador-leviton, control-ventilador-inovelli]
+  reevaluable_si: >-
+    Nunca.
+  fuente_url: null
+  verificado: false
+
+- id: ssd-consumo-para-video-continuo
+  que: SSD de consumo para grabacion continua de video
+  tipo: categoria
+  motivo: >-
+    Agotamiento de escritura. Fallan sin aviso previo, que es el peor modo de falla posible en un
+    grabador: el cliente descubre que no hay grabacion el dia que la necesita.
+  regla_violada: criterio de plataforma de grabacion (cap. 6.11)
+  alternativa_aprobada: [wd-purple-vigilancia, seagate-skyhawk-vigilancia]
+  reevaluable_si: >-
+    No aplica al video. El NVMe de consumo si es correcto para sistema operativo, base de datos y
+    configuracion, que es su uso en este diseno.
+  fuente_url: null
+  verificado: false
+
+- id: lampara-inteligente-como-control-principal
+  que: Lampara inteligente como metodo principal de control de un circuito
+  tipo: practica
+  motivo: >-
+    Incumple la regla de respaldo mecanico: si alguien apaga el interruptor de pared, la lampara queda
+    inalcanzable y el cliente concluye que el sistema esta roto. El control se hace en el circuito, en
+    el interruptor.
+  regla_violada: regla de seleccion 5 (respaldo mecanico, cap. 6.1)
+  alternativa_aprobada: [leviton-decora-smart-interruptor, inovelli-blue-2-1, sinope-interruptor-atenuador]
+  reevaluable_si: >-
+    Se admite lampara inteligente solo para color o temperatura de color, o cuando no hay neutro ni
+    espacio para modulo. Siempre como acento, nunca como control principal.
+  fuente_url: null
+  verificado: false
+
+- id: dispositivo-wifi-bateria
+  que: Sensores de bateria sobre Wi-Fi
+  tipo: categoria
+  motivo: >-
+    Autonomia inaceptable y carga de soporte permanente. El Wi-Fi se admite solo para un numero
+    reducido de modulos de rele en un segmento aislado dedicado.
+  regla_violada: estrategia de protocolo (cap. 6.2)
+  alternativa_aprobada: [contacto-puerta-ventana-zigbee, sensor-movimiento-pir, contacto-puerta-ventana-cableado]
+  reevaluable_si: >-
+    Nunca para bateria.
+  fuente_url: null
+  verificado: false
+
+- id: hubs-multiples-competidores
+  que: Varios concentradores propietarios competidores en la misma propiedad
+  tipo: practica
+  motivo: >-
+    Cada ecosistema de radio adicional multiplica la carga de soporte sin anadir capacidad. Una red
+    Zigbee por propiedad, un coordinador, colocado centralmente y lejos del rack.
+  regla_violada: regla de diseno de protocolo (cap. 6.2)
+  alternativa_aprobada: [coordinador-zigbee-ethernet]
+  reevaluable_si: >-
+    Z-Wave se anade solo cuando un dispositivo concreto lo exige y se documenta el motivo.
+  fuente_url: null
+  verificado: false
+
+- id: cualquier-funcion-de-seguridad-de-vida
+  que: >-
+    Deteccion de incendio, humo, gas o monoxido de carbono; alerta medica; alarma de intrusion
+    monitoreada; enclavamientos de ventilacion exigidos por codigo; controles internos de caldera o
+    de combustion
+  tipo: categoria
+  motivo: >-
+    Fuera de alcance de forma absoluta. Los sistemas de seguridad de vida en Canada se rigen por
+    normas separadas, exigen tecnicos certificados aparte y acarrean una exposicion legal que una
+    integradora pequena no puede absorber. Los detectores de humo y monoxido interconectados exigidos
+    por codigo quedan intactos y en sus circuitos originales: no se instala rele, atenuador ni modulo
+    alguno en un circuito compartido con ellos.
+  regla_violada: ADR-004
+  alternativa_aprobada: []
+  reevaluable_si: >-
+    Nunca dentro de este repositorio ni de esta linea de negocio.
+  fuente_url: null
+  verificado: false
+
+- id: patron-temporal-tres-en-sirena
+  que: Patron de sonido temporal-tres en cualquier sirena del sistema
+  tipo: practica
+  motivo: >-
+    El patron temporal-tres esta reservado a la senalizacion de evacuacion. Usarlo en un dispositivo
+    disuasorio induce a error en una emergencia real y contradice la declaracion de alcance firmada
+    por el cliente.
+  regla_violada: ADR-004
+  alternativa_aprobada: [sirena-interior-zigbee, sirena-estrobo-exterior]
+  reevaluable_si: >-
+    Nunca.
+  fuente_url: null
+  verificado: false
+
+- id: gestion-de-red-desde-nube-obligatoria
+  que: Controladores de red que exigen gestion desde la nube del fabricante
+  tipo: categoria
+  motivo: >-
+    Un cortafuegos que depende de un servicio externo para aplicar politica contradice la segmentacion
+    que sostiene toda la promesa de soberania, y anade un tercero con acceso a la topologia de la casa.
+  regla_violada: ADR-003
+  alternativa_aprobada: [unifi-gateway, omada-gateway]
+  reevaluable_si: >-
+    El fabricante ofrece controlador autoalojado con paridad de funciones y sin cuenta obligatoria.
+  fuente_url: null
+  verificado: false

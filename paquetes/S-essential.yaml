@@ -1,2 +1,78 @@
-# Paquete S-essential - se puebla en la Fase 1 desde el capitulo 8.1 del plan de negocio.
+# Paquete S - Essential
+#
+# Fuente: cap. 8.1 (definicion de paquetes), 8.2.1 (direccionamiento), 8.3.2 (internet minimo) y
+# 8.5 (requisitos electricos del rack) del plan de negocio.
+#
+# ADR-001: los valores de proyecto son INDICATIVOS y hay que reconstruirlos desde el precio real de
+# distribuidor en cuanto las cuentas esten abiertas. No se cotiza con ellos.
 ---
+id: S
+nombre: Essential
+propiedad_objetivo: Condominio, casa adosada o bungalow pequeno
+
+capacidad:
+  dispositivos_automatizados_max: 25
+  camaras_min: 2
+  camaras_max: 3
+  resolucion_camaras: 2K
+
+retencion:
+  continua_dias: 7
+  eventos_dias: 30
+  politica: hibrida    # continua corta mas eventos larga; reduce el almacenamiento entre un medio y dos tercios
+
+controlador:
+  tipo: micro escritorio empresarial reacondicionado
+  ram_gb_min: 16
+  ram_gb_max: 16
+  candidatos: [dell-optiplex-micro-reacondicionado, lenovo-thinkcentre-tiny-reacondicionado, hp-elitedesk-mini-reacondicionado]
+  inferencia: grafica Intel integrada (OpenVINO)
+
+almacenamiento:
+  nvme_sistema_gb: 250
+  vigilancia_tb: 4
+  redundancia: ninguna
+  candidatos: [nvme-sistema, wd-purple-vigilancia, seagate-skyhawk-vigilancia]
+  notas: >-
+    La capacidad se verifica con herramientas/calc_almacenamiento.py contra la retencion y el bitrate
+    reales del cliente. Esta cifra es el punto de partida del dimensionado, no el resultado.
+
+red:
+  gateway: 1
+  switch_poe_puertos: 8
+  puntos_acceso: 1
+  candidatos: [unifi-gateway, omada-gateway, switch-poe-plus-8, punto-acceso-wifi]
+  patch_panel_obligatorio: false   # unico nivel donde se admite terminar directo en el switch
+
+energia:
+  ups_va: 1000
+  ups_camaras_dedicado: false
+  circuito_dedicado_rack: false
+  candidatos: [ups-cyberpower-senoidal, ups-apc-senoidal]
+  carga_rack_w_min: 60
+  carga_rack_w_max: 120
+
+vlans:
+  cantidad: 4
+  presentes: [10, 20, 30, 40]
+  ausentes: [50, 60]
+  notas: >-
+    Management (50) se pliega dentro de Controller (40) en este nivel. Guest (60) no se despliega.
+
+internet_minimo:
+  bajada_mbps: 25
+  subida_mbps: 5
+  motivo: Un sub-stream remoto simultaneo mas el uso domestico normal.
+
+esfuerzo:
+  instalacion_dias_min: 2
+  instalacion_dias_max: 3
+
+comercial:
+  valor_proyecto_cad_min: 3500
+  valor_proyecto_cad_max: 6000
+  plan_cuidado_cad_mes: 30
+  verificado: false
+  notas: >-
+    Indicativo. El hardware representa entre el 40 y el 50 por ciento del valor del proyecto en todos
+    los niveles; el resto es mano de obra, programacion, puesta en servicio y documentacion.
